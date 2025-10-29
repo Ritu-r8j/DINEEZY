@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Edit, Clock, MapPin, SortAsc, Heart, Share2, Info, Shield, Leaf, Zap, Flame, ChevronDown, Loader2 } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Edit, Clock, MapPin, SortAsc, Heart, Share2, Info, Shield, Leaf, Zap, Flame, ChevronDown, Loader2, Filter } from 'lucide-react';
 import Link from 'next/link';
 import { getAllRestaurants, getAllMenuItems, getFilteredMenuItems, getMenuItemsRatings, RestaurantSettings, MenuItem as FirebaseMenuItem, getRestaurantRating}  from '@/app/(utils)/firebaseOperations';
 import { useRouter } from 'next/navigation';

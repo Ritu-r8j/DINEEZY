@@ -31,6 +31,20 @@ interface TierStatus {
   pointsToNext: number;
 }
 
+interface TierStyle {
+  badgeBg: string;
+  badgeText: string;
+  pillBg: string;
+  pillText: string;
+  accentBorder: string;
+  progressFill: string;
+  text: string;
+  mutedText: string;
+  highlight: string;
+  avatarBg: string;
+  cardShadow: string;
+}
+
 const TIER_DEFINITIONS: TierDefinition[] = [
   { name: 'Bronze', minPoints: 0 },
   { name: 'Silver', minPoints: 200 },
@@ -38,42 +52,58 @@ const TIER_DEFINITIONS: TierDefinition[] = [
   { name: 'Platinum', minPoints: 1000 }
 ];
 
-const TIER_STYLE_MAP: Record<string, { gradient: string; badgeBg: string; badgeText: string; pillBg: string; pillText: string; accentBorder: string; progressFill: string; }> = {
+const TIER_STYLE_MAP: Record<string, TierStyle> = {
   Bronze: {
-    gradient: 'from-[#3f2b1a] via-[#221b14] to-[#15100c]',
-    badgeBg: 'bg-[#4c3827]/80',
-    badgeText: 'text-[#f6d6a6]',
-    pillBg: 'bg-[#5a422f]/80',
-    pillText: 'text-[#f6d6a6]',
-    accentBorder: 'border-[#f6d6a6]/20',
-    progressFill: 'bg-[#f6d6a6]'
+    badgeBg: 'bg-amber-100/90 dark:bg-amber-500/20',
+    badgeText: 'text-amber-800 dark:text-amber-100',
+    pillBg: 'bg-amber-200/90 dark:bg-amber-500/10',
+    pillText: 'text-amber-900 dark:text-amber-100',
+    accentBorder: 'border-amber-200/80 dark:border-amber-500/25',
+    progressFill: 'bg-amber-500 dark:bg-amber-300',
+    text: 'text-slate-900 dark:text-white',
+    mutedText: 'text-slate-600 dark:text-slate-200/70',
+    highlight: 'text-amber-800 dark:text-amber-200',
+    avatarBg: 'bg-white/80 dark:bg-white/15',
+    cardShadow: 'shadow-[0_18px_45px_-26px_rgba(217,119,6,0.45)]'
   },
   Silver: {
-    gradient: 'from-[#3b3f47] via-[#21252d] to-[#141920]',
-    badgeBg: 'bg-[#4b505c]/80',
-    badgeText: 'text-[#e5ecff]',
-    pillBg: 'bg-[#5c6270]/80',
-    pillText: 'text-[#e5ecff]',
-    accentBorder: 'border-[#e5ecff]/20',
-    progressFill: 'bg-[#e5ecff]'
+    badgeBg: 'bg-zinc-100/90 dark:bg-zinc-500/20',
+    badgeText: 'text-zinc-700 dark:text-zinc-100',
+    pillBg: 'bg-zinc-200/90 dark:bg-zinc-400/10',
+    pillText: 'text-zinc-800 dark:text-zinc-100',
+    accentBorder: 'border-zinc-200/80 dark:border-zinc-400/30',
+    progressFill: 'bg-zinc-500 dark:bg-zinc-300',
+    text: 'text-slate-900 dark:text-white',
+    mutedText: 'text-slate-600 dark:text-slate-200/70',
+    highlight: 'text-zinc-700 dark:text-zinc-200',
+    avatarBg: 'bg-white/80 dark:bg-white/15',
+    cardShadow: 'shadow-[0_18px_45px_-26px_rgba(113,113,122,0.45)]'
   },
   Gold: {
-    gradient: 'from-[#4f3716] via-[#2a1f10] to-[#140d05]',
-    badgeBg: 'bg-[#66451b]/80',
-    badgeText: 'text-[#ffe9b0]',
-    pillBg: 'bg-[#7b5722]/80',
-    pillText: 'text-[#ffe9b0]',
-    accentBorder: 'border-[#ffe9b0]/25',
-    progressFill: 'bg-[#ffe9b0]'
+    badgeBg: 'bg-yellow-100/90 dark:bg-yellow-500/20',
+    badgeText: 'text-yellow-800 dark:text-yellow-100',
+    pillBg: 'bg-yellow-200/90 dark:bg-yellow-500/10',
+    pillText: 'text-yellow-900 dark:text-yellow-100',
+    accentBorder: 'border-yellow-200/80 dark:border-yellow-500/30',
+    progressFill: 'bg-yellow-500 dark:bg-yellow-300',
+    text: 'text-slate-900 dark:text-white',
+    mutedText: 'text-slate-600 dark:text-slate-200/70',
+    highlight: 'text-yellow-800 dark:text-yellow-200',
+    avatarBg: 'bg-white/80 dark:bg-white/15',
+    cardShadow: 'shadow-[0_18px_45px_-26px_rgba(202,138,4,0.45)]'
   },
   Platinum: {
-    gradient: 'from-[#3d3d47] via-[#1f1f28] to-[#101017]',
-    badgeBg: 'bg-[#4f4f58]/80',
-    badgeText: 'text-[#dde2ff]',
-    pillBg: 'bg-[#616170]/80',
-    pillText: 'text-[#dde2ff]',
-    accentBorder: 'border-[#dde2ff]/25',
-    progressFill: 'bg-[#dde2ff]'
+    badgeBg: 'bg-indigo-100/90 dark:bg-indigo-500/20',
+    badgeText: 'text-indigo-800 dark:text-indigo-100',
+    pillBg: 'bg-indigo-200/90 dark:bg-indigo-500/10',
+    pillText: 'text-indigo-900 dark:text-indigo-100',
+    accentBorder: 'border-indigo-200/80 dark:border-indigo-500/25',
+    progressFill: 'bg-indigo-500 dark:bg-indigo-300',
+    text: 'text-slate-900 dark:text-white',
+    mutedText: 'text-slate-600 dark:text-slate-200/70',
+    highlight: 'text-indigo-800 dark:text-indigo-200',
+    avatarBg: 'bg-white/80 dark:bg-white/15',
+    cardShadow: 'shadow-[0_18px_45px_-26px_rgba(99,102,241,0.4)]'
   }
 };
 
@@ -844,20 +874,20 @@ export default function ProfilePage() {
           {/* Loyalty & Rewards */}
           <div
             className={
-              `relative overflow-hidden rounded-3xl border ${tierStyles.accentBorder} bg-gradient-to-br ${tierStyles.gradient} p-6 text-white shadow-lg transition hover:shadow-xl`
+              `relative overflow-hidden rounded-3xl border ${tierStyles.accentBorder} ${tierStyles.cardShadow} bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] p-6 transition hover:shadow-2xl dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 ${tierStyles.text}`
             }
           >
             <div
-              className="pointer-events-none absolute inset-0 opacity-30"
+              className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-25"
               style={{
                 backgroundImage:
-                  'radial-gradient(circle at 12% 20%, rgba(255,255,255,0.25), transparent 45%), radial-gradient(circle at 85% 0%, rgba(255,255,255,0.18), transparent 55%)'
+                  'radial-gradient(circle at 18% 20%, rgba(184,220,255,0.45), transparent 55%), radial-gradient(circle at 82% 3%, rgba(229,192,255,0.4), transparent 60%)'
               }}
             />
             <div className="relative z-10 space-y-5">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15 text-2xl font-semibold uppercase">
+                  <div className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl font-semibold uppercase ${tierStyles.avatarBg} ${tierStyles.highlight}`}>
                     {userInitial}
                   </div>
                   <div>
@@ -865,16 +895,16 @@ export default function ProfilePage() {
                     <button
                       type="button"
                       onClick={() => router.push('/user/orders')}
-                      className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-white/80 hover:text-white"
+                      className={`mt-1 inline-flex items-center gap-1 text-xs font-medium transition ${tierStyles.highlight} hover:opacity-80`}
                     >
                       View activity
-                      <ArrowUpRight className="h-3.5 w-3.5" />
+                      <ArrowUpRight className={`h-3.5 w-3.5 ${tierStyles.highlight}`} />
                     </button>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2 text-xs font-semibold">
                   <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 uppercase tracking-wide ${tierStyles.badgeBg} ${tierStyles.badgeText}`}>
-                    <Crown className="h-4 w-4" />
+                    <Crown className={`h-4 w-4 ${tierStyles.badgeText}`} />
                     {tierStatus.current.name} member
                   </span>
                   <button
@@ -882,19 +912,19 @@ export default function ProfilePage() {
                     onClick={() => router.push('/user/orders')}
                     className={`group inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium transition ${tierStyles.pillBg} ${tierStyles.pillText}`}
                   >
-                    saved ₹{Math.max(Math.round(totalSavings), 0)}
-                    <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                    saved ₹{Math.max(Math.round(totalSavings), 0).toLocaleString('en-IN')}
+                    <ChevronRight className={`h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 ${tierStyles.pillText}`} />
                   </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-[max-content_1fr] items-center gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/60">Points</p>
+                  <p className={`text-xs uppercase tracking-[0.3em] ${tierStyles.mutedText}`}>Points</p>
                   <p className="text-4xl font-bold leading-tight">{loyaltyPoints}</p>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-white/70">
+                  <div className={`flex items-center justify-between text-[11px] ${tierStyles.mutedText}`}>
                     <span>
                       {tierStatus.next ? `Next: ${tierStatus.next.name}` : 'Top tier achieved'}
                     </span>
@@ -902,7 +932,7 @@ export default function ProfilePage() {
                       {tierStatus.next ? `${tierStatus.pointsToNext} pts to unlock` : 'Enjoy premium rewards'}
                     </span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-white/15">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-white/60 dark:bg-white/15">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${tierStyles.progressFill}`}
                       style={{ width: progressWidth }}
@@ -911,7 +941,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] font-medium text-white/70">
+              <div className={`flex items-center justify-between text-[11px] font-medium ${tierStyles.mutedText}`}>
                 <span>Total saved: ₹{totalSavings.toFixed(2)}</span>
                 <span>Total spent: ₹{totalSpent.toFixed(2)}</span>
               </div>
