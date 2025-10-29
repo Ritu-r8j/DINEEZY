@@ -1,0 +1,898 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes staggerIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+/* Animation Classes */
+.fadeInUp {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.staggerIn {
+  animation: staggerIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.slideInLeft {
+  animation: slideInLeft 0.4s ease-out forwards;
+}
+
+/* Component Styles */
+.menuItem {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 1rem;
+  border-radius: 1rem;
+  margin: -1rem;
+}
+
+.menuItem:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+  transform: translateY(-1px);
+}
+
+.orderTypeCard {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.orderTypeCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.orderTypeCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s ease-out;
+}
+
+.orderTypeCard:hover::before {
+  left: 100%;
+}
+
+.deliveryOption {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.deliveryOption:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.deliveryOption::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  transition: left 0.6s ease-out;
+}
+
+.deliveryOption:hover::before {
+  left: 100%;
+}
+
+.quantityButton {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.quantityButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.quantityButton:active {
+  transform: scale(0.95);
+}
+
+.quantityButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s ease-out;
+}
+
+.quantityButton:hover::before {
+  left: 100%;
+}
+
+.extraItem {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.extraItem:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.extraItem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.6s ease-out;
+}
+
+.extraItem:hover::before {
+  left: 100%;
+}
+
+.paymentMethod {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.paymentMethod:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.paymentMethod::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s ease-out;
+}
+
+.paymentMethod:hover::before {
+  left: 100%;
+}
+
+.placeOrderButton {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.placeOrderButton:hover {
+  transform: translateY(-2px);
+}
+
+.placeOrderButton:active {
+  transform: translateY(0);
+  transition: transform 0.1s ease-out;
+}
+
+.placeOrderButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s ease-out;
+}
+
+.placeOrderButton:hover::before {
+  left: 100%;
+}
+
+/* Loading States */
+.loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .menuItem:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .orderTypeCard:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+  }
+  
+  .deliveryOption:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+  }
+  
+  .paymentMethod:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+  }
+  
+  .loading {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+  }
+  
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .menuItem {
+    padding: 0.75rem;
+    margin: -0.75rem;
+  }
+  
+  .quantityButton {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .placeOrderButton {
+    height: 3.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .menuItem:hover,
+  .quantityButton:hover,
+  .extraItem:hover,
+  .paymentMethod:hover,
+  .orderTypeCard:hover,
+  .deliveryOption:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .quantityButton::before,
+  .extraItem::before,
+  .paymentMethod::before,
+  .placeOrderButton::before,
+  .orderTypeCard::before,
+  .deliveryOption::before {
+    display: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .menuItem,
+  .extraItem,
+  .paymentMethod,
+  .orderTypeCard,
+  .deliveryOption {
+    border: 2px solid;
+  }
+  
+  .quantityButton {
+    border: 1px solid;
+  }
+}
+
+/* Step Navigation Styles */
+.stepIndicator {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.stepIndicator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease-out;
+}
+
+.stepIndicator.active::before {
+  width: 60px;
+  height: 60px;
+}
+
+.stepConnector {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stepConnector::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+  transition: left 0.6s ease-out;
+}
+
+.stepConnector.active::before {
+  left: 100%;
+}
+
+/* Tab Content Animations */
+.tabContent {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.tabContent.slideOut {
+  animation: slideOutLeft 0.3s ease-out forwards;
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+/* Enhanced Button Styles */
+.stepButton {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stepButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease-out;
+}
+
+.stepButton:hover::before {
+  left: 100%;
+}
+
+.stepButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.stepButton:disabled::before {
+  display: none;
+}
+
+/* Enhanced Form Styles */
+.formInput {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.formInput:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.formInput.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Enhanced Card Styles */
+.stepCard {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stepCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.05), transparent);
+  transition: left 0.6s ease-out;
+}
+
+.stepCard:hover::before {
+  left: 100%;
+}
+
+/* Progress Bar Animation */
+.progressBar {
+  position: relative;
+  overflow: hidden;
+}
+
+.progressBar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+  animation: progressShimmer 2s infinite;
+}
+
+@keyframes progressShimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Enhanced Responsive Breakpoints */
+
+/* Extra Small Mobile (320px - 479px) */
+@media (max-width: 479px) {
+  .orderTypeCard {
+    padding: 0.5rem;
+  }
+  
+  .deliveryOption {
+    padding: 0.5rem;
+  }
+  
+  .paymentMethod {
+    padding: 0.5rem;
+  }
+  
+  .stepButton {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .formInput {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .tabContent {
+    padding: 0.5rem;
+  }
+  
+  /* Ultra-compact spacing */
+  .space-y-6 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.5rem;
+  }
+  
+  .space-y-3 > * + * {
+    margin-top: 0.375rem;
+  }
+  
+  .space-y-2 > * + * {
+    margin-top: 0.25rem;
+  }
+}
+
+/* Small Mobile (480px - 639px) */
+@media (min-width: 480px) and (max-width: 639px) {
+  .orderTypeCard {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .deliveryOption {
+    padding: 0.625rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .paymentMethod {
+    padding: 0.625rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .placeOrderButton {
+    font-size: 0.8rem;
+    height: 2.5rem;
+  }
+  
+  .stepIndicator {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .stepConnector {
+    width: 8px;
+  }
+  
+  .tabContent {
+    padding: 0.75rem;
+  }
+  
+  .stepButton {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .formInput {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8rem;
+  }
+  
+  .stepCard {
+    padding: 0.75rem;
+  }
+  
+  /* Compact spacing for mobile */
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .space-y-3 > * + * {
+    margin-top: 0.5rem;
+  }
+  
+  .space-y-2 > * + * {
+    margin-top: 0.375rem;
+  }
+}
+
+/* Extra Large Desktop (1920px+) */
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1600px;
+  }
+  
+  .orderTypeCard {
+    padding: 1.75rem;
+  }
+  
+  .stepButton {
+    padding: 0.875rem 1.75rem;
+    font-size: 1.05rem;
+  }
+}
+
+/* Large Desktop (1440px - 1919px) */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .orderTypeCard {
+    padding: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .deliveryOption {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .paymentMethod {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .stepButton {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .formInput {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Desktop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .orderTypeCard {
+    padding: 1.25rem;
+  }
+  
+  .deliveryOption {
+    padding: 0.875rem;
+  }
+  
+  .paymentMethod {
+    padding: 0.875rem;
+  }
+  
+  .stepButton {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.95rem;
+  }
+  
+  .formInput {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Tablet Landscape (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .orderTypeCard {
+    padding: 1rem;
+  }
+  
+  .deliveryOption {
+    padding: 0.75rem;
+  }
+  
+  .paymentMethod {
+    padding: 0.75rem;
+  }
+  
+  .stepButton {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .formInput {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Tablet Portrait (640px - 767px) */
+@media (min-width: 640px) and (max-width: 767px) {
+  .orderTypeCard {
+    padding: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .deliveryOption {
+    padding: 0.625rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .paymentMethod {
+    padding: 0.625rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stepButton {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.85rem;
+  }
+  
+  .formInput {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Mobile Landscape (480px - 639px) */
+@media (min-width: 480px) and (max-width: 639px) {
+  .orderTypeCard {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .deliveryOption {
+    padding: 0.625rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .paymentMethod {
+    padding: 0.625rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .placeOrderButton {
+    font-size: 0.8rem;
+    height: 2.5rem;
+  }
+  
+  .stepIndicator {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .stepConnector {
+    width: 8px;
+  }
+  
+  .tabContent {
+    padding: 0.75rem;
+  }
+  
+  .stepButton {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .formInput {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8rem;
+  }
+  
+  .stepCard {
+    padding: 0.75rem;
+  }
+  
+  /* Compact spacing for mobile */
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .space-y-3 > * + * {
+    margin-top: 0.5rem;
+  }
+  
+  .space-y-2 > * + * {
+    margin-top: 0.375rem;
+  }
+}
+
+/* Mobile Portrait (320px - 479px) */
+@media (max-width: 479px) {
+  .orderTypeCard {
+    padding: 0.5rem;
+  }
+  
+  .deliveryOption {
+    padding: 0.5rem;
+  }
+  
+  .paymentMethod {
+    padding: 0.5rem;
+  }
+  
+  .stepButton {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .formInput {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .tabContent {
+    padding: 0.5rem;
+  }
+  
+  /* Ultra-compact spacing */
+  .space-y-6 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.5rem;
+  }
+  
+  .space-y-3 > * + * {
+    margin-top: 0.375rem;
+  }
+  
+  .space-y-2 > * + * {
+    margin-top: 0.25rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .orderTypeCard {
+    padding: 1rem;
+  }
+  
+  .deliveryOption {
+    padding: 1rem;
+  }
+  
+  .stepIndicator {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .stepConnector {
+    width: 12px;
+  }
+}
+
+/* Ultra-compact mobile styles */
+@media (max-width: 480px) {
+  .orderTypeCard {
+    padding: 0.5rem;
+  }
+  
+  .deliveryOption {
+    padding: 0.5rem;
+  }
+  
+  .paymentMethod {
+    padding: 0.5rem;
+  }
+  
+  .stepButton {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .formInput {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .tabContent {
+    padding: 0.5rem;
+  }
+}
