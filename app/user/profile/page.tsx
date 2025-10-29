@@ -874,14 +874,14 @@ export default function ProfilePage() {
           {/* Loyalty & Rewards */}
           <div
             className={
-              `relative overflow-hidden rounded-3xl border ${tierStyles.accentBorder} ${tierStyles.cardShadow} bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] p-6 transition hover:shadow-2xl dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 ${tierStyles.text}`
+              `relative overflow-hidden rounded-3xl border ${tierStyles.accentBorder} ${tierStyles.cardShadow} bg-gradient-to-br from-[#b8dcffdd] via-[#c9cbffcc] to-[#e5c0ffee] p-6 transition hover:shadow-2xl dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 ${tierStyles.text}`
             }
           >
             <div
               className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-25"
               style={{
                 backgroundImage:
-                  'radial-gradient(circle at 18% 20%, rgba(184,220,255,0.45), transparent 55%), radial-gradient(circle at 82% 3%, rgba(229,192,255,0.4), transparent 60%)'
+                  'radial-gradient(circle at 18% 20%, rgba(184,220,255,0.6), transparent 55%), radial-gradient(circle at 78% 5%, rgba(229,192,255,0.55), transparent 62%)'
               }}
             />
             <div className="relative z-10 space-y-5">

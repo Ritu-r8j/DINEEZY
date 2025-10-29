@@ -81,14 +81,14 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
       {/* Profile Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 flex items-center justify-center cursor-pointer hover:opacity-80 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-primary/20"
+        className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 flex items-center justify-center cursor-pointer hover:opacity-80 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-primary/20"
         aria-label="Open profile menu"
       >
         {getProfileImage() ? (
           <img
             src={getProfileImage()!}
             alt="Profile"
-            className="w-full h-full rounded-full object-cover"
+            className="w-full h-full rounded-xl object-cover"
             onError={(e) => {
               // Fallback to initials if image fails to load
               const target = e.target as HTMLImageElement;
