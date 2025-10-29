@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
@@ -104,6 +104,159 @@ const testimonials = [
   }
 ];
 
+type AutoScrollOptions = {
+  speed?: number;
+  direction?: 1 | -1;
+  idleDelay?: number;
+};
+
+const setupAutoScroll = (
+  container: HTMLDivElement | null,
+  { speed = 0.4, direction = 1, idleDelay = 1600 }: AutoScrollOptions = {}
+) => {
+  if (!container) {
+    return () => {};
+  }
+
+  let frameId = 0;
+  let resumeTimer: number | null = null;
+  let isPaused = false;
+  let isUserInteracting = false;
+
+  const baseSpeed = Math.abs(speed);
+  const signedSpeed = (direction >= 0 ? 1 : -1) * baseSpeed;
+  const touchOptions: AddEventListenerOptions = { passive: true };
+  const wheelOptions: AddEventListenerOptions = { passive: false };
+
+  const ensureBounds = (force = false) => {
+    const halfWidth = container.scrollWidth / 2;
+    if (halfWidth <= 0) return;
+
+    const epsilon = 0.5;
+    const left = container.scrollLeft;
+
+    if (!force && left > epsilon && left < halfWidth - epsilon) {
+      return;
+    }
+
+    let wrapped = left;
+    while (wrapped < 0) wrapped += halfWidth;
+    while (wrapped >= halfWidth) wrapped -= halfWidth;
+    container.scrollLeft = wrapped;
+  };
+
+  const step = () => {
+    if (!isPaused && !isUserInteracting) {
+      const halfWidth = container.scrollWidth / 2;
+      if (halfWidth > 0) {
+        container.scrollLeft += signedSpeed;
+        ensureBounds();
+      }
+    }
+    frameId = window.requestAnimationFrame(step);
+  };
+
+  const initialize = () => {
+    const halfWidth = container.scrollWidth / 2;
+    if (halfWidth <= 0) {
+      frameId = window.requestAnimationFrame(initialize);
+      return;
+    }
+
+    if (container.scrollLeft === 0) {
+      container.scrollLeft = halfWidth / 2;
+    }
+
+    ensureBounds(true);
+    frameId = window.requestAnimationFrame(step);
+  };
+
+  const pauseForInteraction = () => {
+    if (resumeTimer) {
+      window.clearTimeout(resumeTimer);
+      resumeTimer = null;
+    }
+    isUserInteracting = true;
+    isPaused = true;
+  };
+
+  const scheduleResume = (delay = idleDelay) => {
+    if (resumeTimer) {
+      window.clearTimeout(resumeTimer);
+    }
+
+    resumeTimer = window.setTimeout(() => {
+      ensureBounds(true);
+      isUserInteracting = false;
+      isPaused = false;
+      resumeTimer = null;
+    }, delay);
+  };
+
+  const handleScroll = () => {
+    if (!isUserInteracting) {
+      ensureBounds();
+    }
+  };
+
+  const handlePointerDown = () => {
+    pauseForInteraction();
+  };
+
+  const handlePointerUp = () => {
+    scheduleResume();
+  };
+
+  const handleTouchStart = () => {
+    pauseForInteraction();
+  };
+
+  const handleTouchEnd = () => {
+    scheduleResume(900);
+  };
+
+  const handleWheel = (event: WheelEvent) => {
+    const dominantDelta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+      event.preventDefault();
+    }
+
+    if (dominantDelta === 0) {
+      return;
+    }
+
+    pauseForInteraction();
+    container.scrollLeft += dominantDelta;
+    scheduleResume(1400);
+  };
+
+  frameId = window.requestAnimationFrame(initialize);
+
+  container.addEventListener('scroll', handleScroll, { passive: true });
+  container.addEventListener('pointerdown', handlePointerDown);
+  container.addEventListener('pointerup', handlePointerUp);
+  container.addEventListener('pointercancel', handlePointerUp);
+  container.addEventListener('touchstart', handleTouchStart, touchOptions);
+  container.addEventListener('touchend', handleTouchEnd);
+  container.addEventListener('touchcancel', handleTouchEnd);
+  container.addEventListener('wheel', handleWheel, wheelOptions);
+
+  return () => {
+    if (resumeTimer) {
+      window.clearTimeout(resumeTimer);
+    }
+    window.cancelAnimationFrame(frameId);
+    container.removeEventListener('scroll', handleScroll);
+    container.removeEventListener('pointerdown', handlePointerDown);
+    container.removeEventListener('pointerup', handlePointerUp);
+    container.removeEventListener('pointercancel', handlePointerUp);
+    container.removeEventListener('touchstart', handleTouchStart, touchOptions);
+    container.removeEventListener('touchend', handleTouchEnd);
+    container.removeEventListener('touchcancel', handleTouchEnd);
+    container.removeEventListener('wheel', handleWheel, wheelOptions);
+  };
+};
+
 
 const sectionMotion = {
   initial: { opacity: 0, y: 40 },
@@ -128,6 +281,8 @@ export default function HomePage() {
   const [restaurantRatings, setRestaurantRatings] = useState<{ [restaurantId: string]: { averageRating: number; totalReviews: number } }>({});
   const [showCartNotification, setShowCartNotification] = useState(false);
   const router = useRouter();
+  const dishMarqueeRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const restaurantMarqueeRef = useRef<HTMLDivElement | null>(null);
 
   // Navigation items - dynamic based on auth status
   const navItems = user ? [
@@ -425,7 +580,41 @@ export default function HomePage() {
     [topRestaurants]
   );
 
-  // Marquee animations handled via CSS; no imperative scroll sync required.
+  useEffect(() => {
+    dishMarqueeRefs.current = dishMarqueeRefs.current.slice(0, dishRows.length);
+
+    const cleanups: Array<() => void> = [];
+
+    dishRows.forEach((row, index) => {
+      const container = dishMarqueeRefs.current[index];
+      if (container && row.length > 0) {
+        cleanups.push(
+          setupAutoScroll(container, {
+            speed: 0.6,
+            direction: index % 2 === 0 ? 1 : -1,
+            idleDelay: 1700
+          })
+        );
+      }
+    });
+
+    const restaurantContainer = restaurantMarqueeRef.current;
+    if (restaurantContainer && topRestaurants.length > 0) {
+      cleanups.push(
+        setupAutoScroll(restaurantContainer, {
+          speed: 0.55,
+          direction: 1,
+          idleDelay: 1900
+        })
+      );
+    }
+
+    return () => {
+      cleanups.forEach((cleanup) => cleanup());
+    };
+  }, [dishRows, topRestaurants]);
+
+  // Auto scrolling handled imperatively so users can take control when interacting.
 
   // Optimized star rendering with proper rating calculation
   const renderStars = (dish: MenuItem) => {
@@ -464,32 +653,25 @@ export default function HomePage() {
         </defs>
       </svg>
       <style jsx global>{`
-        @keyframes dish-marquee {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-
         .dish-marquee,
         .restaurant-marquee {
-          overflow: hidden;
           position: relative;
+          overflow-x: auto;
+          overflow-y: hidden;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+
+        .dish-marquee::-webkit-scrollbar,
+        .restaurant-marquee::-webkit-scrollbar {
+          display: none;
         }
 
         .dish-marquee-inner,
         .restaurant-marquee-inner {
           display: flex;
           width: max-content;
-          will-change: transform;
-          animation-play-state: running;
-        }
-
-        .dish-marquee-inner:hover,
-        .restaurant-marquee-inner:hover {
-          animation-play-state: paused;
         }
       `}</style>
 
@@ -734,18 +916,15 @@ export default function HomePage() {
                 {dishRows.map((row, rowIndex) => {
                   if (!row.length) return null;
                   const repeated = repeatedDishRows[rowIndex];
-                  const duration = rowIndex === 0 ? 45 : 55;
-                  const animationDirection = rowIndex % 2 === 0 ? 'normal' : 'reverse';
                   return (
                     <div key={rowIndex} className="relative">
-                      <div className="dish-marquee pb-4 pr-6">
-                        <div
-                          className="infinite-scroll-wrapper dish-marquee-inner gap-6"
-                          style={{
-                            animation: `dish-marquee ${duration}s linear infinite`,
-                            animationDirection
-                          }}
-                        >
+                      <div
+                        className="dish-marquee pb-4 pr-6"
+                        ref={(el) => {
+                          dishMarqueeRefs.current[rowIndex] = el;
+                        }}
+                      >
+                        <div className="infinite-scroll-wrapper dish-marquee-inner gap-6">
                           {repeated.map((dish, dishIndex) => (
                             <motion.div
                               key={`${dish.id}-${dishIndex}`}
@@ -869,14 +1048,11 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="mt-10 relative">
-                <div className="restaurant-marquee pb-4 pr-6">
-                  <div
-                    className="infinite-scroll-wrapper restaurant-marquee-inner gap-6"
-                    style={{
-                      animation: `dish-marquee ${topRestaurants.length <= 3 ? 55 : 45}s linear infinite`,
-                      animationDirection: 'reverse'
-                    }}
-                  >
+                <div
+                  className="restaurant-marquee pb-4 pr-6"
+                  ref={restaurantMarqueeRef}
+                >
+                  <div className="infinite-scroll-wrapper restaurant-marquee-inner gap-6">
                     {repeatedTopRestaurants.map((restaurant, index) => (
                       <motion.div
                         key={`${restaurant.adminId || restaurant.id || index}-${index}`}
