@@ -581,7 +581,19 @@ export default function RestaurantListingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <>
+            {/* SVG Gradient Definition for Stars */}
+            <svg className="absolute w-0 h-0" aria-hidden="true">
+                <defs>
+                    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#b8dcff" />
+                        <stop offset="50%" stopColor="#c9cbff" />
+                        <stop offset="100%" stopColor="#e5c0ff" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Mobile Filter Overlay */}
             {isMobileFilterOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-40 lg:hidden" />
@@ -667,7 +679,7 @@ export default function RestaurantListingPage() {
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                                                                <Star className="w-3 h-3 fill-current text-yellow-400" />
+                                                                <Star className="w-3 h-3" fill="url(#starGradient)" stroke="none" />
                                                                 <span className="font-medium">{getRating(restaurant)}</span>
                                                             </div>
                                                         </button>
@@ -758,7 +770,7 @@ export default function RestaurantListingPage() {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                                                        <Star className="w-3 h-3 fill-current text-yellow-400" />
+                                                        <Star className="w-3 h-3" fill="url(#starGradient)" stroke="none" />
                                                         <span className="font-medium">{getRating(restaurant)}</span>
                                                     </div>
                                                 </button>
@@ -786,7 +798,9 @@ export default function RestaurantListingPage() {
                                     <div className="flex items-center justify-between mb-4 lg:hidden">
                                         <div>
                                             <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                                <span className="text-indigo-600">⚙️</span>
+                                                <svg className="w-5 h-5 text-[#87C6FE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+                                                </svg>
                                                 Filters
                                             </h2>
                                             <p className="text-xs text-gray-500 dark:text-gray-400">Refine your search</p>
@@ -847,6 +861,35 @@ export default function RestaurantListingPage() {
                                         </div>
                                     </div>
 
+                                    {/* Rating & Sort Filter */}
+                                    <div className="mb-4">
+                                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Rating & Sort</h3>
+                                        <div className="space-y-2 sm:space-y-3">
+                                            {[
+                                                { value: 'All Ratings', label: 'All Ratings (Default)' },
+                                                { value: '4.0+ Stars', label: '4.0+ Stars' },
+                                                { value: '3.0+ Stars', label: '3.0+ Stars' },
+                                                { value: '2.0+ Stars', label: '2.0+ Stars' },
+                                                { value: 'Popularity', label: 'Most Popular' },
+                                                { value: 'Price: Low to High', label: 'Price: Low to High' },
+                                                { value: 'Price: High to Low', label: 'Price: High to Low' }
+                                            ].map((option) => (
+                                                <label key={option.value} className="flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                                                    <input
+                                                        type="radio"
+                                                        name="rating-sort-filter"
+                                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                        checked={selectedRatingFilter === option.value}
+                                                        onChange={() => handleRatingSelect(option.value)}
+                                                    />
+                                                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{option.label}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    
+
                                     {/* Amenities */}
                                     <div>
                                         <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Amenities</h3>
@@ -878,9 +921,11 @@ export default function RestaurantListingPage() {
                                 </div>
                                 <button
                                     onClick={() => setIsMobileFilterOpen(true)}
-                                    className="mobile-filter-button flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium text-xs hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-indigo-500/25"
+                                    className="mobile-filter-button flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-[#87C6FE] to-[#BCAFFF] text-white font-medium text-xs hover:from-[#76B8FE] hover:to-[#AC9FFF] transition-all duration-300 shadow-lg hover:shadow-[#87C6FE]/25"
                                 >
-                                    <span className="text-sm">⚙️</span>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+                                    </svg>
                                     <span>Filter</span>
                                     {activeFiltersCount > 0 && (
                                         <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-xs font-medium">
@@ -900,31 +945,13 @@ export default function RestaurantListingPage() {
                                     <span className="hidden sm:inline">Show Nearby Only</span>
                                     <span className="sm:hidden">Nearby</span>
                                 </button>
-                                <div className="relative w-full sm:w-auto">
-                                    <select
-                                        className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full pl-3 sm:pl-4 pr-8 sm:pr-10 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-300 hover:border-indigo-400 w-full sm:w-auto"
-                                        value={selectedRatingFilter}
-                                        onChange={(e) => handleRatingSelect(e.target.value)}
-                                    >
-                                        <option>Rating</option>
-                                        <option>Popularity</option>
-                                        <option>Price: Low to High</option>
-                                        <option>Price: High to Low</option>
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                                        <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
-                                    </div>
-                                </div>
                             </div>
 
                             {/* Featured Restaurants */}
                             <section>
                                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                                     <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                                        <div className="bg-orange-500 rounded-full h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mr-2">
-
-                                            <Star fill="white" className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 p-1" />
-                                        </div>
+                                        <Star fill="url(#starGradient)" stroke="none" className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 mr-2" />
                                         <span className="hidden sm:inline">Featured Restaurants</span>
                                         <span className="sm:hidden">Featured</span>
                                     </h2>
@@ -976,7 +1003,7 @@ export default function RestaurantListingPage() {
                                                 <div className="p-3 sm:p-4">
                                                     <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">{restaurant.name}</h3>
                                                     <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                                        <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-current" />
+                                                        <Star className="h-3 w-3 sm:h-4 sm:w-4" fill="url(#starGradient)" stroke="none" />
                                                         <span className="ml-1">{getRating(restaurant)}</span>
                                                         <span className="mx-2">•</span>
                                                         <span>{getTotalReviews(restaurant)} reviews</span>
@@ -1040,7 +1067,7 @@ export default function RestaurantListingPage() {
                                                     <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">{restaurant.name}</h3>
                                                     <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
 
-                                                        <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-current" />
+                                                        <Star className="h-3 w-3 sm:h-4 sm:w-4" fill="url(#starGradient)" stroke="none" />
                                                         <span className="ml-1">{getRating(restaurant)}</span>
                                                         <span className="mx-2">•</span>
                                                         <span>{getTotalReviews(restaurant)} reviews</span>
@@ -1098,6 +1125,7 @@ export default function RestaurantListingPage() {
                     </div>
                 </div>
             </main>
-        </div>
+            </div>
+        </>
     );
 }
