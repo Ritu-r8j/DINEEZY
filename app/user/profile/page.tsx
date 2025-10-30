@@ -246,7 +246,7 @@ export default function ProfilePage() {
 
         // Calculate completed orders
         const completedOrders = orders.filter(order =>
-          order.status === 'delivered' || order.status === 'completed'
+          order.status === 'delivered'
         ).length;
 
         // Calculate average order value
@@ -533,7 +533,7 @@ export default function ProfilePage() {
   // Show login prompt for guest users
   if (!user && !loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -547,13 +547,13 @@ export default function ProfilePage() {
             </p>
             <div className="flex gap-4 justify-center">
               <a
-                href="/user/login"
+                href="/user/phone-login"
                 className="px-6 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
               >
                 Login
               </a>
               <a
-                href="/user/register"
+                href="/user/phone-login"
                 className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Sign Up
@@ -579,12 +579,11 @@ export default function ProfilePage() {
   }
 
   const displayName = userProfile?.displayName || user?.displayName || 'Guest';
-  const userInitial = displayName.charAt(0).toUpperCase();
   const tierStyles = TIER_STYLE_MAP[tierStatus.current.name] || TIER_STYLE_MAP.Bronze;
   const progressWidth = `${Math.min(Math.max(tierStatus.progress, 0), 1) * 100}%`;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">My Account</h1>
@@ -767,7 +766,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-            {/* Loyality Card for mobile */}
+          {/* Loyality Card for mobile */}
           <div
             className={
               `relative overflow-hidden rounded-3xl border border-gray-800/20 dark:border-gray-700/50 shadow-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 p-6 transition hover:shadow-3xl text-white md:hidden`
@@ -783,8 +782,18 @@ export default function ProfilePage() {
             <div className="relative z-10 space-y-5">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl font-semibold uppercase ${tierStyles.avatarBg} ${tierStyles.highlight}`}>
-                    {userInitial}
+                  <div className={`flex w-16 h-12 items-center justify-center rounded-full text-2xl font-semibold uppercase ${tierStyles.avatarBg} ${tierStyles.highlight}`}>
+                    {user?.photoURL ? (
+                      <Image
+                        src={user.photoURL}
+                        alt="Profile"
+                        height={12}
+                        width={12}
+                        className="rounded-full w-10 h-10"
+                      />
+                    ) : (
+                      <span>{displayName.charAt(0).toUpperCase()}</span>
+                    )}
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold leading-tight">{displayName}</h3>
@@ -1006,8 +1015,18 @@ export default function ProfilePage() {
             <div className="relative z-10 space-y-5">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl font-semibold uppercase ${tierStyles.avatarBg} ${tierStyles.highlight}`}>
-                    {userInitial}
+                  <div className={`flex  items-center justify-center rounded-full text-2xl font-semibold uppercase ${tierStyles.avatarBg} ${tierStyles.highlight}`}>
+                    {user?.photoURL ? (
+                      <Image
+                        src={user?.photoURL}
+                        alt="Profile"
+                        height={16}
+                        width={16}
+                        className="rounded-full w-12 h-12"
+                      />
+                    ) : (
+                      <span>{displayName.charAt(0).toUpperCase()}</span>
+                    )}
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold leading-tight">{displayName}</h3>

@@ -208,7 +208,7 @@ export default function PhoneLoginPage() {
       title={getTitle()} 
       subtitle={getSubtitle()} 
       footer={footer}
-      emblem={<img src="/logo.png" alt="Logo" className="invert w-16 h-16 object-cover" />}
+      emblem={<img src="/logo.png" alt="Logo" className="invert w-20 h-20 object-cover dark:invert-0" />}
     >
       <div className="space-y-6">
         {/* Back Button */}

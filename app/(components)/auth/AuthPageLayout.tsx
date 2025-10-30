@@ -54,7 +54,7 @@ export function AuthPageLayout({
           {showHeader && (
             <div className="space-y-6 text-center">
               <div className="flex items-center justify-center gap-3">
-<div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-900 text-white shadow-lg shadow-gray-900/20 transition dark:bg-gray-100 dark:text-gray-900 dark:shadow-gray-100/20">
+<div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-900 text-white shadow-lg shadow-gray-900/20 transition dark:bg-gray-100 dark:text-gray-900 dark:shadow-gray-100/20">
                   {emblem ?? (
                     <img src="/logo.png" alt="Logo" className="invert w-16 h-16 object-cover" />
                   )}
