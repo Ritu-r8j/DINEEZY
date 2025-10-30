@@ -54,55 +54,55 @@ const TIER_DEFINITIONS: TierDefinition[] = [
 
 const TIER_STYLE_MAP: Record<string, TierStyle> = {
   Bronze: {
-    badgeBg: 'bg-amber-100/90 dark:bg-amber-500/20',
-    badgeText: 'text-amber-800 dark:text-amber-100',
-    pillBg: 'bg-amber-200/90 dark:bg-amber-500/10',
-    pillText: 'text-amber-900 dark:text-amber-100',
-    accentBorder: 'border-amber-200/80 dark:border-amber-500/25',
-    progressFill: 'bg-amber-500 dark:bg-amber-300',
-    text: 'text-slate-900 dark:text-white',
-    mutedText: 'text-slate-600 dark:text-slate-200/70',
-    highlight: 'text-amber-800 dark:text-amber-200',
-    avatarBg: 'bg-white/80 dark:bg-white/15',
+    badgeBg: 'bg-amber-500/20 dark:bg-amber-500/20',
+    badgeText: 'text-amber-200 dark:text-amber-100',
+    pillBg: 'bg-amber-500/15 dark:bg-amber-500/10',
+    pillText: 'text-amber-200 dark:text-amber-100',
+    accentBorder: 'border-amber-500/25 dark:border-amber-500/25',
+    progressFill: 'bg-amber-400 dark:bg-amber-300',
+    text: 'text-white dark:text-white',
+    mutedText: 'text-gray-300 dark:text-slate-200/70',
+    highlight: 'text-amber-300 dark:text-amber-200',
+    avatarBg: 'bg-white/15 dark:bg-white/15',
     cardShadow: 'shadow-[0_18px_45px_-26px_rgba(217,119,6,0.45)]'
   },
   Silver: {
-    badgeBg: 'bg-zinc-100/90 dark:bg-zinc-500/20',
-    badgeText: 'text-zinc-700 dark:text-zinc-100',
-    pillBg: 'bg-zinc-200/90 dark:bg-zinc-400/10',
-    pillText: 'text-zinc-800 dark:text-zinc-100',
-    accentBorder: 'border-zinc-200/80 dark:border-zinc-400/30',
-    progressFill: 'bg-zinc-500 dark:bg-zinc-300',
-    text: 'text-slate-900 dark:text-white',
-    mutedText: 'text-slate-600 dark:text-slate-200/70',
-    highlight: 'text-zinc-700 dark:text-zinc-200',
-    avatarBg: 'bg-white/80 dark:bg-white/15',
+    badgeBg: 'bg-zinc-500/20 dark:bg-zinc-500/20',
+    badgeText: 'text-zinc-200 dark:text-zinc-100',
+    pillBg: 'bg-zinc-500/15 dark:bg-zinc-400/10',
+    pillText: 'text-zinc-200 dark:text-zinc-100',
+    accentBorder: 'border-zinc-500/25 dark:border-zinc-400/30',
+    progressFill: 'bg-zinc-400 dark:bg-zinc-300',
+    text: 'text-white dark:text-white',
+    mutedText: 'text-gray-300 dark:text-slate-200/70',
+    highlight: 'text-zinc-300 dark:text-zinc-200',
+    avatarBg: 'bg-white/15 dark:bg-white/15',
     cardShadow: 'shadow-[0_18px_45px_-26px_rgba(113,113,122,0.45)]'
   },
   Gold: {
-    badgeBg: 'bg-yellow-100/90 dark:bg-yellow-500/20',
-    badgeText: 'text-yellow-800 dark:text-yellow-100',
-    pillBg: 'bg-yellow-200/90 dark:bg-yellow-500/10',
-    pillText: 'text-yellow-900 dark:text-yellow-100',
-    accentBorder: 'border-yellow-200/80 dark:border-yellow-500/30',
-    progressFill: 'bg-yellow-500 dark:bg-yellow-300',
-    text: 'text-slate-900 dark:text-white',
-    mutedText: 'text-slate-600 dark:text-slate-200/70',
-    highlight: 'text-yellow-800 dark:text-yellow-200',
-    avatarBg: 'bg-white/80 dark:bg-white/15',
+    badgeBg: 'bg-yellow-500/20 dark:bg-yellow-500/20',
+    badgeText: 'text-yellow-200 dark:text-yellow-100',
+    pillBg: 'bg-yellow-500/15 dark:bg-yellow-500/10',
+    pillText: 'text-yellow-200 dark:text-yellow-100',
+    accentBorder: 'border-yellow-500/25 dark:border-yellow-500/30',
+    progressFill: 'bg-yellow-400 dark:bg-yellow-300',
+    text: 'text-white dark:text-white',
+    mutedText: 'text-gray-300 dark:text-slate-200/70',
+    highlight: 'text-yellow-300 dark:text-yellow-200',
+    avatarBg: 'bg-white/15 dark:bg-white/15',
     cardShadow: 'shadow-[0_18px_45px_-26px_rgba(202,138,4,0.45)]'
   },
   Platinum: {
-    badgeBg: 'bg-indigo-100/90 dark:bg-indigo-500/20',
-    badgeText: 'text-indigo-800 dark:text-indigo-100',
-    pillBg: 'bg-indigo-200/90 dark:bg-indigo-500/10',
-    pillText: 'text-indigo-900 dark:text-indigo-100',
-    accentBorder: 'border-indigo-200/80 dark:border-indigo-500/25',
-    progressFill: 'bg-indigo-500 dark:bg-indigo-300',
-    text: 'text-slate-900 dark:text-white',
-    mutedText: 'text-slate-600 dark:text-slate-200/70',
-    highlight: 'text-indigo-800 dark:text-indigo-200',
-    avatarBg: 'bg-white/80 dark:bg-white/15',
+    badgeBg: 'bg-indigo-500/20 dark:bg-indigo-500/20',
+    badgeText: 'text-indigo-200 dark:text-indigo-100',
+    pillBg: 'bg-indigo-500/15 dark:bg-indigo-500/10',
+    pillText: 'text-indigo-200 dark:text-indigo-100',
+    accentBorder: 'border-indigo-500/25 dark:border-indigo-500/25',
+    progressFill: 'bg-indigo-400 dark:bg-indigo-300',
+    text: 'text-white dark:text-white',
+    mutedText: 'text-gray-300 dark:text-slate-200/70',
+    highlight: 'text-indigo-300 dark:text-indigo-200',
+    avatarBg: 'bg-white/15 dark:bg-white/15',
     cardShadow: 'shadow-[0_18px_45px_-26px_rgba(99,102,241,0.4)]'
   }
 };
@@ -175,6 +175,20 @@ export default function ProfilePage() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [reservationsLoading, setReservationsLoading] = useState(false);
 
+  // Enhanced Account Stats State
+  const [accountStats, setAccountStats] = useState({
+    totalOrders: 0,
+    completedOrders: 0,
+    totalReservations: 0,
+    confirmedReservations: 0,
+    totalSpentAmount: 0,
+    averageOrderValue: 0,
+    monthlySpending: 0,
+    lastOrderDate: null as Date | null,
+    lastReservationDate: null as Date | null
+  });
+  const [statsLoading, setStatsLoading] = useState(false);
+
   // OTP Verification States
   const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -201,36 +215,95 @@ export default function ProfilePage() {
     if (!user) return;
 
     try {
+      setStatsLoading(true);
+
       // Fetch user orders
       setOrdersLoading(true);
       const ordersResult = await getUserOrders(user.uid);
+      let allOrders: OrderData[] = [];
+
       if (ordersResult.success && ordersResult.data) {
-        setRecentOrders(ordersResult.data.slice(0, 6)); // Show last 6 orders
+        allOrders = ordersResult.data;
+        setRecentOrders(allOrders.slice(0, 6)); // Show last 6 orders
       }
 
       // Fetch user reservations
       setReservationsLoading(true);
       const reservationsResult = await getUserReservations(user.uid);
+      let allReservations: ReservationData[] = [];
+
       if (reservationsResult.success && reservationsResult.data) {
-        setRecentReservations(reservationsResult.data.slice(0, 3)); // Show last 3 reservations
+        allReservations = reservationsResult.data;
+        setRecentReservations(allReservations.slice(0, 3)); // Show last 3 reservations
       }
 
-      // Calculate loyalty points and total spent from orders
+      // Calculate comprehensive statistics
       if (ordersResult.success && ordersResult.data) {
-        const totalSpentAmount = ordersResult.data.reduce((sum, order) => sum + order.total, 0);
-        const totalDiscountAmount = ordersResult.data.reduce((sum, order) => sum + (order.discount || 0), 0);
+        const orders = ordersResult.data;
+        const totalSpentAmount = orders.reduce((sum, order) => sum + order.total, 0);
+        const totalDiscountAmount = orders.reduce((sum, order) => sum + (order.discount || 0), 0);
         const computedPoints = Math.floor(totalSpentAmount / 10);
 
+        // Calculate completed orders
+        const completedOrders = orders.filter(order =>
+          order.status === 'delivered' || order.status === 'completed'
+        ).length;
+
+        // Calculate average order value
+        const averageOrderValue = orders.length > 0 ? totalSpentAmount / orders.length : 0;
+
+        // Calculate monthly spending (last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const monthlySpending = orders
+          .filter(order => {
+            const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+            return orderDate >= thirtyDaysAgo;
+          })
+          .reduce((sum, order) => sum + order.total, 0);
+
+        // Get last order date
+        const lastOrderDate = orders.length > 0
+          ? (orders[0].createdAt?.toDate ? orders[0].createdAt.toDate() : new Date(orders[0].createdAt))
+          : null;
+
+        // Set basic stats
         setTotalSpent(totalSpentAmount);
         setTotalSavings(totalDiscountAmount);
         setLoyaltyPoints(computedPoints);
         setTierStatus(calculateTierStatus(computedPoints));
+
+        // Calculate reservation stats
+        const confirmedReservations = allReservations.filter(reservation =>
+          reservation.status === 'confirmed'
+        ).length;
+
+        // Get last reservation date
+        const lastReservationDate = allReservations.length > 0
+          ? (allReservations[0].createdAt?.toDate ? allReservations[0].createdAt.toDate() : new Date(allReservations[0].createdAt))
+          : null;
+
+        // Update comprehensive account stats
+        setAccountStats({
+          totalOrders: orders.length,
+          completedOrders,
+          totalReservations: allReservations.length,
+          confirmedReservations,
+          totalSpentAmount,
+          averageOrderValue,
+          monthlySpending,
+          lastOrderDate,
+          lastReservationDate
+        });
       }
     } catch (error) {
+      console.error('Error fetching user data:', error);
       // Handle error silently or show user-friendly message
     } finally {
       setOrdersLoading(false);
       setReservationsLoading(false);
+      setStatsLoading(false);
     }
   };
 
@@ -310,10 +383,27 @@ export default function ProfilePage() {
       setOtpError('');
 
       // Add 91 prefix if not present
-      const formattedPhone = editForm.phoneNumber.startsWith('91')
-        ? editForm.phoneNumber
-        : `91${editForm.phoneNumber}`;
+      // Validate phone number format
+      const phoneNumber = editForm.phoneNumber.trim();
+      let formattedPhone: string;
 
+      if (phoneNumber.length === 10) {
+        // 10 digits - add 91 prefix
+        formattedPhone = `91${phoneNumber}`;
+      } else if (phoneNumber.length === 12) {
+        if (phoneNumber.startsWith('91')) {
+          // 12 digits starting with 91 - use as is
+          formattedPhone = phoneNumber;
+        } else {
+          // 12 digits not starting with 91 - error
+          setOtpError('Invalid phone number format.');
+          return;
+        }
+      } else {
+        // Invalid length
+        setOtpError('Invalid phone number format');
+        return;
+      }
       // Check if phone number already exists in database
       const phoneCheckResult = await checkPhoneNumberExists(formattedPhone);
 
@@ -545,15 +635,13 @@ export default function ProfilePage() {
                     {!isVerifyingPhone ? (
                       <div className="space-y-2">
                         <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500 dark:text-gray-400 text-sm">91</span>
-                          </div>
                           <input
                             type="tel"
+                            maxLength={12}
                             name="phoneNumber"
                             value={editForm.phoneNumber}
                             onChange={handleInputChange}
-                            className="w-full pl-12 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full pl-2 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter 10-digit phone number"
                           />
                         </div>
@@ -679,53 +767,84 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Saved Addresses Section */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Saved Addresses</h2>
-              <button className="px-4 py-2 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-200 hover:scale-105">
-                Add New
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {savedAddresses.map((address) => (
-                <div key={address.id} className="flex items-center justify-between p-4 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100/80 dark:hover:bg-gray-600/50 transition-all duration-200 group">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 ${address.type === 'Home'
-                      ? 'bg-blue-100 dark:bg-blue-900/30'
-                      : 'bg-purple-100 dark:bg-purple-900/30'
-                      }`}>
-                      <svg className={`w-5 h-5 ${address.type === 'Home'
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-purple-600 dark:text-purple-400'
-                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {address.type === 'Home' ? (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        ) : (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        )}
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{address.type}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{address.address}</p>
-                      {address.isDefault && (
-                        <span className="inline-block mt-1 px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full">
-                          Default
-                        </span>
-                      )}
-                    </div>
+            {/* Loyality Card for mobile */}
+          <div
+            className={
+              `relative overflow-hidden rounded-3xl border border-gray-800/20 dark:border-gray-700/50 shadow-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 p-6 transition hover:shadow-3xl text-white md:hidden`
+            }
+          >
+            <div
+              className="pointer-events-none absolute inset-0 opacity-30 dark:opacity-25"
+              style={{
+                backgroundImage:
+                  'radial-gradient(circle at 18% 20%, rgba(99,102,241,0.4), transparent 55%), radial-gradient(circle at 78% 5%, rgba(168,85,247,0.35), transparent 62%)'
+              }}
+            />
+            <div className="relative z-10 space-y-5">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl font-semibold uppercase ${tierStyles.avatarBg} ${tierStyles.highlight}`}>
+                    {userInitial}
                   </div>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 hover:scale-110 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
+                  <div>
+                    <h3 className="text-xl font-semibold leading-tight">{displayName}</h3>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/user/orders')}
+                      className={`mt-1 inline-flex items-center gap-1 text-xs font-medium transition ${tierStyles.highlight} hover:opacity-80`}
+                    >
+                      View activity
+                      <ArrowUpRight className={`h-3.5 w-3.5 ${tierStyles.highlight}`} />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2 text-xs font-semibold">
+                  <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 uppercase tracking-wide ${tierStyles.badgeBg} ${tierStyles.badgeText}`}>
+                    <Crown className={`h-4 w-4 ${tierStyles.badgeText}`} />
+                    {tierStatus.current.name} member
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/user/orders')}
+                    className={`group inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium transition ${tierStyles.pillBg} ${tierStyles.pillText}`}
+                  >
+                    saved ₹{Math.max(Math.round(totalSavings), 0).toLocaleString('en-IN')}
+                    <ChevronRight className={`h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 ${tierStyles.pillText}`} />
                   </button>
                 </div>
-              ))}
+              </div>
+
+              <div className="grid grid-cols-[max-content_1fr] items-center gap-4">
+                <div>
+                  <p className={`text-xs uppercase tracking-[0.3em] ${tierStyles.mutedText}`}>Points</p>
+                  <p className="text-4xl font-bold leading-tight">{loyaltyPoints}</p>
+                </div>
+                <div className="space-y-2">
+                  <div className={`flex items-center justify-between text-[11px] ${tierStyles.mutedText}`}>
+                    <span>
+                      {tierStatus.next ? `Next: ${tierStatus.next.name}` : 'Top tier achieved'}
+                    </span>
+                    <span>
+                      {tierStatus.next ? `${tierStatus.pointsToNext} pts to unlock` : 'Enjoy premium rewards'}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-white/20 dark:bg-white/15">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${tierStyles.progressFill}`}
+                      style={{ width: progressWidth }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`flex items-center justify-between text-[11px] font-medium ${tierStyles.mutedText}`}>
+                <span>Total saved: ₹{totalSavings.toFixed(2)}</span>
+                <span>Total spent: ₹{totalSpent.toFixed(2)}</span>
+              </div>
             </div>
           </div>
+
+
 
           {/* Order History Section */}
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
@@ -874,14 +993,14 @@ export default function ProfilePage() {
           {/* Loyalty & Rewards */}
           <div
             className={
-              `relative overflow-hidden rounded-3xl border ${tierStyles.accentBorder} ${tierStyles.cardShadow} bg-gradient-to-br from-[#b8dcffdd] via-[#c9cbffcc] to-[#e5c0ffee] p-6 transition hover:shadow-2xl dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 ${tierStyles.text}`
+              `relative overflow-hidden rounded-3xl border border-gray-800/20 dark:border-gray-700/50 shadow-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 p-6 transition hover:shadow-3xl text-white hidden md:block`
             }
           >
             <div
-              className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-25"
+              className="pointer-events-none absolute inset-0 opacity-30 dark:opacity-25"
               style={{
                 backgroundImage:
-                  'radial-gradient(circle at 18% 20%, rgba(184,220,255,0.6), transparent 55%), radial-gradient(circle at 78% 5%, rgba(229,192,255,0.55), transparent 62%)'
+                  'radial-gradient(circle at 18% 20%, rgba(99,102,241,0.4), transparent 55%), radial-gradient(circle at 78% 5%, rgba(168,85,247,0.35), transparent 62%)'
               }}
             />
             <div className="relative z-10 space-y-5">
@@ -932,7 +1051,7 @@ export default function ProfilePage() {
                       {tierStatus.next ? `${tierStatus.pointsToNext} pts to unlock` : 'Enjoy premium rewards'}
                     </span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-white/60 dark:bg-white/15">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-white/20 dark:bg-white/15">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${tierStyles.progressFill}`}
                       style={{ width: progressWidth }}
@@ -948,57 +1067,118 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Payment Methods */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Payment Methods</h2>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100/80 dark:hover:bg-gray-600/50 transition-all duration-200 cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-200 dark:to-gray-300 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-4 h-4 text-white dark:text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-                    </svg>
-                  </div>
-                  <span className="font-medium text-gray-900 dark:text-white text-sm">Apple Pay</span>
-                </div>
-                <svg className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100/80 dark:hover:bg-gray-600/50 transition-all duration-200 cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                    </svg>
-                  </div>
-                  <span className="font-medium text-gray-900 dark:text-white text-sm">UPI</span>
-                </div>
-                <svg className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100/80 dark:hover:bg-gray-600/50 transition-all duration-200 cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                  </div>
-                  <span className="font-medium text-gray-900 dark:text-white text-sm">Cards</span>
-                </div>
-                <svg className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
+          {/* Account Stats */}
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 transition-all duration-300 hover:shadow-xl">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Account Stats</h3>
+              {statsLoading && (
+                <Loader2 className="h-4 w-4 animate-spin text-gray-500 dark:text-gray-400" />
+              )}
             </div>
+
+            {statsLoading ? (
+              <div className="space-y-3 sm:space-y-4 lg:space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl animate-pulse">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 dark:bg-gray-600 rounded-lg"></div>
+                      <div className="space-y-1">
+                        <div className="h-3 w-16 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                        <div className="h-2 w-12 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                      </div>
+                    </div>
+                    <div className="h-4 w-8 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3 sm:space-y-4 lg:space-y-3">
+                {/* Total Orders */}
+                <div className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-600/50">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">Total Orders</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {accountStats.completedOrders} completed
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0 ml-2">
+                    <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white block">
+                      {accountStats.totalOrders}
+                    </span>
+                    {accountStats.lastOrderDate && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Last: {accountStats.lastOrderDate.toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Total Reservations */}
+                <div className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-600/50">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">Reservations</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {accountStats.confirmedReservations} confirmed
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0 ml-2">
+                    <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white block">
+                      {accountStats.totalReservations}
+                    </span>
+                    {accountStats.lastReservationDate && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Last: {accountStats.lastReservationDate.toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Total Spent */}
+                <div className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-600/50">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">Total Spent</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Avg: ₹{accountStats.averageOrderValue.toFixed(0)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0 ml-2">
+                    <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white block">
+                      ₹{accountStats.totalSpentAmount.toFixed(0)}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      This month: ₹{accountStats.monthlySpending.toFixed(0)}
+                    </span>
+                  </div>
+                </div>
+
+
+              </div>
+            )}
           </div>
 
           {/* Preferences */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
+          {/* <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Preferences</h2>
 
             <div className="space-y-4">
@@ -1056,22 +1236,13 @@ export default function ProfilePage() {
                 </svg>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Quick Actions */}
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
 
             <div className="space-y-3">
-              <button className="w-full flex items-center gap-3 p-3 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100/80 dark:hover:bg-gray-600/50 transition-all duration-200 group text-left">
-                <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </div>
-                <span className="font-medium text-gray-900 dark:text-white text-sm">Favorites</span>
-              </button>
-
               <button className="w-full flex items-center gap-3 p-3 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100/80 dark:hover:bg-gray-600/50 transition-all duration-200 group text-left">
                 <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                   <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

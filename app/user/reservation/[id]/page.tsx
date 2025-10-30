@@ -65,15 +65,14 @@ export default function ReservationPage() {
   const [isSubmittingReservation, setIsSubmittingReservation] = useState(false);
   const [reservationSuccess, setReservationSuccess] = useState<string | null>(null);
   const [reservationForm, setReservationForm] = useState({
-    date: '',
+    date: new Date().toISOString().split('T')[0],
     time: '',
     guests: 2,
-    name: user?.displayName || '',
+    name: user?.displayName ||  '',
     email: user?.email || '',
-    phone: '',
+    phone: user?.phoneNumber || '',
     specialRequests: ''
   });
-
   // Media gallery states
   const [showFullGallery, setShowFullGallery] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
@@ -226,6 +225,7 @@ export default function ReservationPage() {
     if (!authLoading && !user) {
       router.push('/user/login');
     }
+    console.log("User data", user)
   }, [user, authLoading, router]);
 
   // Load restaurant information
@@ -645,7 +645,7 @@ export default function ReservationPage() {
           guests: 2,
           name: user?.displayName || '',
           email: user?.email || '',
-          phone: '',
+          phone: user?.phoneNumber || '',
           specialRequests: ''
         });
       } else {

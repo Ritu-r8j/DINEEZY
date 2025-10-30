@@ -86,7 +86,26 @@ const TEMPLATES: Record<NotificationType, TemplateConfig> = {
   };
   
 
+// Helper function to format phone number
+function formatPhoneNumber(phoneNumber: string): string {
+  const phone = phoneNumber.trim();
 
+  if (phone.length === 10) {
+    // 10 digits - add 91 prefix
+    return `91${phone}`;
+  } else if (phone.length === 12) {
+    if (phone.startsWith('91')) {
+      // 12 digits starting with 91 - use as is
+      return phone;
+    } else {
+      // 12 digits not starting with 91 - error
+      throw new Error('Invalid phone number format.');
+    }
+  } else {
+    // Invalid length
+    throw new Error('Invalid phone number format');
+  }
+}
 
   export async function sendNotification(
     type: NotificationType,
@@ -98,19 +117,22 @@ const TEMPLATES: Record<NotificationType, TemplateConfig> = {
   
     const message = template.message(data);
   
+  // Format phone number with 91 prefix validation
+  const formattedPhone = formatPhoneNumber(to);
+
     // URL-encode the message to preserve line breaks, emojis, etc.
     const encodedMessage = encodeURIComponent(message);
   
-    console.log(to, "\n", message);
+  console.log(formattedPhone, "\n", message);
   
     const response = await fetch(
-      `https://api.webifyit.in/api/v1/dev/create-message?apikey=${process.env.NEXT_PUBLIC_WP_API_KEY}&to=${to}&message=${encodedMessage}`
+    `https://api.webifyit.in/api/v1/dev/create-message?apikey=${process.env.NEXT_PUBLIC_WP_API_KEY}&to=${formattedPhone}&message=${encodedMessage}`
     );
   
     const result = await response.json();
   
     console.log(result);
-    console.log(`✅ WhatsApp message sent to ${to} (${type})`);
+  console.log(`WhatsApp message sent to ${formattedPhone} (${type})`);
     return result;
   }
 
@@ -144,4 +166,3 @@ const TEMPLATES: Record<NotificationType, TemplateConfig> = {
 
     return await sendNotification(notificationType, customerPhone, notificationData);
   }
-  

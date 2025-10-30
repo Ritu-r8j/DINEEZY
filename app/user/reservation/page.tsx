@@ -921,7 +921,7 @@ export default function RestaurantListingPage() {
                                 </div>
                                 <button
                                     onClick={() => setIsMobileFilterOpen(true)}
-                                    className="mobile-filter-button flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-[#87C6FE] to-[#BCAFFF] text-white font-medium text-xs hover:from-[#76B8FE] hover:to-[#AC9FFF] transition-all duration-300 shadow-lg hover:shadow-[#87C6FE]/25"
+                                    className="mobile-filter-button flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black text-white font-medium text-xs hover:from-[#76B8FE] hover:to-[#AC9FFF] transition-all duration-300 shadow-lg hover:shadow-[#87C6FE]/25"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
@@ -951,7 +951,7 @@ export default function RestaurantListingPage() {
                             <section>
                                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                                     <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                                        <Star fill="url(#starGradient)" stroke="none" className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 mr-2" />
+                                        <Star fill="orange" stroke="none" className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 mr-2" />
                                         <span className="hidden sm:inline">Featured Restaurants</span>
                                         <span className="sm:hidden">Featured</span>
                                     </h2>

@@ -497,13 +497,8 @@ export default function MenuItemDetailPage() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-background via-muted/10 to-background flex items-center justify-center p-4">
                 <div className="text-center animate-fade-in">
-                    <div className="relative mb-4 xs:mb-6">
+                    <div className="flex justify-center mb-4 xs:mb-6">
                         <div className="w-12 h-12 xs:w-16 xs:h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-6 h-6 xs:w-8 xs:h-8 bg-gray-900 dark:bg-white rounded flex items-center justify-center">
-                              <span className="text-white dark:text-gray-900 font-bold text-xs xs:text-sm">D</span>
-                            </div>
-                        </div>
                     </div>
                     <p className="text-muted-foreground font-medium animate-fade-in text-sm xs:text-base">
                         Loading delicious details...

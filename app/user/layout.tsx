@@ -17,6 +17,7 @@ export default function UserLayout({ children }: UserLayoutProps) {
   const authPrefixes = [
     '/user/login',
     '/user/register',
+    '/user/phone-login',
     '/user/forgot-password',
     '/user/reset-password',
   ];

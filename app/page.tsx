@@ -717,12 +717,12 @@ export default function HomePage() {
                 ) : (
                   // User is not logged in - show login/signup
                   <>
-                    <Link href="/user/login">
+                    <Link href="/user/phone-login">
                       <button className="hidden rounded-[8px] border border-foreground/10 px-5 py-2 text-sm font-medium transition hover:border-primary/60 hover:text-primary lg:block cursor-pointer">
                         Log in
                       </button>
                     </Link>
-                    <Link href="/user/register">
+                    <Link href="/user/phone-login">
                       <button className="hidden rounded-[8px] border border-foreground/10 px-5 py-2 text-sm font-medium transition hover:border-primary/60 hover:text-primary lg:block cursor-pointer">
                         Sign Up
                       </button>

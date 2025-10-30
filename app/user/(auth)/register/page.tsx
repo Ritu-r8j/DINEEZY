@@ -1,72 +1,46 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
-import {
-  AlertCircle,
-  ArrowRight,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  Phone,
-  User,
-} from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import AuthPageLayout from "@/app/(components)/auth/AuthPageLayout";
-import { useAuth } from "@/app/(contexts)/AuthContext";
-import { signUpWithEmail, signInWithGoogle } from "@/app/(utils)/firebase";
-import { completeUserRegistration, getUserProfile, updateUserType } from "@/app/(utils)/firebaseOperations";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '@/app/(utils)/firebase';
+import { createUserProfile } from '@/app/(utils)/firebaseOperations';
+import { useAuth } from '@/app/(contexts)/AuthContext';
+import { toast } from 'sonner';
+import { Loader2, UserPlus, Phone, Eye, EyeOff, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import AuthPageLayout from '@/app/(components)/auth/AuthPageLayout';
 
 const inputClasses = (hasError?: boolean) =>
   [
-    "w-full rounded-xl border px-4 py-3 text-sm font-medium transition focus:outline-none focus:ring-2",
+    "relative block w-full rounded-lg border px-4 py-3 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1",
     hasError
-      ? "border-red-300 focus:ring-red-200 focus:border-red-500 dark:border-red-600"
+      ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200 dark:border-red-600 dark:bg-red-900/20 dark:focus:border-red-400 dark:focus:ring-red-800"
       : "border-gray-200 bg-white focus:border-gray-900 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-gray-300 dark:focus:ring-gray-700",
     "placeholder:text-gray-400 text-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500",
   ].join(" ");
 
-export default function UserRegisterPage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { setUser } = useAuth();
+  
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-    agreeToTerms: false,
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (user && !loading) {
-      // Check if user is already logged in as admin
-      if ((user as any).userType === 'admin') {
-        router.push("/admin");
-        return;
-      }
-      
-      // Set user type in database and redirect
-      updateUserType(user.uid, 'user');
-      (user as any).userType = 'user';
-      router.push("/user/menu");
-    }
-  }, [user, loading, router]);
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value
     }));
 
     if (errors[name]) {
@@ -91,18 +65,10 @@ export default function UserRegisterPage() {
       newErrors.email = "Please enter a valid email address";
     }
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^\+?[\d\s()-]{7,}$/.test(formData.phone.trim())) {
-      newErrors.phone = "Please enter a valid phone number";
-    }
-
     if (!formData.password.trim()) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = "Password must contain uppercase, lowercase, and number";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     if (!formData.confirmPassword.trim()) {
@@ -111,191 +77,203 @@ export default function UserRegisterPage() {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = "You must agree to the terms and conditions";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!validateForm()) return;
 
-    setIsLoading(true);
+    setLoading(true);
     setErrors({});
 
     try {
-      const authResult = await signUpWithEmail(formData.email, formData.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const user = userCredential.user;
 
-      if (authResult.success && authResult.user) {
-        const registrationResult = await completeUserRegistration(authResult.user, {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phone: formData.phone,
-        });
+      // Create user profile in Firestore
+      const userProfileData = {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        phoneNumber: '',
+        photoURL: user.photoURL || '',
+        userType: 'user' as const
+      };
 
-        if (!registrationResult.success) {
-          setErrors({ general: registrationResult.error || "Failed to create user profile. Please try again." });
-        }
+      const profileResult = await createUserProfile(userProfileData);
+      
+      if (profileResult.success) {
+        setUser(user as any);
+        toast.success('Account created successfully!');
+        router.push('/user/profile'); // Redirect to profile to add phone number
       } else {
-        setErrors({ general: authResult.error || "Registration failed. Please try again." });
+        setErrors({ general: 'Failed to create user profile' });
+        toast.error('Registration failed');
       }
-    } catch (error) {
-      console.error("Registration failed:", error);
-      setErrors({ general: "An unexpected error occurred. Please try again." });
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        setErrors({ general: 'An account with this email already exists' });
+      } else if (error.code === 'auth/invalid-email') {
+        setErrors({ general: 'Invalid email address' });
+      } else if (error.code === 'auth/weak-password') {
+        setErrors({ general: 'Password is too weak' });
+      } else {
+        setErrors({ general: 'Registration failed. Please try again.' });
+      }
+      toast.error('Registration failed');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
+  const handleGoogleRegister = async () => {
+    setLoading(true);
     setErrors({});
 
     try {
-      const result = await signInWithGoogle();
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-      if (result.success && result.user) {
-        const userProfileResult = await getUserProfile(result.user.uid);
+      // Create user profile in Firestore
+      const userProfileData = {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || '',
+        phoneNumber: user.phoneNumber || '',
+        photoURL: user.photoURL || '',
+        userType: 'user' as const
+      };
 
-        if (!userProfileResult.success) {
-          const displayName = result.user.displayName || "Google User";
-          const nameParts = displayName.split(" ");
-          const firstName = nameParts[0] || "Google";
-          const lastName = nameParts.slice(1).join(" ") || "User";
-
-          const registrationResult = await completeUserRegistration(result.user, {
-            firstName,
-            lastName,
-            phone: result.user.phoneNumber || "",
-          });
-
-          if (!registrationResult.success) {
-            setErrors({ general: "Failed to create user profile. Please try again." });
-            return;
-          }
-        }
+      const profileResult = await createUserProfile(userProfileData);
+      
+      if (profileResult.success) {
+        setUser(user as any);
+        toast.success('Account created successfully!');
+        router.push('/user/profile'); // Redirect to profile to add phone number
       } else {
-        setErrors({ general: result.error || "Google registration failed. Please try again." });
+        setErrors({ general: 'Failed to create user profile' });
+        toast.error('Registration failed');
       }
-    } catch (error) {
-      console.error("Google registration failed:", error);
-      setErrors({ general: "Google registration failed. Please try again." });
+    } catch (error: any) {
+      console.error('Google registration error:', error);
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        setErrors({ general: 'An account with this email already exists' });
+      } else {
+        setErrors({ general: 'Google registration failed. Please try again.' });
+      }
+      toast.error('Registration failed');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const subtitle = (
     <>
-      Join thousands of food lovers! Already have an account?{" "}
+      Create your account to get started. Already have an account?{" "}
       <Link
         href="/user/login"
         className="font-semibold text-gray-900 underline-offset-4 transition hover:underline dark:text-gray-100"
       >
-        Sign in instead
+        Sign in
       </Link>
       .
-      <br />
-      <span className="text-sm text-gray-600 dark:text-gray-400">
-        Restaurant owner?{" "}
-        <Link
-          href="/admin/register"
-          className="font-semibold text-gray-900 underline-offset-4 transition hover:underline dark:text-gray-100"
-        >
-          Admin registration
-        </Link>
-      </span>
     </>
   );
 
   const footer = (
     <div className="space-y-1">
       <p>
-        By creating an account you agree to our Terms & Privacy Policy.
+        Prefer phone access?{" "}
+        <Link
+          href="/user/phone-login"
+          className="font-semibold text-gray-900 underline-offset-4 transition hover:underline dark:text-gray-100"
+        >
+          Continue with WhatsApp OTP
+        </Link>
+        .
       </p>
       <p>
         Need help? Contact support at{" "}
         <a
-          href="mailto:support@dineease.com"
+          href="mailto:support@dineezy.com"
           className="font-semibold text-gray-900 underline-offset-4 transition hover:underline dark:text-gray-100"
         >
-          support@dineease.com
+          support@dineezy.com
         </a>
         .
       </p>
     </div>
   );
 
-  const renderError = (field: string) =>
-    errors[field] && (
-      <p className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
-        <AlertCircle className="h-3 w-3" />
-        {errors[field]}
-      </p>
-    );
-
   return (
-    <AuthPageLayout title="Create your account" subtitle={subtitle} footer={footer}>
-      <form className="space-y-6" onSubmit={handleSubmit}>
+    <AuthPageLayout 
+      title="Create Account" 
+      subtitle={subtitle} 
+      footer={footer}
+      emblem={<UserPlus className="h-6 w-6" />}
+    >
+      <form className="space-y-6" onSubmit={handleEmailRegister}>
         {errors.general && (
-          <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+          <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>{errors.general}</span>
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-900 dark:text-gray-100" htmlFor="firstName">
-              First name
+              First Name
             </label>
-            <div className="relative">
-              <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-              <input
-                id="firstName"
-                name="firstName"
-                type="text"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                placeholder="John"
-                className={`${inputClasses(Boolean(errors.firstName))} pl-11`}
-                autoComplete="given-name"
-              />
-            </div>
-            {renderError("firstName")}
+            <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              placeholder="John"
+              className={inputClasses(Boolean(errors.firstName))}
+            />
+            {errors.firstName && (
+              <p className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
+                <AlertCircle className="h-3 w-3" />
+                {errors.firstName}
+              </p>
+            )}
           </div>
-
-          <div className="space-y-1">
+          <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-900 dark:text-gray-100" htmlFor="lastName">
-              Last name
+              Last Name
             </label>
-            <div className="relative">
-              <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-              <input
-                id="lastName"
-                name="lastName"
-                type="text"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                placeholder="Doe"
-                className={`${inputClasses(Boolean(errors.lastName))} pl-11`}
-                autoComplete="family-name"
-              />
-            </div>
-            {renderError("lastName")}
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              placeholder="Doe"
+              className={inputClasses(Boolean(errors.lastName))}
+            />
+            {errors.lastName && (
+              <p className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
+                <AlertCircle className="h-3 w-3" />
+                {errors.lastName}
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <label className="text-sm font-semibold text-gray-900 dark:text-gray-100" htmlFor="email">
             Email address
           </label>
           <div className="relative">
-            <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+            <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500 z-10" />
             <input
               id="email"
               name="email"
@@ -307,115 +285,91 @@ export default function UserRegisterPage() {
               autoComplete="email"
             />
           </div>
-          {renderError("email")}
+          {errors.email && (
+            <p className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
+              <AlertCircle className="h-3 w-3" />
+              {errors.email}
+            </p>
+          )}
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-semibold text-gray-900 dark:text-gray-100" htmlFor="phone">
-            Phone number
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-gray-900 dark:text-gray-100" htmlFor="password">
+            Password
           </label>
           <div className="relative">
-            <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+            <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500 z-10" />
             <input
-              id="phone"
-              name="phone"
-              type="tel"
-              value={formData.phone}
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              value={formData.password}
               onChange={handleInputChange}
-              placeholder="+1 (555) 123-4567"
-              className={`${inputClasses(Boolean(errors.phone))} pl-11`}
-              autoComplete="tel"
+              placeholder="Create a password"
+              className={`${inputClasses(Boolean(errors.password))} pl-11 pr-12`}
+              autoComplete="new-password"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
-          {renderError("phone")}
+          {errors.password && (
+            <p className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
+              <AlertCircle className="h-3 w-3" />
+              {errors.password}
+            </p>
+          )}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-900 dark:text-gray-100" htmlFor="password">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Create a strong password"
-                className={`${inputClasses(Boolean(errors.password))} pl-11 pr-12`}
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(prev => !prev)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            {renderError("password")}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-900 dark:text-gray-100" htmlFor="confirmPassword">
-              Confirm password
-            </label>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                placeholder="Re-enter password"
-                className={`${inputClasses(Boolean(errors.confirmPassword))} pl-11 pr-12`}
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(prev => !prev)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-              >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            {renderError("confirmPassword")}
-          </div>
-        </div>
-
-        <div className="space-y-3 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-300">
-          <div className="flex items-start gap-3">
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-gray-900 dark:text-gray-100" htmlFor="confirmPassword">
+            Confirm Password
+          </label>
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500 z-10" />
             <input
-              id="agreeToTerms"
-              name="agreeToTerms"
-              type="checkbox"
-              checked={formData.agreeToTerms}
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              value={formData.confirmPassword}
               onChange={handleInputChange}
-              className="mt-1 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-2 focus:ring-gray-500 focus:ring-offset-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-gray-400"
+              placeholder="Confirm your password"
+              className={`${inputClasses(Boolean(errors.confirmPassword))} pl-11 pr-12`}
+              autoComplete="new-password"
             />
-            <label htmlFor="agreeToTerms" className="block text-left text-sm">
-              I agree to receive promotional emails and updates. I understand I can opt out anytime.
-            </label>
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(prev => !prev)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            >
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
-          {renderError("agreeToTerms")}
+          {errors.confirmPassword && (
+            <p className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
+              <AlertCircle className="h-3 w-3" />
+              {errors.confirmPassword}
+            </p>
+          )}
         </div>
 
         <button
           type="submit"
-          disabled={isLoading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-gray-100 dark:text-gray-900 dark:shadow-gray-100/20 dark:hover:bg-gray-200 dark:focus:ring-gray-400"
+          disabled={loading}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition-all duration-200 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-gray-100 dark:text-gray-900 dark:shadow-gray-100/20 dark:hover:bg-gray-200 dark:focus:ring-gray-400"
         >
-          {isLoading ? (
+          {loading ? (
             <>
               <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-white dark:border-gray-900/40 dark:border-t-gray-900" />
-              Creating account...
+              Creating Account...
             </>
           ) : (
             <>
-              Create account
+              Create Account
               <ArrowRight className="h-4 w-4" />
             </>
           )}
@@ -423,15 +377,15 @@ export default function UserRegisterPage() {
 
         <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500">
           <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden />
-          <span className="font-semibold text-gray-500 dark:text-gray-400">Or sign up with</span>
+          <span className="font-semibold text-gray-500 dark:text-gray-400">Or continue with</span>
           <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden />
         </div>
 
         <button
           type="button"
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3 text-base font-semibold tracking-wide text-gray-900 transition hover:border-gray-300 hover:shadow-lg hover:shadow-gray-200/50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-gray-600 dark:hover:shadow-gray-800/50 dark:focus:ring-gray-400"
+          onClick={handleGoogleRegister}
+          disabled={loading}
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-900 transition-all duration-200 hover:border-gray-300 hover:shadow-md hover:shadow-gray-200/50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-gray-600 dark:hover:shadow-gray-800/50 dark:focus:ring-gray-400"
         >
           <svg className="h-5 w-5 text-gray-600 dark:text-gray-400" viewBox="0 0 256 262" aria-hidden>
             <path
@@ -451,14 +405,9 @@ export default function UserRegisterPage() {
               d="M130.5 50.59c19.37 0 36.77 6.65 50.6 19.71l37.83-37.83C195.85 12.11 166.12 0 130.5 0 79.04 0 34.77 30.86 13.74 72.59l43 34.56C67 73.8 96.13 50.59 130.5 50.59"
             />
           </svg>
-          {isLoading ? "Setting things up..." : "Continue with Google"}
+          {loading ? "Creating Account..." : "Continue with Google"}
         </button>
       </form>
-
-      <div className="mt-6 hidden items-center gap-3 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-sm text-green-700 opacity-0 dark:text-green-300">
-        <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
-        Account created! Redirecting...
-      </div>
     </AuthPageLayout>
   );
 }

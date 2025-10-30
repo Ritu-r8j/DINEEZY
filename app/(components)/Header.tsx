@@ -16,7 +16,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [cartCount, setCartCount] = useState(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
+    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [mounted, setMounted] = useState(false);
 
     // Initialize theme from localStorage and system preference
@@ -90,7 +90,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
         { name: 'Home', href: '/', key: 'home' },
         { name: 'Menu', href: '/user/menu', key: 'menu' },
         { name: 'Orders', href: '/user/orders', key: 'orders' },
-        { name: 'Reservations', href: '/user/my-reservations', key: 'reservation' },
+        { name: 'Reservation', href: '/user/reservation', key: 'reservation' },
     ];
 
     // Prevent hydration mismatch
@@ -146,56 +146,10 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                         ))}
                     </nav>
 
-                    {/* Search and Actions */}
+                    {/* Actions */}
                     <div className="flex items-center gap-2 sm:gap-4 ml-auto">
-                        {/* Desktop Search */}
-                        <div className="relative hidden md:block">
-                            {isSearchOpen ? (
-                                <div className="animate-in slide-in-from-right duration-300">
-                                    <form onSubmit={handleSearch} className="flex items-center">
-                                        <input
-                                            type="text"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            placeholder="Search menu..."
-                                            className="w-48 lg:w-64 px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all duration-200"
-                                            autoFocus
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsSearchOpen(false)}
-                                            className="ml-2 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 hover:scale-110"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </form>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => setIsSearchOpen(true)}
-                                    className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-110"
-                                    aria-label="Search"
-                                >
-                                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </button>
-                            )}
-                        </div>
 
-                        {/* Mobile Search Button */}
-                        <button
-                            onClick={() => setIsSearchOpen(!isSearchOpen)}
-                            className={`md:hidden p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-110 ${isSearchOpen ? 'bg-gray-200 dark:bg-gray-600' : ''
-                                }`}
-                            aria-label="Search"
-                        >
-                            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </button>
+
 
                         {/* Cart */}
                         <Link
@@ -243,13 +197,13 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                         ) : (
                             <div className="flex items-center gap-2">
                                 <Link
-                                    href="/user/login"
+                                    href="/user/phone-login"
                                     className="px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
                                     Login
                                 </Link>
                                 <Link
-                                    href="/user/register"
+                                    href="/user/phone-login"
                                     className={`px-3 py-1 hidden text-sm font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors`}
                                 >
                                     Sign Up
@@ -350,7 +304,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                             <button
                                 type="button"
                                 onClick={toggleTheme}
-                                className="flex w-full items-center justify-between rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 dark:bg-white dark:text-gray-900"
+                                className="flex w-fit gap-4 items-center justify-between rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 dark:bg-white dark:text-gray-900"
                                 aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
                             >
                                 <span>Toggle theme</span>

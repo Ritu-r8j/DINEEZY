@@ -58,8 +58,7 @@ export default function Checkout() {
         firstName: '',
         lastName: '',
         email: '',
-        phone: '',
-        address: ''
+        phone: ''
     });
 
     const [orderTypes, setOrderTypes] = useState<OrderType[]>([
@@ -77,7 +76,7 @@ export default function Checkout() {
     const [specialInstructions, setSpecialInstructions] = useState('');
 
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-       
+
         { id: 'card', name: 'Credit/Debit Card', icon: '💳', selected: true },
         { id: 'upi', name: 'UPI', icon: '📱', selected: false },
         { id: 'cash', name: 'Cash on Delivery', icon: '💵', selected: false }
@@ -125,8 +124,7 @@ export default function Checkout() {
                 firstName: userProfile.displayName?.split(' ')[0] || user.displayName?.split(' ')[0] || '',
                 lastName: userProfile.displayName?.split(' ').slice(1).join(' ') || user.displayName?.split(' ').slice(1).join(' ') || '',
                 email: user.email || '',
-                phone: userProfile.phoneNumber || '',
-                address: (userProfile as any).address || ''
+                phone: userProfile.phoneNumber || ''
             });
         }
     }, [user, userProfile]);
@@ -139,7 +137,7 @@ export default function Checkout() {
         } else if (currentStep === 2 && isStep2Valid()) {
             // Don't auto-advance from step 2, let user manually proceed
         }
-    }, [currentStep, customerInfo, orderTypes, customerInfo.address]);
+    }, [currentStep, customerInfo, orderTypes]);
 
     const selectOrderType = (typeId: string) => {
         setOrderTypes(types =>
@@ -209,8 +207,7 @@ export default function Checkout() {
     const isStep1Valid = () => {
         return customerInfo.firstName.trim() !== '' &&
             customerInfo.email.trim() !== '' &&
-            customerInfo.phone.trim() !== '' &&
-            (selectedOrderType?.id !== 'delivery' || customerInfo.address.trim() !== '');
+            customerInfo.phone.trim() !== '';
     };
 
     const isStep2Valid = () => {
@@ -254,8 +251,8 @@ export default function Checkout() {
 
         setIsPlacingOrder(true);
         setError(null);
-        
-       
+
+
 
         try {
             // Simulate payment processing
@@ -346,18 +343,18 @@ export default function Checkout() {
 
             toast.success("Order Placed Successfully!", {
                 icon: <CircleCheck className="size-5 text-green-500" />,
-    
+
             });
             await sendNotification(
                 'ORDER_CONFIRMED',
                 customerInfo.phone,
                 {
-                  name: `${customerInfo.firstName} ${customerInfo.lastName}`.trim() || 'User',
-                  orderId: orderId,
-                  time: '15-20' ,
-                  restaurant: restaurantInfo?.name || 'Restaurant'
+                    name: `${customerInfo.firstName} ${customerInfo.lastName}`.trim() || 'User',
+                    orderId: orderId,
+                    time: '15-20',
+                    restaurant: restaurantInfo?.name || 'Restaurant'
                 }
-              );
+            );
             router.push('/user/orders');
 
         } catch (err) {
@@ -373,7 +370,7 @@ export default function Checkout() {
         return (
             <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
                 <div className="text-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+                    <Loader2 className="h-12 w-12 animate-spin text-black-600 dark:text-white-400 mx-auto mb-4" />
                     <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">Loading your cart...</p>
                 </div>
             </div>
@@ -437,17 +434,17 @@ export default function Checkout() {
                             <div className="flex items-center min-w-0">
                                 <div
                                     className={`w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-xs sm:text-sm md:text-base font-bold transition-all duration-300 ${currentStep >= 1
-                                            ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
-                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
+                                        ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
                                         }`}
                                 >
                                     {currentStep > 1 ? <Check className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" /> : '1'}
                                 </div>
                                 <span className={`ml-1 sm:ml-2 text-xs sm:text-sm md:text-base font-semibold transition-colors hidden sm:inline ${currentStep === 1
-                                        ? 'text-blue-600 dark:text-blue-400'
-                                        : currentStep > 1
-                                            ? 'text-gray-900 dark:text-white'
-                                            : 'text-gray-500 dark:text-gray-400'
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : currentStep > 1
+                                        ? 'text-gray-900 dark:text-white'
+                                        : 'text-gray-500 dark:text-gray-400'
                                     }`}>
                                     Order Type
                                 </span>
@@ -455,25 +452,25 @@ export default function Checkout() {
 
                             {/* Connector Line */}
                             <div className={`w-6 sm:w-8 md:w-12 lg:w-16 h-0.5 transition-colors ${currentStep >= 2
-                                    ? 'bg-blue-600 dark:bg-blue-500'
-                                    : 'bg-gray-200 dark:bg-gray-700'
+                                ? 'bg-blue-600 dark:bg-blue-500'
+                                : 'bg-gray-200 dark:bg-gray-700'
                                 }`}></div>
 
                             {/* Step 2 */}
                             <div className="flex items-center min-w-0">
                                 <div
                                     className={`w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-xs sm:text-sm md:text-base font-bold transition-all duration-300 ${currentStep >= 2
-                                            ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
-                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
+                                        ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
                                         }`}
                                 >
                                     {currentStep > 2 ? <Check className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" /> : '2'}
                                 </div>
                                 <span className={`ml-1 sm:ml-2 text-xs sm:text-sm md:text-base font-semibold transition-colors hidden xs:inline ${currentStep === 2
-                                        ? 'text-blue-600 dark:text-blue-400'
-                                        : currentStep > 2
-                                            ? 'text-gray-900 dark:text-white'
-                                            : 'text-gray-500 dark:text-gray-400'
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : currentStep > 2
+                                        ? 'text-gray-900 dark:text-white'
+                                        : 'text-gray-500 dark:text-gray-400'
                                     }`}>
                                     Details
                                 </span>
@@ -481,23 +478,23 @@ export default function Checkout() {
 
                             {/* Connector Line */}
                             <div className={`w-6 sm:w-8 md:w-12 lg:w-16 h-0.5 transition-colors ${currentStep >= 3
-                                    ? 'bg-blue-600 dark:bg-blue-500'
-                                    : 'bg-gray-200 dark:bg-gray-700'
+                                ? 'bg-blue-600 dark:bg-blue-500'
+                                : 'bg-gray-200 dark:bg-gray-700'
                                 }`}></div>
 
                             {/* Step 3 */}
                             <div className="flex items-center min-w-0">
                                 <div
                                     className={`w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-xs sm:text-sm md:text-base font-bold transition-all duration-300 ${currentStep >= 3
-                                            ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
-                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
+                                        ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
                                         }`}
                                 >
                                     3
                                 </div>
                                 <span className={`ml-1 sm:ml-2 text-xs sm:text-sm md:text-base font-semibold transition-colors hidden xs:inline ${currentStep === 3
-                                        ? 'text-blue-600 dark:text-blue-400'
-                                        : 'text-gray-500 dark:text-gray-400'
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : 'text-gray-500 dark:text-gray-400'
                                     }`}>
                                     Payment
                                 </span>
@@ -547,7 +544,7 @@ export default function Checkout() {
                                                         </div>
                                                         <div>
                                                             <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                                Last Name 
+                                                                Last Name
                                                             </label>
                                                             <input
                                                                 type="text"
@@ -581,18 +578,6 @@ export default function Checkout() {
                                                                 className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
                                                             />
                                                         </div>
-                                                    </div>
-                                                    <div className="mt-4">
-                                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                            Delivery Address {selectedOrderType?.id === 'delivery' ? '*' : '(for delivery orders)'}
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            value={customerInfo.address}
-                                                            onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
-                                                            placeholder="Enter your full address"
-                                                            className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        />
                                                     </div>
                                                 </div>
                                             ) : (
@@ -624,7 +609,7 @@ export default function Checkout() {
                                                         </div>
                                                         <div>
                                                             <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                                Last Name 
+                                                                Last Name
                                                             </label>
                                                             <input
                                                                 type="text"
@@ -658,18 +643,6 @@ export default function Checkout() {
                                                                 className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
                                                             />
                                                         </div>
-                                                    </div>
-                                                    <div className="mt-4">
-                                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                            Delivery Address {selectedOrderType?.id === 'delivery' ? '*' : '(for delivery orders)'}
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            value={customerInfo.address}
-                                                            onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
-                                                            placeholder="Enter your full address"
-                                                            className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        />
                                                     </div>
                                                 </div>
                                             )}
@@ -746,9 +719,8 @@ export default function Checkout() {
                                         <button
                                             onClick={nextStep}
                                             disabled={!isStep1Valid()}
-                                            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold transition-all ${styles.stepButton} ${
-                                                     'cursor-pointer bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 '
-                                                   
+                                            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold transition-all ${styles.stepButton} ${'cursor-pointer bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 '
+
                                                 }`}
                                         >
                                             Continue to Details
@@ -837,8 +809,8 @@ export default function Checkout() {
                                             onClick={nextStep}
                                             disabled={!isStep2Valid()}
                                             className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${isStep2Valid()
-                                                    ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-lg'
-                                                    : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                                                ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-lg'
+                                                : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
                                                 }`}
                                         >
                                             Continue to Payment
@@ -915,8 +887,8 @@ export default function Checkout() {
                                             onClick={placeOrder}
                                             disabled={isPlacingOrder || !isFormValid()}
                                             className={`px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${isPlacingOrder || !isFormValid()
-                                                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
-                                                    : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white shadow-lg'
+                                                ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                                                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white shadow-lg'
                                                 }`}
                                         >
                                             {isPlacingOrder ? (
@@ -1050,8 +1022,8 @@ export default function Checkout() {
                             }}
                             disabled={!isFormValid() || isPlacingOrder}
                             className={`px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 ease-out relative overflow-hidden ${isFormValid() && !isPlacingOrder
-                                    ? 'bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800 hover:shadow-xl cursor-pointer'
-                                    : 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed border border-gray-400 dark:border-gray-600'
+                                ? 'bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800 hover:shadow-xl cursor-pointer'
+                                : 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed border border-gray-400 dark:border-gray-600'
                                 }`}
                         >
                             {isPlacingOrder ? (

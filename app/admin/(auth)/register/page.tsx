@@ -49,7 +49,7 @@ export default function AdminRegisterPage() {
     if (user && !loading) {
       // Check if user is already logged in as regular user
       if ((user as any).userType === 'user') {
-        router.push("/user");
+        router.push("/user/menu");
         return;
       }
       

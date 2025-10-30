@@ -734,7 +734,7 @@ export interface OrderData {
     lastName: string;
     email: string;
     phone: string;
-    address: string;
+    address?: string;
   };
   items: {
     id: string;
@@ -2152,3 +2152,283 @@ export const fixEmptyTimestamps = async () => {
 if (typeof window !== 'undefined') {
   (window as any).fixEmptyTimestamps = fixEmptyTimestamps;
 }
+
+// WhatsApp Phone Authentication Functions
+export interface PhoneAuthSession {
+  phoneNumber: string;
+  otp: string;
+  createdAt: any;
+  expiresAt: any;
+  attempts: number;
+  verified: boolean;
+  verifiedAt?: any;
+}
+
+// Generate a random 6-digit OTP
+export const generateOTP = (): string => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Send OTP via WhatsApp
+export const sendPhoneOTP = async (phoneNumber: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    // Import the notification function
+    const { sendNotification } = await import('./notification');
+    
+    // Format phone number (remove any spaces, dashes, etc.)
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    let formattedPhone: string;
+
+    if (cleanPhone.length === 10) {
+      formattedPhone = `91${cleanPhone}`;
+    } else if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+      formattedPhone = cleanPhone;
+    } else {
+      return { success: false, error: 'Invalid phone number format. Please enter a 10-digit Indian mobile number.' };
+    }
+
+    // Check if phone number already exists
+    const phoneExists = await checkPhoneNumberExists(formattedPhone);
+    if (!phoneExists.success) {
+      return { success: false, error: 'Error checking phone number. Please try again.' };
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Store OTP in Firestore with expiration
+    const otpRef = doc(db, 'phoneAuth', formattedPhone);
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 minutes expiry
+
+    const otpData: PhoneAuthSession = {
+      phoneNumber: formattedPhone,
+      otp,
+      createdAt: serverTimestamp(),
+      expiresAt: Timestamp.fromDate(expiresAt),
+      attempts: 0,
+      verified: false
+    };
+
+    await setDoc(otpRef, otpData);
+
+    // Send OTP via WhatsApp
+    const result = await sendNotification('PHONE_VERIFICATION_OTP', formattedPhone, {
+      name: 'User',
+      otp: otp
+    });
+
+    if (result.status || result.success) {
+      return { success: true };
+    } else {
+      return { success: false, error: 'Failed to send OTP. Please try again.' };
+    }
+  } catch (error: any) {
+    console.error('Error sending phone OTP:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Verify OTP and authenticate user
+export const verifyPhoneOTP = async (phoneNumber: string, enteredOTP: string): Promise<{ success: boolean; user?: UserData; error?: string }> => {
+  try {
+    // Format phone number
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    let formattedPhone: string;
+
+    if (cleanPhone.length === 10) {
+      formattedPhone = `91${cleanPhone}`;
+    } else if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+      formattedPhone = cleanPhone;
+    } else {
+      return { success: false, error: 'Invalid phone number format.' };
+    }
+
+    // Get OTP data from Firestore
+    const otpRef = doc(db, 'phoneAuth', formattedPhone);
+    const otpDoc = await getDoc(otpRef);
+
+    if (!otpDoc.exists()) {
+      return { success: false, error: 'OTP not found. Please request a new OTP.' };
+    }
+
+    const otpData = otpDoc.data() as PhoneAuthSession;
+
+    // Check if OTP is already verified
+    if (otpData.verified) {
+      return { success: false, error: 'OTP has already been used. Please request a new OTP.' };
+    }
+
+    // Check attempts
+    if (otpData.attempts >= 3) {
+      return { success: false, error: 'Too many attempts. Please request a new OTP.' };
+    }
+
+    // Check expiry
+    const now = new Date();
+    const expiryTime = otpData.expiresAt.toDate();
+    if (now > expiryTime) {
+      return { success: false, error: 'OTP has expired. Please request a new OTP.' };
+    }
+
+    // Verify OTP
+    if (otpData.otp !== enteredOTP) {
+      // Increment attempts
+      await updateDoc(otpRef, {
+        attempts: otpData.attempts + 1
+      });
+      return { success: false, error: 'Invalid OTP. Please try again.' };
+    }
+
+    // OTP is correct, mark as verified
+    await updateDoc(otpRef, {
+      verified: true,
+      verifiedAt: serverTimestamp()
+    });
+
+    // Check if user exists in database
+    const phoneExists = await checkPhoneNumberExists(formattedPhone);
+    if (phoneExists.success && phoneExists.exists) {
+      // User exists, get their profile
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('phoneNumber', '==', formattedPhone));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data() as UserData;
+        
+        // Send welcome message
+        try {
+          const { sendNotification } = await import('./notification');
+          await sendNotification('WELCOME_LOGIN', formattedPhone, {
+            name: userData.displayName || 'User'
+          });
+        } catch (welcomeError) {
+          console.error('Error sending welcome message:', welcomeError);
+        }
+
+        return { success: true, user: userData };
+      }
+    }
+
+    // User doesn't exist, create new user
+    const newUserId = `phone_${formattedPhone}`;
+    const newUser: UserData = {
+      uid: newUserId,
+      email: '', // Will be updated later if user provides email
+      displayName: '', // Will be updated during profile completion
+      phoneNumber: formattedPhone,
+      photoURL: '',
+      userType: 'user',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    const userResult = await createUserProfile(newUser);
+    if (userResult.success) {
+      // Send welcome message for new user
+      try {
+        const { sendNotification } = await import('./notification');
+        await sendNotification('WELCOME_LOGIN', formattedPhone, {
+          name: 'User'
+        });
+      } catch (welcomeError) {
+        console.error('Error sending welcome message:', welcomeError);
+      }
+
+      return { success: true, user: newUser };
+    } else {
+      return { success: false, error: 'Failed to create user profile.' };
+    }
+
+  } catch (error: any) {
+    console.error('Error verifying phone OTP:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Complete phone user profile (for new users)
+export const completePhoneUserProfile = async (
+  phoneNumber: string,
+  profileData: {
+    displayName: string;
+    email?: string;
+  }
+): Promise<{ success: boolean; user?: UserData; error?: string }> => {
+  try {
+    // Format phone number
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    let formattedPhone: string;
+
+    if (cleanPhone.length === 10) {
+      formattedPhone = `91${cleanPhone}`;
+    } else if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+      formattedPhone = cleanPhone;
+    } else {
+      return { success: false, error: 'Invalid phone number format.' };
+    }
+
+    // Find user by phone number
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('phoneNumber', '==', formattedPhone));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return { success: false, error: 'User not found.' };
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const userId = userDoc.id;
+
+    // Update user profile
+    const updateData: Partial<UserData> = {
+      displayName: profileData.displayName,
+      updatedAt: serverTimestamp()
+    };
+
+    if (profileData.email) {
+      updateData.email = profileData.email;
+    }
+
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, updateData);
+
+    // Get updated user data
+    const updatedUserDoc = await getDoc(userRef);
+    const updatedUser = updatedUserDoc.data() as UserData;
+
+    return { success: true, user: updatedUser };
+  } catch (error: any) {
+    console.error('Error completing phone user profile:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Clean up expired OTPs (can be called periodically)
+export const cleanupExpiredPhoneOTPs = async (): Promise<{ success: boolean; cleaned: number; error?: string }> => {
+  try {
+    const phoneAuthRef = collection(db, 'phoneAuth');
+    const now = new Date();
+    const querySnapshot = await getDocs(phoneAuthRef);
+
+    let cleanedCount = 0;
+    const deletePromises: Promise<void>[] = [];
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as PhoneAuthSession;
+      const expiryTime = data.expiresAt.toDate();
+      
+      if (now > expiryTime) {
+        deletePromises.push(deleteDoc(doc.ref));
+        cleanedCount++;
+      }
+    });
+
+    await Promise.all(deletePromises);
+    return { success: true, cleaned: cleanedCount };
+  } catch (error: any) {
+    console.error('Error cleaning up expired OTPs:', error);
+    return { success: false, cleaned: 0, error: error.message };
+  }
+};

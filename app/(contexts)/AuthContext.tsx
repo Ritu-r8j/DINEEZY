@@ -3,26 +3,26 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
 import { onAuthStateChange, logout } from '@/app/(utils)/firebase';
-import { 
-  getUserProfile, 
+import {
+  getUserProfile,
   UserData,
   getUserType
 } from '@/app/(utils)/firebaseOperations';
 import { useRouter } from 'next/navigation';
 // import toast from 'react-hot-toast';
-import {toast} from 'sonner';
+import { toast } from 'sonner';
 import { OctagonXIcon } from 'lucide-react';
 
 interface AuthContextType {
-  user: (User & { isPhoneAuth?: boolean; userType?: 'user' | 'admin' }) | null;
+  user: (User & { userType?: 'user' | 'admin' }) | null;
   userProfile: UserData | null;
   loading: boolean;
   signOut: () => Promise<void>;
   refreshUserData: () => Promise<void>;
-  handlePhoneAuth: (phoneNumber: string, userData: any) => Promise<void>;
   isAdmin: boolean;
   isUser: boolean;
-  setUser : (user: (User & { isPhoneAuth?: boolean }) | null) => void;
+  setUser: (user: (User & { userType?: 'user' | 'admin' }) | null) => void;
+  loginWithPhone: (userData: UserData) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,7 +40,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<(User & { isPhoneAuth?: boolean }) | null>(null);
+  const [user, setUser] = useState<(User & { userType?: 'user' | 'admin' }) | null>(null);
   const [userProfile, setUserProfile] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -52,16 +52,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const userResult = await getUserProfile(user.uid);
         if (userResult.success && userResult.data) {
           setUserProfile(userResult.data);
-          console.log(userResult.data);
-          
-          // If it's a phone auth user, update localStorage
-          if (user.isPhoneAuth) {
-            localStorage.setItem('phoneAuth', JSON.stringify({
-              user: user,
-              userProfile: userResult.data,
-              timestamp: Date.now()
-            }));
-          }
+
+          // Update user object with latest phone number from profile
+          const updatedUser = {
+            ...user,
+            phoneNumber: userResult.data.phoneNumber || user.phoneNumber
+          };
+          setUser(updatedUser);
         }
 
         // Also refresh user type
@@ -78,14 +75,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
-      // Clear phone authentication data
-      localStorage.removeItem('phoneAuth');
-      
-      // If it's a Firebase user, use Firebase logout
-      if (user && !user.isPhoneAuth) {
+      // Clear phone auth session if exists
+      localStorage.removeItem('phoneAuthSession');
+
+      // Only call Firebase logout if user is not a phone auth user
+      if (user && !user.uid.startsWith('phone_')) {
         await logout();
       }
-      
+
       setUser(null);
       setUserProfile(null);
     } catch (error) {
@@ -93,58 +90,89 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Check if phone session is still valid
-  const isPhoneSessionValid = (timestamp: number) => {
-    // Session valid for 24 hours
-    return Date.now() - timestamp < 24 * 60 * 60 * 1000;
-  };
+  // Phone authentication login
+  const loginWithPhone = (userData: UserData) => {
+    const phoneUser = {
+      uid: userData.uid,
+      email: userData.email || '',
+      displayName: userData.displayName || '',
+      phoneNumber: userData.phoneNumber || '',
+      photoURL: userData.photoURL || '',
+      userType: userData.userType || 'user'
+    } as User & { userType?: 'user' | 'admin' };
 
-  // Restore phone authentication from localStorage
-  const restorePhoneAuth = () => {
-    try {
-      const phoneAuthData = localStorage.getItem('phoneAuth');
-      if (phoneAuthData) {
-        const { user: phoneUser, userProfile: phoneUserProfile, timestamp } = JSON.parse(phoneAuthData);
-        
-        // Check if the session is still valid
-        if (isPhoneSessionValid(timestamp)) {
-          setUser(phoneUser);
-          setUserProfile(phoneUserProfile);
-          setLoading(false);
-          return true;
-        } else {
-          // Clear expired session
-          localStorage.removeItem('phoneAuth');
-        }
-      }
-    } catch (error) {
-      console.error('Error restoring phone auth:', error);
-      localStorage.removeItem('phoneAuth');
-    }
-    return false;
+    setUser(phoneUser);
+    setUserProfile(userData);
+
+    // Store phone auth session
+    localStorage.setItem('phoneAuthSession', JSON.stringify({
+      user: phoneUser,
+      userProfile: userData,
+      timestamp: Date.now()
+    }));
   };
 
   useEffect(() => {
-    // First check for phone authentication
-    const phoneAuthRestored = restorePhoneAuth();
-    
+    // Check for phone auth session first
+    const checkPhoneAuthSession = () => {
+      try {
+        const phoneAuthData = localStorage.getItem('phoneAuthSession');
+        if (phoneAuthData) {
+          const { user: phoneUser, userProfile: phoneUserProfile, timestamp } = JSON.parse(phoneAuthData);
+
+          // Check if session is still valid (24 hours)
+          const isValid = Date.now() - timestamp < 24 * 60 * 60 * 1000;
+
+          if (isValid) {
+            setUser(phoneUser);
+            setUserProfile(phoneUserProfile);
+            setLoading(false);
+            return true;
+          } else {
+            // Clear expired session
+            localStorage.removeItem('phoneAuthSession');
+          }
+        }
+      } catch (error) {
+        console.error('Error restoring phone auth session:', error);
+        localStorage.removeItem('phoneAuthSession');
+      }
+      return false;
+    };
+
+    // Try to restore phone auth session first
+    const phoneAuthRestored = checkPhoneAuthSession();
+
     if (!phoneAuthRestored) {
-      // If no phone auth, check Firebase authentication
-      const unsubscribe = onAuthStateChange(async (user) => {
-        setUser(user);
+      // If no phone auth session, check Firebase auth
+      const unsubscribe = onAuthStateChange(async (firebaseUser) => {
         setLoading(false);
 
-        if (user) {
+        if (firebaseUser) {
           try {
             // Get user profile
-            const userResult = await getUserProfile(user.uid);
+            const userResult = await getUserProfile(firebaseUser.uid);
             if (userResult.success && userResult.data) {
               setUserProfile(userResult.data);
+
+              // Enhance Firebase user with phone number from profile
+              const enhancedUser = {
+                ...firebaseUser,
+                phoneNumber: userResult.data.phoneNumber || firebaseUser.phoneNumber
+              } as User & { userType?: 'user' | 'admin' };
+
+              setUser(enhancedUser);
+            } else {
+              // If no profile data, use Firebase user as is
+              setUser(firebaseUser);
             }
           } catch (error) {
             console.error('Error loading user data:', error);
+            // Fallback to Firebase user if profile loading fails
+            setUser(firebaseUser);
           }
         } else {
+          setUser(null);
           setUserProfile(null);
         }
       });
@@ -153,113 +181,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Extend phone session when user is active
-  const extendPhoneSession = () => {
-    if (user && user.isPhoneAuth) {
-      try {
-        const phoneAuthData = localStorage.getItem('phoneAuth');
-        if (phoneAuthData) {
-          const { user: phoneUser, userProfile: phoneUserProfile } = JSON.parse(phoneAuthData);
-          localStorage.setItem('phoneAuth', JSON.stringify({
-            user: phoneUser,
-            userProfile: phoneUserProfile,
-            timestamp: Date.now()
-          }));
-        }
-      } catch (error) {
-        console.error('Error extending phone session:', error);
-      }
-    }
-  };
-
-  // Handle phone authentication (without Firebase Auth)
-  const handlePhoneAuth = async (phoneNumber: string, userData: any) => {
-    try {
-      const phoneUser = { 
-        uid: phoneNumber, 
-        email: userData.email, 
-        displayName: userData.displayName,
-        phoneNumber: phoneNumber,
-        isPhoneAuth: true,
-        userType: userData.userType || 'user' // Set user type
-      } as any;
-      
-      setUser(phoneUser);
-      setUserProfile(userData);
-      setLoading(false);
-      
-      // Store phone authentication data in localStorage for persistence
-      localStorage.setItem('phoneAuth', JSON.stringify({
-        user: phoneUser,
-        userProfile: userData,
-        timestamp: Date.now()
-      }));
-    } catch (error) {
-      console.error('Error handling phone auth:', error);
-    }
-  };
-
-  // Check session validity on page focus
-  useEffect(() => {
-    const handleFocus = () => {
-      if (user && user.isPhoneAuth) {
-        const phoneAuthData = localStorage.getItem('phoneAuth');
-        if (phoneAuthData) {
-          try {
-            const { timestamp } = JSON.parse(phoneAuthData);
-            if (!isPhoneSessionValid(timestamp)) {
-              // Session expired, sign out
-              signOut();
-            }
-          } catch (error) {
-            console.error('Error checking session validity:', error);
-            signOut();
-          }
-        }
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [user]);
-
-  // Extend phone session every 30 minutes
-  useEffect(() => {
-    if (user && user.isPhoneAuth) {
-      const interval = setInterval(extendPhoneSession, 30 * 60 * 1000); // 30 minutes
-      return () => clearInterval(interval);
-    }
-  }, [user]);
-
   // State for user type
   const [userType, setUserType] = useState<'user' | 'admin' | null>(null);
 
   // Fetch user type from database when user changes
 
   useEffect(() => {
-    if (user && !loading) {
-      console.log(user)
+    if (user && !loading && userProfile) {
       // Add a small delay to ensure userProfile is fully loaded
       const timeoutId = setTimeout(() => {
-        // Check both user.phoneNumber and userProfile.phoneNumber
-        const hasPhoneNumber = user.phoneNumber || userProfile?.phoneNumber;
-        
+        // Check phone number from enhanced user object (which includes Firestore phone number)
+        const hasPhoneNumber = user.phoneNumber;
+
         if (!hasPhoneNumber) {
           toast.error("Please add your phone number", {
             icon: <OctagonXIcon color="red" className="size-5" />,
             position: "top-right"
           });
+          router.push('/user/profile');
         }
-      }, 2500); // 500ms delay to ensure data is loaded
+      }, 2500); // 2.5s delay to ensure data is loaded
 
       return () => clearTimeout(timeoutId);
     }
-  }, [user, userProfile, loading]);
+  }, [user, userProfile, loading, router]);
 
   useEffect(() => {
     const fetchUserType = async () => {
       if (user) {
-        
         try {
           const result = await getUserType(user.uid);
           if (result) {
@@ -293,11 +242,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     signOut,
     refreshUserData,
-    handlePhoneAuth,
     isAdmin,
     isUser,
-    setUser
-    
+    setUser,
+    loginWithPhone
   };
 
   return (
