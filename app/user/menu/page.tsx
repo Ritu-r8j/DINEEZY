@@ -819,18 +819,18 @@ export default function MenuPage() {
         <section className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">What's on your mind?</h2>
-            <div className="flex gap-2">
-              <button 
+            <div className="hidden md:flex gap-2">
+              <button
                 onClick={() => scrollCategories('left')}
-                className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
-                <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
-              <button 
+              <button
                 onClick={() => scrollCategories('right')}
-                className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
-                <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
           </div>
@@ -875,16 +875,32 @@ export default function MenuPage() {
               </h2>
 
             </div>
-            <div className="flex gap-1">
-              <button className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <ChevronLeft className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+            <div className="hidden md:flex gap-2">
+              <button
+                onClick={() => {
+                  const container = document.getElementById('restaurant-chains-container');
+                  if (container) {
+                    container.scrollBy({ left: -400, behavior: 'smooth' });
+                  }
+                }}
+                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
-              <button className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <ChevronRight className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+              <button
+                onClick={() => {
+                  const container = document.getElementById('restaurant-chains-container');
+                  if (container) {
+                    container.scrollBy({ left: 400, behavior: 'smooth' });
+                  }
+                }}
+                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          <div id="restaurant-chains-container" className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {restaurants.slice(0, 6).map((restaurant) => (
               <div 
                onClick={() => router.push(`/user/menu/${restaurant.id}`)}
@@ -982,10 +998,36 @@ export default function MenuPage() {
 
             return Object.entries(groupedItems).map(([category, items]) => (
               <div key={category} className="mb-6">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 border-b border-gray-200 dark:border-gray-700 pb-1">
-                  {category}
-                </h3>
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex items-center justify-between mb-3 border-b border-gray-200 dark:border-gray-700 pb-1">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    {category}
+                  </h3>
+                  <div className="hidden md:flex gap-2">
+                    <button
+                      onClick={() => {
+                        const container = document.getElementById(`menu-items-${category}`);
+                        if (container) {
+                          container.scrollBy({ left: -400, behavior: 'smooth' });
+                        }
+                      }}
+                      className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const container = document.getElementById(`menu-items-${category}`);
+                        if (container) {
+                          container.scrollBy({ left: 400, behavior: 'smooth' });
+                        }
+                      }}
+                      className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+                <div id={`menu-items-${category}`} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                   {items.map((item) => (
                     <div key={item.id} className="group w-48 flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                       <div className="relative">
