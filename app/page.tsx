@@ -696,7 +696,7 @@ export default function HomePage() {
                   <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Dineezy</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 pr-[30px]">
+              <div className="flex items-center gap-1 md:gap-3 pr-[30px]">
                 <button
                   onClick={toggleTheme}
                   className="group relative h-9 w-9 rounded-xl border border-foreground/10 bg-gradient-to-br from-white/10 to-transparent text-foreground shadow-sm backdrop-blur transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 lg:flex lg:items-center lg:justify-center cursor-pointer"
@@ -722,16 +722,17 @@ export default function HomePage() {
                         Log in
                       </button>
                     </Link>
-                    <Link href="/user/phone-login">
-                      <button className="hidden rounded-[8px] border border-foreground/10 px-5 py-2 text-sm font-medium transition hover:border-primary/60 hover:text-primary lg:block cursor-pointer">
-                        Sign Up
-                      </button>
-                    </Link>
                   </>
                 )}
 
                 <Link href="/user/menu">
                   <button className="hidden rounded-[8px] px-6 py-2 text-sm font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl lg:block cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90">
+                    {user ? 'Order Now' : 'Get Started'}
+                  </button>
+                </Link>
+
+                 <Link href="/user/menu">
+                  <button className="md:hidden sm:block rounded-[8px]  font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-4 py-2 text-sm">
                     {user ? 'Order Now' : 'Get Started'}
                   </button>
                 </Link>
@@ -1206,7 +1207,7 @@ export default function HomePage() {
             </div>
           </motion.section>
 
-          <motion.section id="contact" className="mt-24" {...sectionMotion}>
+          <motion.section id="contact" className="mt-24 mb-4" {...sectionMotion}>
             <div className="grid gap-10 rounded-[32px] border border-foreground/5 bg-background/80 p-10 shadow-sm backdrop-blur md:grid-cols-[1.4fr_1fr]">
               <div>
                 <p className="text-sm uppercase tracking-[0.4em] text-muted-foreground">Stay Updated</p>

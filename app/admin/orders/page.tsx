@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Bell, Clock, Eye, Phone, MapPin, DollarSign, Search, RefreshCw, X, ChefHat, Package, Loader2 } from 'lucide-react';
 import { getRestaurantOrders, updateOrderStatus, updateOrderEstimatedTime, OrderData, subscribeToRestaurantOrders } from '@/app/(utils)/firebaseOperations';
 import { useAuth } from '@/app/(contexts)/AuthContext';
+import { sendNotification } from '@/app/(utils)/notification';
 
 interface OrderItem {
   id: string;
@@ -50,13 +51,13 @@ export default function OrderManagement() {
 
     const setupRealTimeListener = async () => {
       if (!user) return;
-      
+
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const restaurantId = user.uid; // This should be the restaurant ID
-        
+
         // Set up real-time listener for restaurant orders
         unsubscribe = subscribeToRestaurantOrders(restaurantId, (orders) => {
           if (orders.length > 0) {
@@ -74,7 +75,7 @@ export default function OrderManagement() {
               orderType: order.orderType,
               specialNotes: order.specialInstructions
             }));
-            
+
             setOrders(transformedOrders);
           } else {
             setOrders([]);
@@ -124,16 +125,90 @@ export default function OrderManagement() {
   const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     try {
       setIsUpdating(orderId);
-      
+
       const result = await updateOrderStatus(orderId, newStatus);
-      
+
       if (result.success) {
+        // Find the order to get customer info
+        const order = orders.find(o => o.id === orderId);
+
         // Update local state
         setOrders(orders.map(order =>
           order.id === orderId
             ? { ...order, status: newStatus, estimatedTime: newStatus === 'confirmed' ? 20 : order.estimatedTime }
             : order
         ));
+
+        // Send appropriate notification based on status
+        if (order && order.customerPhone) {
+          try {
+            switch (newStatus) {
+              case 'confirmed':
+                await sendNotification(
+                  'ORDER_ACCEPTED',
+                  order.customerPhone,
+                  {
+                    name: order.customerName || 'User',
+                    orderId: orderId,
+                    time: `${order.adminEstimatedTime || 20}`,
+                    restaurant: 'Restaurant' // You can get this from your restaurant context/state
+                  }
+                );
+                break;
+
+              case 'preparing':
+                await sendNotification(
+                  'ORDER_PREPARING',
+                  order.customerPhone,
+                  {
+                    name: order.customerName || 'User',
+                    orderId: orderId,
+                    time: `${order.adminEstimatedTime || 20}`
+                  }
+                );
+                break;
+
+              case 'ready':
+                await sendNotification(
+                  'ORDER_READY',
+                  order.customerPhone,
+                  {
+                    name: order.customerName || 'User',
+                    orderId: orderId
+                  }
+                );
+                break;
+
+              case 'delivered':
+                await sendNotification(
+                  'PAYMENT_SUCCESS',
+                  order.customerPhone,
+                  {
+                    name: order.customerName || 'User',
+                    orderId: orderId,
+                    amount: order.totalAmount?.toFixed(2) || '0.00'
+                  }
+                );
+                break;
+
+              case 'cancelled':
+                await sendNotification(
+                  'ORDER_CANCELED',
+                  order.customerPhone,
+                  {
+                    name: order.customerName || 'User',
+                    orderId: orderId,
+                    reason: 'Order cancelled by restaurant'
+                  }
+                );
+                break;
+            }
+          } catch (notificationError) {
+            console.error('Error sending notification:', notificationError);
+            // Don't fail the status update if notification fails
+          }
+        }
+
       } else {
         setError(result.error || 'Failed to update order status');
       }
@@ -148,16 +223,41 @@ export default function OrderManagement() {
   const handleSetEstimatedTime = async (orderId: string, estimatedTime: number) => {
     try {
       setIsUpdating(orderId);
-      
+
       const result = await updateOrderEstimatedTime(orderId, estimatedTime);
-      
+
       if (result.success) {
+        // Find the order to get customer info
+        const order = orders.find(o => o.id === orderId);
+
         // Update local state
         setOrders(orders.map(order =>
           order.id === orderId
             ? { ...order, adminEstimatedTime: estimatedTime }
             : order
         ));
+
+        console.log("Estimated Time")
+
+        // Send notification about updated time if order is confirmed or preparing
+        if (order && order.customerPhone && ['confirmed', 'preparing'].includes(order.status)) {
+          try {
+            await sendNotification(
+              'ORDER_ACCEPTED',
+              order.customerPhone,
+              {
+                name: order.customerName || 'User',
+                orderId: orderId,
+                time: `${estimatedTime}`,
+                restaurant: 'Restaurant' // You can get this from your restaurant context/state
+              }
+            );
+          } catch (notificationError) {
+            console.error('Error sending time update notification:', notificationError);
+            // Don't fail the time update if notification fails
+          }
+        }
+
         setShowTimeModal(false);
         setSelectedOrderForTime(null);
       } else {
@@ -281,8 +381,8 @@ export default function OrderManagement() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as any)}
                 className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${activeTab === tab.key
-                    ? 'bg-blue-500 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-white/70 dark:hover:bg-gray-700/70'
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-white/70 dark:hover:bg-gray-700/70'
                   }`}
               >
                 {tab.label} {tab.count > 0 && <span className="ml-1">({tab.count})</span>}
@@ -603,11 +703,10 @@ export default function OrderManagement() {
                     <button
                       key={time}
                       onClick={() => setCustomEstimatedTime(time)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                        customEstimatedTime === time
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${customEstimatedTime === time
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
                     >
                       {time}m
                     </button>

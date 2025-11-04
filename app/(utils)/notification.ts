@@ -3,6 +3,7 @@
 type NotificationType =
   | "ORDER_CONFIRMED"
   | "ORDER_ACCEPTED"
+  | "ORDER_PREPARING"
   | "ORDER_READY"
   | "PAYMENT_SUCCESS"
   | "ORDER_CANCELED"
@@ -28,13 +29,18 @@ const TEMPLATES: Record<NotificationType, TemplateConfig> = {
   ORDER_CONFIRMED: {
     template: "order_confirmed",
     message: (data) =>
-      `🍽️ *Dineezy Order Confirmed!*\n\nHi ${data.name}, your order *#${data.orderId}* at *${data.restaurant}* has been received successfully.\n🕐 Estimated Preparation Time: ${data.time} mins\n\nWe'll notify you once your food is ready.\nThank you for ordering with Dineezy! 💚`,
+      `🍽️ *Dineezy Order Confirmed!*\n\nHi ${data.name}, your order *#${data.orderId}* at *${data.restaurant}* has been received successfully.\n🕐 Estimated Preparation Time: ${data.time} mins\n\nOnce restaurant confirms your order, We'll notify you.\n\nThank you for ordering with Dineezy! 💚`,
   },
-
   ORDER_ACCEPTED: {
     template: "order_accepted",
     message: (data) =>
-      `✅ *Great news, ${data.name}!*\n\nYour order *#${data.orderId}* has been accepted by *${data.restaurant}*.\n👨‍🍳 Our chef has started preparing your food.`,
+      `✅ *Great news, ${data.name}!*\n\nYour order *#${data.orderId}* has been accepted by *${data.restaurant}*.\n🕐 Estimated Time: ${data.time} minutes\n\nWe'll start preparing your food shortly!`,
+  },
+
+  ORDER_PREPARING: {
+    template: "order_preparing",
+    message: (data) =>
+      `👨‍🍳 *Cooking in Progress!*\n\nHi ${data.name}, our chef has started preparing your order *#${data.orderId}*.\n🔥 Your delicious meal will be ready soon!\n\nEstimated time: ${data.time} minutes`,
   },
 
   ORDER_READY: {
