@@ -685,7 +685,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9 }}
           >
-            <div className="flex flex-wrap items-center justify-between gap-6 rounded-3xl bg-muted/10 shadow-sm backdrop-blur lg:flex-nowrap relative z-50">
+            <div className="flex flex-wrap items-center justify-between  rounded-3xl bg-muted/10 shadow-sm backdrop-blur lg:flex-nowrap relative z-50">
               <div className="flex items-center gap-2">
                 <img
                   src="logo.png"
