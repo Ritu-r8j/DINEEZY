@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import ProfileDropdown from './ProfileDropdown';
+import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
     currentPage?: 'home' | 'menu' | 'orders' | 'reservation';
@@ -149,7 +150,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                     {/* Actions */}
                     <div className="flex items-center gap-2 sm:gap-3 ml-auto">
 
-
+                        <ThemeToggle />
 
                         {/* Cart */}
                         <Link
@@ -167,26 +168,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                             )}
                         </Link>
 
-                        {/* Dark Mode Toggle */}
-                        <button
-                            onClick={toggleTheme}
-                            className={`inline-flex items-center justify-center rounded-full p-2 transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                                theme === 'dark'
-                                    ? 'border border-amber-200/50 bg-amber-400/20 text-amber-100 shadow-[0_4px_20px_rgba(251,191,36,0.15)] hover:bg-amber-400/30 focus-visible:outline-amber-200/60'
-                                    : 'border border-gray-900/20 bg-gray-900 text-white shadow-[0_4px_18px_rgba(17,24,39,0.18)] hover:bg-gray-800 focus-visible:outline-gray-500/60'
-                            }`}
-                            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-                        >
-                            {theme === 'light' ? (
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                                </svg>
-                            ) : (
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
-                            )}
-                        </button>
+
 
                         {/* Notifications - Hidden on small screens */}
                         <button className="hidden sm:block p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-110">
@@ -206,12 +188,12 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                                 >
                                     Login
                                 </Link>
-                                <Link
+                                {/* <Link
                                     href="/user/phone-login"
                                     className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors`}
                                 >
                                     Sign Up
-                                </Link>
+                                </Link> */}
                             </div>
                         )}
 

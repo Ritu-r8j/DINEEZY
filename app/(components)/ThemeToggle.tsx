@@ -1,6 +1,7 @@
 'use client';
 
 import { useTheme } from '@/app/(contexts)/ThemeContext';
+import { Moon, Sun } from 'lucide-react';
 
 interface ThemeToggleProps {
   className?: string;
@@ -8,10 +9,10 @@ interface ThemeToggleProps {
   showLabel?: boolean;
 }
 
-export default function ThemeToggle({ 
-  className = '', 
-  size = 'md', 
-  showLabel = false 
+export default function ThemeToggle({
+  className = '',
+  size = 'md',
+  showLabel = false
 }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
 
@@ -36,23 +37,17 @@ export default function ThemeToggle({
   return (
     <button
       onClick={toggleTheme}
-      className={`${baseClasses} ${themeClasses} ${sizeClasses[size]} ${className}`}
-      aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+      className="group relative h-9 w-9 rounded-xl border border-foreground/10 bg-gradient-to-br from-white/10 to-transparent text-foreground shadow-sm backdrop-blur transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 lg:flex lg:items-center lg:justify-center cursor-pointer"
+      aria-label="Toggle theme"
     >
-      {theme === 'light' ? (
-        <svg className={`${iconSizes[size]} text-white`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
-      ) : (
-        <svg className={`${iconSizes[size]} text-amber-100`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      )}
-      {showLabel && (
-        <span className={isDark ? 'ml-2 text-sm font-medium text-amber-100' : 'ml-2 text-sm font-medium text-white'}>
-          {theme === 'light' ? 'Dark' : 'Light'}
-        </span>
-      )}
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+      <div className="relative flex  items-center justify-center">
+        {theme === "light" ? (
+          <Moon className="h-4.5 w-4.5 transition-transform duration-300 group-hover:rotate-12" />
+        ) : (
+          <Sun className="h-4.5 w-4.5 transition-transform duration-300 group-hover:rotate-90" />
+        )}
+      </div>
     </button>
   );
 }

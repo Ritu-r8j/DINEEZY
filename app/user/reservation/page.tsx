@@ -951,7 +951,7 @@ export default function RestaurantListingPage() {
                                 <section>
                                     <div className="flex items-center justify-between mb-3 sm:mb-4">
                                         <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                                            <Star fill="black" stroke="none" className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 mr-2" />
+                                            <Star fill="gray" stroke="none" className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 mr-2" />
                                             <span className="hidden sm:inline">Featured Restaurants</span>
                                             <span className="sm:hidden">Featured</span>
                                         </h2>

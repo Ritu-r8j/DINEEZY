@@ -114,7 +114,7 @@ const setupAutoScroll = (
   { speed = 0.4, direction = 1, idleDelay = 1600 }: AutoScrollOptions = {}
 ) => {
   if (!container) {
-    return () => {};
+    return () => { };
   }
 
   let frameId = 0;
@@ -641,7 +641,7 @@ export default function HomePage() {
         rel="stylesheet"
         href="data:text/css;base64,QG1lZGlhIG9ubHkgc2NyZWVuIHsKICBAa2V5ZnJhbWVzIGluZmluaXRlLXNjcm9sbCB7CiAgICAlICUgewogICAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoMCk7CiAgICB9CiAgICAxMDAlIHsKICAgICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVYKC01MCUpOwogICAgfQogIH0KfQouaW5maW5pdGUtc2Nyb2xsLWNvbnRhaW5lciB7CiAgZGlzcGxheTogZmxleDsKICBvdmVyZmxvdy14OiBhdXRvOwogIG92ZXJmbG93LXk6IGhpZGRlbjsKICBzY3JvbGwtYmVoYXZpb3I6IHNtb290aDsKICAtd2Via2l0LW92ZXJmbG93LXNjcm9sbGluZzogdG91Y2g7CiAgc2Nyb2xsYmFyLXdpZHRoOiBub25lOwogIC1tcy1vdmVyZmxvdy1zdHlsZTogbm9uZTsKfQouaW5maW5pdGUtc2Nyb2xsLWNvbnRhaW5lcjo6LXdlYmtpdC1zY3JvbGxiYXIgewogIGRpc3BsYXk6IG5vbmU7Cn0KLmluZmluaXRlLXNjcm9sbC13cmFwcGVyIHsKICBkaXNwbGF5OiBmbGV4OwogIHdpZHRoOiBmaXQtY29udGVudDsKfQo="
       />
-      
+
       {/* SVG Gradient Definition for Stars */}
       <svg className="absolute w-0 h-0" aria-hidden="true">
         <defs>
@@ -696,10 +696,17 @@ export default function HomePage() {
                   <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Dineezy</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 md:gap-3 pr-[30px]">
-
+              <div className= "flex items-center gap-1 md:gap-3 pr-[30px]">
+                <ThemeToggle size="sm" className="shadow-none hover:scale-105" />
                 {user ? (
+                  <>
                   <ProfileDropdown />
+                   <Link href="/user/menu">
+                  <button className="sm:block rounded-[8px]  font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-4 py-2 text-sm">
+                    Order Now
+                  </button>
+                </Link>
+                  </>
                 ) : (
                   // User is not logged in - show login/signup
                   <>
@@ -711,21 +718,6 @@ export default function HomePage() {
                   </>
                 )}
 
-                {!user && (
-                  <>
-                    <Link href="/user/menu">
-                      <button className="hidden rounded-[8px] px-6 py-2 text-sm font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl lg:block cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90">
-                        Get Started
-                      </button>
-                    </Link>
-
-                     <Link href="/user/menu">
-                      <button className="md:hidden sm:block rounded-[8px]  font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-4 py-2 text-sm">
-                        Get Started
-                      </button>
-                    </Link>
-                  </>
-                )}
 
                 {/* Mobile Menu Button */}
                 <button
@@ -756,6 +748,8 @@ export default function HomePage() {
                   </div>
                 </button>
 
+               
+
               </div>
             </div>
 
@@ -783,12 +777,6 @@ export default function HomePage() {
                     </Link>
                   ))}
                 </nav>
-                <div className="mt-6 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 shadow-sm dark:border-gray-600 dark:bg-gray-700/80">
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                    Theme
-                  </span>
-                  <ThemeToggle size="sm" className="shadow-none hover:scale-105" />
-                </div>
               </div>
             </div>
 
