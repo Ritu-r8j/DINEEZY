@@ -147,7 +147,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                     </nav>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+                    <div className="flex items-center gap-2 sm:gap-3 ml-auto">
 
 
 
@@ -157,11 +157,11 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                             className="relative p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-110"
                             aria-label={`Cart with ${cartCount} items`}
                         >
-                            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h8m-8 0a2 2 0 100 4 2 2 0 000-4zm8 0a2 2 0 100 4 2 2 0 000-4z" />
                             </svg>
                             {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium animate-pulse">
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-medium animate-pulse">
                                     {cartCount}
                                 </span>
                             )}
@@ -170,15 +170,19 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                         {/* Dark Mode Toggle */}
                         <button
                             onClick={toggleTheme}
-                            className="hidden md:inline-flex p-2 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-110"
+                            className={`inline-flex items-center justify-center rounded-full p-2 transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                                theme === 'dark'
+                                    ? 'border border-amber-200/50 bg-amber-400/20 text-amber-100 shadow-[0_4px_20px_rgba(251,191,36,0.15)] hover:bg-amber-400/30 focus-visible:outline-amber-200/60'
+                                    : 'border border-gray-900/20 bg-gray-900 text-white shadow-[0_4px_18px_rgba(17,24,39,0.18)] hover:bg-gray-800 focus-visible:outline-gray-500/60'
+                            }`}
                             aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
                         >
                             {theme === 'light' ? (
-                                <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                                 </svg>
                             ) : (
-                                <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                             )}
@@ -186,7 +190,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
 
                         {/* Notifications - Hidden on small screens */}
                         <button className="hidden sm:block p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-110">
-                            <svg fill="currentColor" height="20" viewBox="0 0 256 256" width="20" xmlns="http://www.w3.org/2000/svg" className="text-gray-600 dark:text-gray-400">
+                            <svg fill="currentColor" height="16" width="16" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" className="text-gray-600 dark:text-gray-400">
                                 <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"></path>
                             </svg>
                         </button>
@@ -195,16 +199,16 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                         {user ? (
                             <ProfileDropdown />
                         ) : (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 sm:gap-2">
                                 <Link
                                     href="/user/phone-login"
-                                    className="px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                    className="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
                                     Login
                                 </Link>
                                 <Link
                                     href="/user/phone-login"
-                                    className={`px-3 py-1 hidden text-sm font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors`}
+                                    className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors`}
                                 >
                                     Sign Up
                                 </Link>
@@ -214,7 +218,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                         {/* Mobile Menu Button */}
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className={`md:hidden ml-2 flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 ${isMobileMenuOpen ? 'bg-gray-100 dark:bg-gray-700' : ''
+                            className={`md:hidden ml-1 sm:ml-2 flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 ${isMobileMenuOpen ? 'bg-gray-100 dark:bg-gray-700' : ''
                                 }`}
                             aria-label="Toggle mobile menu"
                         >

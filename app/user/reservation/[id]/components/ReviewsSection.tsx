@@ -69,10 +69,9 @@ export default function ReviewsSection({
               } transition-transform duration-200`}
           >
             <Star
-              className={`w-full h-full ${star <= rating
-                ? 'text-yellow-400 fill-yellow-400'
-                : 'text-gray-300 dark:text-gray-600'
-                }`}
+              className="w-full h-full"
+              fill={star <= rating ? "url(#starGradient)" : "none"}
+              stroke={star <= rating ? "url(#starGradient)" : "currentColor"}
             />
           </button>
         ))}
@@ -81,7 +80,18 @@ export default function ReviewsSection({
   };
 
   return (
-    <div className="bg-white dark:bg-[#0f1419] rounded-lg">
+    <div>
+      {/* SVG Gradient Definition for Stars */}
+      <svg className="absolute w-0 h-0" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#b8dcff" />
+            <stop offset="50%" stopColor="#c9cbff" />
+            <stop offset="100%" stopColor="#e5c0ff" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="bg-white dark:bg-[#0f1419] rounded-lg">
       {/* Reviews Header */}
       <div className="p-4 sm:p-6 pb-4">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
@@ -348,7 +358,7 @@ export default function ReviewsSection({
                               </div>
                               <div className="flex items-center bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-medium">
                                 {review.rating}
-                                <Star className="w-3 h-3 ml-1 fill-current" />
+                                <Star className="w-3 h-3 ml-1" fill="url(#starGradient)" stroke="none" />
                               </div>
                             </div>
 
@@ -472,6 +482,7 @@ export default function ReviewsSection({
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -592,199 +592,199 @@ export default function RestaurantListingPage() {
                     </linearGradient>
                 </defs>
             </svg>
-            
+
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Mobile Filter Overlay */}
-            {isMobileFilterOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-40 lg:hidden" />
-            )}
+                {/* Mobile Filter Overlay */}
+                {isMobileFilterOpen && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-40 lg:hidden" />
+                )}
 
-            {/* Main Content */}
-            <main className="flex-1">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-                    {/* Search Bar */}
-                    <div className="mb-6 sm:mb-8">
-                        <div className="max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto relative  sm:px-0">
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-                                    <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    ref={searchInputRef}
-                                    className="block w-full pl-8 sm:pl-10 pr-8 sm:pr-10 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base shadow-sm"
-                                    placeholder="Search restaurants, cuisines..."
-                                    type="search"
-                                    value={searchQuery}
-                                    onChange={handleSearchChange}
-                                    onFocus={() => {
-                                        if (searchQuery.trim().length === 0) {
-                                            const popularSuggestions = getPopularSuggestions();
-                                            setSuggestions({
-                                                ...popularSuggestions,
-                                                popular: popularSuggestions.popular || []
-                                            });
-                                            setShowSuggestions(true);
-                                        } else if (suggestions.restaurants.length > 0 || suggestions.cuisines.length > 0 || suggestions.dishes.length > 0) {
-                                            setShowSuggestions(true);
-                                        }
-                                    }}
-                                />
-                                {searchQuery && (
-                                    <button
-                                        onClick={() => {
-                                            setSearchQuery('');
-                                            setShowSuggestions(false);
-                                            setSuggestions({ restaurants: [], cuisines: [], dishes: [], popular: [] });
+                {/* Main Content */}
+                <main className="flex-1">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+                        {/* Search Bar */}
+                        <div className="mb-6 sm:mb-8">
+                            <div className="max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto relative  sm:px-0">
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+                                        <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        ref={searchInputRef}
+                                        className="block w-full pl-8 sm:pl-10 pr-8 sm:pr-10 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base shadow-sm"
+                                        placeholder="Search restaurants, cuisines..."
+                                        type="search"
+                                        value={searchQuery}
+                                        onChange={handleSearchChange}
+                                        onFocus={() => {
+                                            if (searchQuery.trim().length === 0) {
+                                                const popularSuggestions = getPopularSuggestions();
+                                                setSuggestions({
+                                                    ...popularSuggestions,
+                                                    popular: popularSuggestions.popular || []
+                                                });
+                                                setShowSuggestions(true);
+                                            } else if (suggestions.restaurants.length > 0 || suggestions.cuisines.length > 0 || suggestions.dishes.length > 0) {
+                                                setShowSuggestions(true);
+                                            }
                                         }}
-                                        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
-                                    >
-                                        <X className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Search Suggestions Dropdown */}
-                            {showSuggestions && (
-                                <div
-                                    ref={suggestionsRef}
-                                    className="absolute top-full left-0 right-0 mt-1 sm:mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 sm:py-2 z-50 max-h-60 sm:max-h-80 overflow-y-auto overflow-x-hidden"
-                                >
-                                    {searchQuery.trim().length > 0 ? (
-                                        <>
-                                            {/* Restaurants */}
-                                            {suggestions.restaurants.length > 0 && (
-                                                <>
-                                                    <div className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
-                                                        Restaurants
-                                                    </div>
-                                                    {suggestions.restaurants.map((restaurant, index) => (
-                                                        <button
-                                                            key={`restaurant-${index}`}
-                                                            onClick={() => handleRestaurantClick(restaurant)}
-                                                            className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-2 sm:gap-3 group rounded-lg mx-1 sm:mx-2 touch-manipulation"
-                                                        >
-                                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex-shrink-0">
-                                                                <img
-                                                                    src={getRestaurantImage(restaurant)}
-                                                                    alt={restaurant.name}
-                                                                    className="w-full h-full object-cover"
-                                                                />
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-semibold text-gray-900 dark:text-white text-xs sm:text-sm truncate">
-                                                                    {restaurant.name}
-                                                                </div>
-                                                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                                    {restaurant.cuisine} • {restaurant.address?.city}
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                                                                <Star className="w-3 h-3" fill="url(#starGradient)" stroke="none" />
-                                                                <span className="font-medium">{getRating(restaurant)}</span>
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </>
-                                            )}
-
-                                            {/* Cuisines */}
-                                            {suggestions.cuisines.length > 0 && (
-                                                <>
-                                                    <div className="px-4 py-2 text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">
-                                                        Cuisines
-                                                    </div>
-                                                    {suggestions.cuisines.map((cuisine, index) => (
-                                                        <button
-                                                            key={`cuisine-${index}`}
-                                                            onClick={() => handleSuggestionClick(cuisine)}
-                                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-3 group rounded-lg mx-2"
-                                                        >
-                                                            <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                                                                <span className="text-lg">🍽️</span>
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                                                                    {cuisine}
-                                                                </div>
-                                                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                                    Cuisine
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </>
-                                            )}
-
-                                            {/* Dishes */}
-                                            {suggestions.dishes.length > 0 && (
-                                                <>
-                                                    <div className="px-4 py-2 text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
-                                                        Dishes
-                                                    </div>
-                                                    {suggestions.dishes.map((dish, index) => (
-                                                        <button
-                                                            key={`dish-${index}`}
-                                                            onClick={() => handleSuggestionClick(dish)}
-                                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-3 group rounded-lg mx-2"
-                                                        >
-                                                            <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
-                                                                <span className="text-lg">🍴</span>
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                                                                    {dish}
-                                                                </div>
-                                                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                                    Popular dish
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="px-4 py-2 text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
-                                                Popular
-                                            </div>
-                                            {getPopularSuggestions().restaurants.map((restaurant, index) => (
-                                                <button
-                                                    key={`popular-restaurant-${index}`}
-                                                    onClick={() => handleRestaurantClick(restaurant)}
-                                                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-3 group rounded-lg mx-2"
-                                                >
-                                                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-                                                        <img
-                                                            src={getRestaurantImage(restaurant)}
-                                                            alt={restaurant.name}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-                                                            {restaurant.name}
-                                                        </div>
-                                                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                            {restaurant.cuisine} • {restaurant.address?.city}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                                                        <Star className="w-3 h-3" fill="url(#starGradient)" stroke="none" />
-                                                        <span className="font-medium">{getRating(restaurant)}</span>
-                                                    </div>
-                                                </button>
-                                            ))}
-                                        </>
+                                    />
+                                    {searchQuery && (
+                                        <button
+                                            onClick={() => {
+                                                setSearchQuery('');
+                                                setShowSuggestions(false);
+                                                setSuggestions({ restaurants: [], cuisines: [], dishes: [], popular: [] });
+                                            }}
+                                            className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                                        >
+                                            <X className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                                        </button>
                                     )}
                                 </div>
-                            )}
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-                        {/* Sidebar */}
-                        <aside className={`
+                                {/* Search Suggestions Dropdown */}
+                                {showSuggestions && (
+                                    <div
+                                        ref={suggestionsRef}
+                                        className="absolute top-full left-0 right-0 mt-1 sm:mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 sm:py-2 z-50 max-h-60 sm:max-h-80 overflow-y-auto overflow-x-hidden"
+                                    >
+                                        {searchQuery.trim().length > 0 ? (
+                                            <>
+                                                {/* Restaurants */}
+                                                {suggestions.restaurants.length > 0 && (
+                                                    <>
+                                                        <div className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                                                            Restaurants
+                                                        </div>
+                                                        {suggestions.restaurants.map((restaurant, index) => (
+                                                            <button
+                                                                key={`restaurant-${index}`}
+                                                                onClick={() => handleRestaurantClick(restaurant)}
+                                                                className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-2 sm:gap-3 group rounded-lg mx-1 sm:mx-2 touch-manipulation"
+                                                            >
+                                                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex-shrink-0">
+                                                                    <img
+                                                                        src={getRestaurantImage(restaurant)}
+                                                                        alt={restaurant.name}
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="font-semibold text-gray-900 dark:text-white text-xs sm:text-sm truncate">
+                                                                        {restaurant.name}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                                        {restaurant.cuisine} • {restaurant.address?.city}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                                                    <Star className="w-3 h-3" fill="url(#starGradient)" stroke="none" />
+                                                                    <span className="font-medium">{getRating(restaurant)}</span>
+                                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </>
+                                                )}
+
+                                                {/* Cuisines */}
+                                                {suggestions.cuisines.length > 0 && (
+                                                    <>
+                                                        <div className="px-4 py-2 text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">
+                                                            Cuisines
+                                                        </div>
+                                                        {suggestions.cuisines.map((cuisine, index) => (
+                                                            <button
+                                                                key={`cuisine-${index}`}
+                                                                onClick={() => handleSuggestionClick(cuisine)}
+                                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-3 group rounded-lg mx-2"
+                                                            >
+                                                                <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                                                                    <span className="text-lg">🍽️</span>
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                                                                        {cuisine}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                                        Cuisine
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </>
+                                                )}
+
+                                                {/* Dishes */}
+                                                {suggestions.dishes.length > 0 && (
+                                                    <>
+                                                        <div className="px-4 py-2 text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+                                                            Dishes
+                                                        </div>
+                                                        {suggestions.dishes.map((dish, index) => (
+                                                            <button
+                                                                key={`dish-${index}`}
+                                                                onClick={() => handleSuggestionClick(dish)}
+                                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-3 group rounded-lg mx-2"
+                                                            >
+                                                                <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
+                                                                    <span className="text-lg">🍴</span>
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                                                                        {dish}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                                        Popular dish
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="px-4 py-2 text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+                                                    Popular
+                                                </div>
+                                                {getPopularSuggestions().restaurants.map((restaurant, index) => (
+                                                    <button
+                                                        key={`popular-restaurant-${index}`}
+                                                        onClick={() => handleRestaurantClick(restaurant)}
+                                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-3 group rounded-lg mx-2"
+                                                    >
+                                                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                                                            <img
+                                                                src={getRestaurantImage(restaurant)}
+                                                                alt={restaurant.name}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                                                                {restaurant.name}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                                {restaurant.cuisine} • {restaurant.address?.city}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                                            <Star className="w-3 h-3" fill="url(#starGradient)" stroke="none" />
+                                                            <span className="font-medium">{getRating(restaurant)}</span>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                            {/* Sidebar */}
+                            <aside className={`
                         fixed lg:sticky top-0 left-0 h-full lg:h-auto
                         w-80 sm:w-72 lg:w-64 xl:w-72 2xl:w-80 
                             flex-shrink-0 order-1 lg:order-1 z-50 lg:z-auto
@@ -792,339 +792,341 @@ export default function RestaurantListingPage() {
                         ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                         mobile-filter-sidebar
                     `}>
-                            <div className="sticky top-2 xl:top-4 h-full xl:h-auto">
-                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 h-full xl:h-auto overflow-y-auto">
-                                    {/* Mobile Header */}
-                                    <div className="flex items-center justify-between mb-4 lg:hidden">
-                                        <div>
-                                            <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                                <svg className="w-5 h-5 text-[#87C6FE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
-                                                </svg>
-                                                Filters
-                                            </h2>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">Refine your search</p>
-                                        </div>
-                                        <button
-                                            onClick={() => setIsMobileFilterOpen(false)}
-                                            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
-                                        >
-                                            <X className="w-4 h-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" />
-                                        </button>
-                                    </div>
-
-                                    {/* Clear All Filters Button */}
-                                    {activeFiltersCount > 0 && (
-                                        <div className="mb-4">
+                                <div className="sticky top-2 xl:top-4 h-full xl:h-auto">
+                                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 h-full xl:h-auto overflow-y-auto">
+                                        {/* Mobile Header */}
+                                        <div className="flex items-center justify-between mb-4 lg:hidden">
+                                            <div>
+                                                <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                                    <svg className="w-5 h-5 text-[#87C6FE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+                                                    </svg>
+                                                    Filters
+                                                </h2>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">Refine your search</p>
+                                            </div>
                                             <button
-                                                onClick={clearAllFilters}
-                                                className="cursor-pointer w-full px-3 py-3 text-xs font-medium text-white hover:bg-gray-900 bg-gray-700 border border-gray-800 rounded-lg transition-all duration-300 shadow-lg hover:shadow-black/30"
+                                                onClick={() => setIsMobileFilterOpen(false)}
+                                                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
                                             >
-                                                Clear All Filters ({activeFiltersCount})
+                                                <X className="w-4 h-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" />
                                             </button>
                                         </div>
-                                    )}
 
-                                    {/* Dietary Preferences */}
-                                    <div className="mb-4">
-                                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Dietary Preferences</h3>
-                                        <div className="space-y-2 sm:space-y-3">
-                                            {['Vegetarian', 'Vegan', 'Gluten-Free', 'Halal'].map((item) => (
-                                                <label key={item} className="flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                                        checked={filters.dietary.includes(item)}
-                                                        onChange={() => handleFilterChange('dietary', item)}
-                                                    />
-                                                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                                                </label>
-                                            ))}
+                                        {/* Clear All Filters Button */}
+                                        {activeFiltersCount > 0 && (
+                                            <div className="mb-4">
+                                                <button
+                                                    onClick={clearAllFilters}
+                                                    className="cursor-pointer w-full px-3 py-3 text-xs font-medium text-white hover:bg-gray-900 bg-gray-700 border border-gray-800 rounded-lg transition-all duration-300 shadow-lg hover:shadow-black/30"
+                                                >
+                                                    Clear All Filters ({activeFiltersCount})
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* Dietary Preferences */}
+                                        <div className="mb-4">
+                                            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Dietary Preferences</h3>
+                                            <div className="space-y-2 sm:space-y-3">
+                                                {['Vegetarian', 'Vegan', 'Gluten-Free', 'Halal'].map((item) => (
+                                                    <label key={item} className="flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                            checked={filters.dietary.includes(item)}
+                                                            onChange={() => handleFilterChange('dietary', item)}
+                                                        />
+                                                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Cuisines */}
+                                        <div className="mb-4">
+                                            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Cuisines</h3>
+                                            <div className="space-y-2 sm:space-y-3">
+                                                {['Italian', 'Indian', 'Chinese', 'Mexican', 'Japanese'].map((item) => (
+                                                    <label key={item} className="flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                            checked={filters.cuisines.includes(item)}
+                                                            onChange={() => handleFilterChange('cuisines', item)}
+                                                        />
+                                                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Rating & Sort Filter */}
+                                        <div className="mb-4">
+                                            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Rating & Sort</h3>
+                                            <div className="space-y-2 sm:space-y-3">
+                                                {[
+                                                    { value: 'All Ratings', label: 'All Ratings (Default)' },
+                                                    { value: '4.0+ Stars', label: '4.0+ Stars' },
+                                                    { value: '3.0+ Stars', label: '3.0+ Stars' },
+                                                    { value: '2.0+ Stars', label: '2.0+ Stars' },
+                                                    { value: 'Popularity', label: 'Most Popular' },
+                                                    { value: 'Price: Low to High', label: 'Price: Low to High' },
+                                                    { value: 'Price: High to Low', label: 'Price: High to Low' }
+                                                ].map((option) => (
+                                                    <label key={option.value} className="flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                                                        <input
+                                                            type="radio"
+                                                            name="rating-sort-filter"
+                                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                            checked={selectedRatingFilter === option.value}
+                                                            onChange={() => handleRatingSelect(option.value)}
+                                                        />
+                                                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{option.label}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+
+
+
+                                        {/* Amenities */}
+                                        <div>
+                                            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Amenities</h3>
+                                            <div className="space-y-2 sm:space-y-3">
+                                                {['Outdoor Seating', 'Wi-Fi', 'Pet-Friendly'].map((item) => (
+                                                    <label key={item} className="flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                            checked={filters.amenities.includes(item)}
+                                                            onChange={() => handleFilterChange('amenities', item)}
+                                                        />
+                                                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
+                            </aside>
 
-                                    {/* Cuisines */}
-                                    <div className="mb-4">
-                                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Cuisines</h3>
-                                        <div className="space-y-2 sm:space-y-3">
-                                            {['Italian', 'Indian', 'Chinese', 'Mexican', 'Japanese'].map((item) => (
-                                                <label key={item} className="flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                                        checked={filters.cuisines.includes(item)}
-                                                        onChange={() => handleFilterChange('cuisines', item)}
-                                                    />
-                                                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Rating & Sort Filter */}
-                                    <div className="mb-4">
-                                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Rating & Sort</h3>
-                                        <div className="space-y-2 sm:space-y-3">
-                                            {[
-                                                { value: 'All Ratings', label: 'All Ratings (Default)' },
-                                                { value: '4.0+ Stars', label: '4.0+ Stars' },
-                                                { value: '3.0+ Stars', label: '3.0+ Stars' },
-                                                { value: '2.0+ Stars', label: '2.0+ Stars' },
-                                                { value: 'Popularity', label: 'Most Popular' },
-                                                { value: 'Price: Low to High', label: 'Price: Low to High' },
-                                                { value: 'Price: High to Low', label: 'Price: High to Low' }
-                                            ].map((option) => (
-                                                <label key={option.value} className="flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
-                                                    <input
-                                                        type="radio"
-                                                        name="rating-sort-filter"
-                                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
-                                                        checked={selectedRatingFilter === option.value}
-                                                        onChange={() => handleRatingSelect(option.value)}
-                                                    />
-                                                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{option.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    
-
-                                    {/* Amenities */}
+                            {/* Main Content Area */}
+                            <div className="lg:col-span-3 order-2 lg:order-2">
+                                {/* Mobile Header & Filter Button */}
+                                <div className="flex items-center justify-between mb-4 lg:hidden">
                                     <div>
-                                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Amenities</h3>
-                                        <div className="space-y-2 sm:space-y-3">
-                                            {['Outdoor Seating', 'Wi-Fi', 'Pet-Friendly'].map((item) => (
-                                                <label key={item} className="flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                                        checked={filters.amenities.includes(item)}
-                                                        onChange={() => handleFilterChange('amenities', item)}
-                                                    />
-                                                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                                                </label>
-                                            ))}
+                                        <h1 className="text-lg font-bold text-gray-900 dark:text-white">Restaurants</h1>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Discover amazing places to dine</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsMobileFilterOpen(true)}
+                                        className="mobile-filter-button flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black text-white font-medium text-xs hover:from-[#76B8FE] hover:to-[#AC9FFF] transition-all duration-300 shadow-lg hover:shadow-[#87C6FE]/25"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+                                        </svg>
+                                        <span>Filter</span>
+                                        {activeFiltersCount > 0 && (
+                                            <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-xs font-medium">
+                                                {activeFiltersCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+
+                                {/* Filter Controls */}
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
+                                    <button
+                                        onClick={() => setShowAllRestaurants(!showAllRestaurants)}
+                                        className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-indigo-600 text-indigo-600 rounded-full text-xs sm:text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-300 hover:scale-105 touch-manipulation"
+                                    >
+                                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                                        <span className="hidden sm:inline">Show Nearby Only</span>
+                                        <span className="sm:hidden">Nearby</span>
+                                    </button>
+                                </div>
+
+                                {/* Featured Restaurants */}
+                                <section>
+                                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                                        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                                            <Star fill="black" stroke="none" className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 mr-2" />
+                                            <span className="hidden sm:inline">Featured Restaurants</span>
+                                            <span className="sm:hidden">Featured</span>
+                                        </h2>
+                                        <div className="flex space-x-2 hidden lg:flex">
+                                            <button
+                                                onClick={scrollLeft}
+                                                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                                aria-label="Scroll left"
+                                            >
+                                                <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                            </button>
+                                            <button
+                                                onClick={scrollRight}
+                                                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                                aria-label="Scroll right"
+                                            >
+                                                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </aside>
+                                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">Top-rated restaurants for dining & delivery</p>
 
-                        {/* Main Content Area */}
-                        <div className="lg:col-span-3 order-2 lg:order-2">
-                            {/* Mobile Header & Filter Button */}
-                            <div className="flex items-center justify-between mb-4 lg:hidden">
-                                <div>
-                                    <h1 className="text-lg font-bold text-gray-900 dark:text-white">Restaurants</h1>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Discover amazing places to dine</p>
-                                </div>
-                                <button
-                                    onClick={() => setIsMobileFilterOpen(true)}
-                                    className="mobile-filter-button flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black text-white font-medium text-xs hover:from-[#76B8FE] hover:to-[#AC9FFF] transition-all duration-300 shadow-lg hover:shadow-[#87C6FE]/25"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
-                                    </svg>
-                                    <span>Filter</span>
-                                    {activeFiltersCount > 0 && (
-                                        <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-xs font-medium">
-                                            {activeFiltersCount}
-                                        </span>
-                                    )}
-                                </button>
-                            </div>
-
-                            {/* Filter Controls */}
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
-                                <button
-                                    onClick={() => setShowAllRestaurants(!showAllRestaurants)}
-                                    className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-indigo-600 text-indigo-600 rounded-full text-xs sm:text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-300 hover:scale-105 touch-manipulation"
-                                >
-                                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
-                                    <span className="hidden sm:inline">Show Nearby Only</span>
-                                    <span className="sm:hidden">Nearby</span>
-                                </button>
-                            </div>
-
-                            {/* Featured Restaurants */}
-                            <section>
-                                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                                        <Star fill="orange" stroke="none" className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 mr-2" />
-                                        <span className="hidden sm:inline">Featured Restaurants</span>
-                                        <span className="sm:hidden">Featured</span>
-                                    </h2>
-                                    <div className="flex space-x-1 sm:space-x-2">
-                                        <button
-                                            onClick={scrollLeft}
-                                            className="p-1.5 sm:p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 touch-manipulation"
-                                        >
-                                            <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-300" />
-                                        </button>
-                                        <button
-                                            onClick={scrollRight}
-                                            className="p-1.5 sm:p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 touch-manipulation"
-                                        >
-                                            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-300" />
-                                        </button>
-                                    </div>
-                                </div>
-                                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">Top-rated restaurants for dining & delivery</p>
-
-                                <div
-                                    ref={horizontalScrollRef}
-                                    className="flex gap-3 sm:gap-4 lg:gap-6 overflow-x-auto pb-2 sm:pb-3 scroll-smooth [&::-webkit-scrollbar]:hidden"
-                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                                >
-                                    {allRestaurants.slice(0, 3).map((restaurant, index) => (
-                                        <div
-                                            key={`featured-${restaurant.id || index}`}
-                                            className="flex-shrink-0 w-64 sm:w-72 lg:w-80 cursor-pointer group"
-                                            onClick={() => router.push(`/user/menu/${restaurant.id}`)}
-                                        >
-                                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                                                <div className="relative">
-                                                    <img
-                                                        alt={restaurant.name}
-                                                        className="h-40 sm:h-48 w-full object-cover"
-                                                        src={getRestaurantImage(restaurant)}
-                                                    />
-                                                    <div className="absolute top-2 right-2 bg-black/50 p-1.5 sm:p-2 rounded-full">
-                                                        <Heart className={`h-3 w-3 sm:h-4 sm:w-4 ${favorites.has(restaurant.id || '') ? 'text-red-500 fill-current' : 'text-white'}`} />
+                                    <div
+                                        ref={horizontalScrollRef}
+                                        className="flex gap-3 sm:gap-4 lg:gap-6 overflow-x-auto pb-2 sm:pb-3 scroll-smooth [&::-webkit-scrollbar]:hidden"
+                                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                    >
+                                        {allRestaurants.slice(0, 3).map((restaurant, index) => (
+                                            <div
+                                                key={`featured-${restaurant.id || index}`}
+                                                className="flex-shrink-0 w-64 sm:w-72 lg:w-80 cursor-pointer group"
+                                                onClick={() => router.push(`/user/menu/${restaurant.id}`)}
+                                            >
+                                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                                                    <div className="relative">
+                                                        <img
+                                                            alt={restaurant.name}
+                                                            className="h-40 sm:h-48 w-full object-cover"
+                                                            src={getRestaurantImage(restaurant)}
+                                                        />
+                                                        <div className="absolute top-2 right-2 bg-black/50 p-1.5 sm:p-2 rounded-full">
+                                                            <Heart className={`h-3 w-3 sm:h-4 sm:w-4 ${favorites.has(restaurant.id || '') ? 'text-red-500 fill-current' : 'text-white'}`} />
+                                                        </div>
+                                                        <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
+                                                            {restaurant.restaurantType || 'Veg'}
+                                                        </div>
+                                                        <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded">
+                                                            {getDeliveryTime(restaurant)}
+                                                        </div>
                                                     </div>
-                                                    <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
-                                                        {restaurant.restaurantType || 'Veg'}
-                                                    </div>
-                                                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded">
-                                                        {getDeliveryTime(restaurant)}
+                                                    <div className="p-3 sm:p-4">
+                                                        <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">{restaurant.name}</h3>
+                                                        <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                                            <Star className="h-3 w-3 sm:h-4 sm:w-4" fill="url(#starGradient)" stroke="none" />
+                                                            <span className="ml-1">{getRating(restaurant)}</span>
+                                                            <span className="mx-2">•</span>
+                                                            <span>{getTotalReviews(restaurant)} reviews</span>
+                                                        </div>
+                                                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 line-clamp-2">{restaurant.description || 'Best restaurant in town'}</p>
+                                                        <div className="flex items-center space-x-2 text-xs mb-3 sm:mb-4">
+                                                            <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">{getCuisineType(restaurant)}</span>
+                                                        </div>
+                                                        <div className="flex flex-col sm:flex-row gap-2 justify-between items-center">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    router.push(`/user/menu/${restaurant.id}`);
+                                                                }}
+                                                                className="cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex items-center space-x-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-105 touch-manipulation w-full sm:w-auto shadow-sm hover:shadow-md"
+                                                            >
+
+                                                                <span>View Menu</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    router.push(`/user/reservation/${restaurant.id}`);
+                                                                }}
+                                                                className="cursor-pointer bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-300 hover:scale-105 touch-manipulation w-full sm:w-auto shadow-sm hover:shadow-lg"
+                                                            >
+                                                                Book Table
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="p-3 sm:p-4">
-                                                    <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">{restaurant.name}</h3>
-                                                    <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                                        <Star className="h-3 w-3 sm:h-4 sm:w-4" fill="url(#starGradient)" stroke="none" />
-                                                        <span className="ml-1">{getRating(restaurant)}</span>
-                                                        <span className="mx-2">•</span>
-                                                        <span>{getTotalReviews(restaurant)} reviews</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+
+                                {/* All Restaurants */}
+                                <section className="mt-8 sm:mt-10 lg:mt-12">
+                                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                                        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                                            <UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-gray-500 mr-1 sm:mr-2" />
+                                            <span className="hidden sm:inline">All Restaurants</span>
+                                            <span className="sm:hidden">All</span>
+                                        </h2>
+                                    </div>
+                                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">Found {allRestaurants.length} restaurants for dining & delivery</p>
+
+                                    <div className="space-y-4 sm:space-y-6">
+                                        {allRestaurants.map((restaurant, index) => (
+                                            <div
+                                                key={restaurant.id || index}
+                                                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col sm:flex-row transform hover:shadow-xl transition-all duration-300 hover:scale-[1.01] sm:hover:scale-[1.02]"
+                                            >
+                                                <img
+                                                    alt={restaurant.name}
+                                                    className="w-full sm:w-48 lg:w-56 object-cover"
+                                                    src={getRestaurantImage(restaurant)}
+                                                />
+                                                <div className="p-3 sm:p-4 flex flex-col justify-between flex-1">
+                                                    <div>
+                                                        <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">{restaurant.name}</h3>
+                                                        <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
+
+                                                            <Star className="h-3 w-3 sm:h-4 sm:w-4" fill="url(#starGradient)" stroke="none" />
+                                                            <span className="ml-1">{getRating(restaurant)}</span>
+                                                            <span className="mx-2">•</span>
+                                                            <span>{getTotalReviews(restaurant)} reviews</span>
+                                                            <span className="mx-2">•</span>
+                                                            <span>{getCuisineType(restaurant)}</span>
+                                                        </div>
+                                                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 line-clamp-2">{restaurant.description || 'Best restaurant in town'}</p>
+                                                        <div className="flex items-center space-x-2 text-xs mb-2 sm:mb-3">
+                                                            {restaurant.specialties?.slice(0, 2).map((specialty, idx) => (
+                                                                <span key={idx} className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">{specialty}</span>
+                                                            ))}
+                                                        </div>
+                                                        <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                            <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                                                            <span className="ml-1">{restaurant.address?.city}, {restaurant.address?.state}</span>
+                                                            {userLocation && restaurant.location && (
+                                                                <>
+                                                                    <span className="mx-2">•</span>
+                                                                    <span>{calculateDistance(
+                                                                        userLocation.lat,
+                                                                        userLocation.lng,
+                                                                        restaurant.location.lat,
+                                                                        restaurant.location.lng
+                                                                    ).toFixed(1)}km</span>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 line-clamp-2">{restaurant.description || 'Best restaurant in town'}</p>
-                                                    <div className="flex items-center space-x-2 text-xs mb-3 sm:mb-4">
-                                                        <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">{getCuisineType(restaurant)}</span>
-                                                    </div>
-                                                    <div className="flex flex-col sm:flex-row gap-2 justify-between items-center">
+                                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-3 sm:mt-4">
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 router.push(`/user/menu/${restaurant.id}`);
                                                             }}
-                                                            className="cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex items-center space-x-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-105 touch-manipulation w-full sm:w-auto shadow-sm hover:shadow-md"
+                                                            className="cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-105 touch-manipulation shadow-sm hover:shadow-md"
                                                         >
-                                                           
-                                                            <span>View Menu</span>
+                                                            View Menu
                                                         </button>
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 router.push(`/user/reservation/${restaurant.id}`);
                                                             }}
-                                                            className="cursor-pointer bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-300 hover:scale-105 touch-manipulation w-full sm:w-auto shadow-sm hover:shadow-lg"
+                                                            className="cursor-pointer bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex-1 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-300 hover:scale-105 touch-manipulation shadow-sm hover:shadow-lg"
                                                         >
                                                             Book Table
                                                         </button>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-
-                            {/* All Restaurants */}
-                            <section className="mt-8 sm:mt-10 lg:mt-12">
-                                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                                        <UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-gray-500 mr-1 sm:mr-2" />
-                                        <span className="hidden sm:inline">All Restaurants</span>
-                                        <span className="sm:hidden">All</span>
-                                    </h2>
-                                </div>
-                                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">Found {allRestaurants.length} restaurants for dining & delivery</p>
-
-                                <div className="space-y-4 sm:space-y-6">
-                                    {allRestaurants.map((restaurant, index) => (
-                                        <div
-                                            key={restaurant.id || index}
-                                            className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col sm:flex-row transform hover:shadow-xl transition-all duration-300 hover:scale-[1.01] sm:hover:scale-[1.02]"
-                                        >
-                                            <img
-                                                alt={restaurant.name}
-                                                className="w-full sm:w-48 lg:w-56 object-cover"
-                                                src={getRestaurantImage(restaurant)}
-                                            />
-                                            <div className="p-3 sm:p-4 flex flex-col justify-between flex-1">
-                                                <div>
-                                                    <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">{restaurant.name}</h3>
-                                                    <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
-
-                                                        <Star className="h-3 w-3 sm:h-4 sm:w-4" fill="url(#starGradient)" stroke="none" />
-                                                        <span className="ml-1">{getRating(restaurant)}</span>
-                                                        <span className="mx-2">•</span>
-                                                        <span>{getTotalReviews(restaurant)} reviews</span>
-                                                        <span className="mx-2">•</span>
-                                                        <span>{getCuisineType(restaurant)}</span>
-                                                    </div>
-                                                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 line-clamp-2">{restaurant.description || 'Best restaurant in town'}</p>
-                                                    <div className="flex items-center space-x-2 text-xs mb-2 sm:mb-3">
-                                                        {restaurant.specialties?.slice(0, 2).map((specialty, idx) => (
-                                                            <span key={idx} className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">{specialty}</span>
-                                                        ))}
-                                                    </div>
-                                                    <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
-                                                        <span className="ml-1">{restaurant.address?.city}, {restaurant.address?.state}</span>
-                                                        {userLocation && restaurant.location && (
-                                                            <>
-                                                                <span className="mx-2">•</span>
-                                                                <span>{calculateDistance(
-                                                                    userLocation.lat,
-                                                                    userLocation.lng,
-                                                                    restaurant.location.lat,
-                                                                    restaurant.location.lng
-                                                                ).toFixed(1)}km</span>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-3 sm:mt-4">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            router.push(`/user/menu/${restaurant.id}`);
-                                                        }}
-                                                        className="cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-105 touch-manipulation shadow-sm hover:shadow-md"
-                                                    >
-                                                        View Menu
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            router.push(`/user/reservation/${restaurant.id}`);
-                                                        }}
-                                                        className="cursor-pointer bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex-1 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-300 hover:scale-105 touch-manipulation shadow-sm hover:shadow-lg"
-                                                    >
-                                                        Book Table
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
+                                        ))}
+                                    </div>
+                                </section>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
             </div>
         </>
     );

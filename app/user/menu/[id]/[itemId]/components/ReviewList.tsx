@@ -45,12 +45,23 @@ export default function ReviewList({
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-4"
-        >
+        <div>
+            {/* SVG Gradient Definition for Stars */}
+            <svg className="absolute w-0 h-0" aria-hidden="true">
+                <defs>
+                    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#b8dcff" />
+                        <stop offset="50%" stopColor="#c9cbff" />
+                        <stop offset="100%" stopColor="#e5c0ff" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-4"
+            >
             {displayedReviews.map((review, index) => (
                 <motion.div
                     key={review.id}
@@ -96,11 +107,9 @@ export default function ReviewList({
                                     {[1, 2, 3, 4, 5].map((star) => (
                                         <Star
                                             key={star}
-                                            className={`w-4 h-4 xs:w-4 xs:h-4 ${
-                                              
-                                                    'text-yellow-400 fill-current'
-                                                     
-                                            }`}
+                                            className="w-4 h-4 xs:w-4 xs:h-4"
+                                            fill={star <= review.rating ? "url(#starGradient)" : "none"}
+                                            stroke="none"
                                         />
                                     ))}
                                 </div>
@@ -233,5 +242,6 @@ export default function ReviewList({
 
 
         </motion.div>
+        </div>
     );
 }

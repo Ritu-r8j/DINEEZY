@@ -16,11 +16,9 @@ import {
   Phone,
   QrCode,
   Sparkles,
-  Sun,
   Star,
   Twitter,
   Utensils,
-  Moon,
   Wine,
   X,
   CreditCard,
@@ -30,6 +28,7 @@ import { useTheme } from "./(contexts)/ThemeContext";
 import { useAuth } from "./(contexts)/AuthContext";
 import Link from "next/link";
 import ProfileDropdown from "./(components)/ProfileDropdown";
+import ThemeToggle from "./(components)/ThemeToggle";
 import { getAllMenuItems, MenuItem, getMenuItemsRatings, getAllRestaurants, RestaurantSettings, getRestaurantRating } from "./(utils)/firebaseOperations";
 import { CartManager } from "./(utils)/cartUtils";
 import { useRouter } from "next/navigation";
@@ -266,10 +265,11 @@ const sectionMotion = {
 };
 
 export default function HomePage() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const { user, userProfile, loading: authLoading, signOut } = useAuth();
   const isDarkMode = theme === "dark";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dishes, setDishes] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -697,20 +697,6 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="flex items-center gap-1 md:gap-3 pr-[30px]">
-                <button
-                  onClick={toggleTheme}
-                  className="group relative h-9 w-9 rounded-xl border border-foreground/10 bg-gradient-to-br from-white/10 to-transparent text-foreground shadow-sm backdrop-blur transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 lg:flex lg:items-center lg:justify-center cursor-pointer"
-                  aria-label="Toggle theme"
-                >
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                  <div className="relative flex  items-center justify-center">
-                    {theme === "light" ? (
-                      <Moon className="h-4.5 w-4.5 transition-transform duration-300 group-hover:rotate-12" />
-                    ) : (
-                      <Sun className="h-4.5 w-4.5 transition-transform duration-300 group-hover:rotate-90" />
-                    )}
-                  </div>
-                </button>
 
                 {user ? (
                   <ProfileDropdown />
@@ -725,18 +711,84 @@ export default function HomePage() {
                   </>
                 )}
 
-                <Link href="/user/menu">
-                  <button className="hidden rounded-[8px] px-6 py-2 text-sm font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl lg:block cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90">
-                    {user ? 'Order Now' : 'Get Started'}
-                  </button>
-                </Link>
+                {!user && (
+                  <>
+                    <Link href="/user/menu">
+                      <button className="hidden rounded-[8px] px-6 py-2 text-sm font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl lg:block cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90">
+                        Get Started
+                      </button>
+                    </Link>
 
-                 <Link href="/user/menu">
-                  <button className="md:hidden sm:block rounded-[8px]  font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-4 py-2 text-sm">
-                    {user ? 'Order Now' : 'Get Started'}
-                  </button>
-                </Link>
+                     <Link href="/user/menu">
+                      <button className="md:hidden sm:block rounded-[8px]  font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-4 py-2 text-sm">
+                        Get Started
+                      </button>
+                    </Link>
+                  </>
+                )}
 
+                {/* Mobile Menu Button */}
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className={`md:hidden ml-1 sm:ml-2 flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 ${isMobileMenuOpen ? 'bg-gray-100 dark:bg-gray-700' : ''
+                    }`}
+                  aria-label="Toggle mobile menu"
+                >
+                  <div className="relative w-6 h-6">
+                    <svg
+                      className={`absolute inset-0 w-6 h-6 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-180 opacity-0' : 'rotate-0 opacity-100'
+                        }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg
+                      className={`absolute inset-0 w-6 h-6 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-0 opacity-100' : 'rotate-180 opacity-0'
+                        }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                </button>
+
+              </div>
+            </div>
+
+            {/* Mobile Navigation */}
+            <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-[32rem] opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+              <div className="border-t border-gray-200 dark:border-gray-700 py-4 pb-6 px-2 sm:px-4">
+                <nav className="flex flex-col space-y-2">
+                  {navItems.map((item, index) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 ${item.href.startsWith('#')
+                        ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                      style={{
+                        animationDelay: `${index * 0.1}s`,
+                        transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                        transition: `all 0.3s ease-in-out ${index * 0.1}s`
+                      }}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </nav>
+                <div className="mt-6 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 shadow-sm dark:border-gray-600 dark:bg-gray-700/80">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                    Theme
+                  </span>
+                  <ThemeToggle size="sm" className="shadow-none hover:scale-105" />
+                </div>
               </div>
             </div>
 

@@ -14,6 +14,16 @@ export default function ReviewSummary({ reviews }: ReviewSummaryProps) {
 
     return (
         <div>
+            {/* SVG Gradient Definition for Stars */}
+            <svg className="absolute w-0 h-0" aria-hidden="true">
+                <defs>
+                    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#b8dcff" />
+                        <stop offset="50%" stopColor="#c9cbff" />
+                        <stop offset="100%" stopColor="#e5c0ff" />
+                    </linearGradient>
+                </defs>
+            </svg>
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="space-y-6">
                     {/* Overall Rating */}
@@ -26,8 +36,9 @@ export default function ReviewSummary({ reviews }: ReviewSummaryProps) {
                                     {[1, 2, 3, 4, 5].map((star) => (
                                         <Star
                                             key={star}
-                                            className={`w-4 h-4 text-yellow-300 fill-current
-                                            `}
+                                            className="w-4 h-4"
+                                            fill="url(#starGradient)"
+                                            stroke="none"
                                         />
                                     ))}
                                 </div>

@@ -68,6 +68,16 @@ export default function AllReviewsModal({
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
+            {/* SVG Gradient Definition for Stars */}
+            <svg className="absolute w-0 h-0" aria-hidden="true">
+                <defs>
+                    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#b8dcff" />
+                        <stop offset="50%" stopColor="#c9cbff" />
+                        <stop offset="100%" stopColor="#e5c0ff" />
+                    </linearGradient>
+                </defs>
+            </svg>
             {/* Backdrop */}
             <div 
                 className="fixed inset-0 bg-black/50 transition-opacity"
@@ -127,11 +137,9 @@ export default function AllReviewsModal({
                                                     {[1, 2, 3, 4, 5].map((star) => (
                                                         <Star
                                                             key={star}
-                                                            className={`w-3.5 h-3.5 ${
-                                                                star <= review.rating
-                                                                    ? 'fill-current'
-                                                                    : 'text-gray-300 dark:text-gray-600'
-                                                            }`}
+                                                            className="w-3.5 h-3.5"
+                                                            fill={star <= review.rating ? "url(#starGradient)" : "none"}
+                                                            stroke="none"
                                                         />
                                                     ))}
                                                 </div>

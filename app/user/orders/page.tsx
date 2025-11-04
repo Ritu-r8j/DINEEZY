@@ -460,12 +460,10 @@ export default function CustomerOrdersPage() {
               }}
               className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
             >
-              <div className="text-2xl mb-2">🍕</div>
               <h4 className="font-medium text-gray-900 dark:text-white">Browse Menu</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">Discover new dishes</p>
             </button>
             <button className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left">
-              <div className="text-2xl mb-2">🎯</div>
               <h4 className="font-medium text-gray-900 dark:text-white">Track Order</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">Real-time updates</p>
             </button>

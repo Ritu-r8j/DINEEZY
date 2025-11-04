@@ -441,7 +441,18 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div>
+      {/* SVG Gradient Definition for Stars */}
+      <svg className="absolute w-0 h-0" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#b8dcff" />
+            <stop offset="50%" stopColor="#c9cbff" />
+            <stop offset="100%" stopColor="#e5c0ff" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header with back button */}
         <div className="flex items-center gap-4 mb-4 sm:mb-6">
@@ -588,7 +599,7 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{item.name}</h3>
                   <div className="flex items-center gap-1">
-                    <Star className="h-3 w-3 text-yellow-500" />
+                    <Star className="h-3 w-3" fill="url(#starGradient)" stroke="none" />
                     <span className="text-xs text-gray-600 dark:text-gray-400">
                       {ratings[item.id] ? ratings[item.id].average.toFixed(1) : '0.0'}
                     </span>
@@ -695,6 +706,7 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
             <p className="text-gray-600 dark:text-gray-400">Try adjusting your filters to see more items.</p>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
