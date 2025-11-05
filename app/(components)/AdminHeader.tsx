@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { User, Settings, LogOut, ChevronDown, Bell, Menu, X } from 'lucide-react';
 import { useAuth } from '@/app/(contexts)/AuthContext';
+import ThemeToggle from './ThemeToggle';
 
 interface AdminHeaderProps {
   currentPage?: 'dashboard' | 'menu' | 'orders' | 'payments' | 'reservations' | 'reviews' | 'settings';
@@ -86,6 +87,7 @@ export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderPr
           {/* Right side actions */}
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Notifications */}
+            <ThemeToggle/>
             <button className="hidden sm:block p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-110">
               <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </button>

@@ -11,8 +11,24 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  Loader2
+  Loader2,
+  BarChart3
 } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { getRestaurantOrders } from '@/app/(utils)/firebaseOperations';
 
@@ -135,6 +151,84 @@ export default function AdminDashboard() {
   const ordersChange = getPercentageChange(stats.totalOrders, previousStats.totalOrders);
   const avgOrderChange = getPercentageChange(stats.avgOrderValue, previousStats.avgOrderValue);
 
+  // Generate chart data based on time range
+  const getChartData = () => {
+    const now = new Date();
+    let chartData = [];
+
+    if (timeRange === 'today') {
+      // Hourly data for today (all 24 hours)
+      for (let i = 0; i < 24; i++) {
+        const hour = i;
+        const hourOrders = filteredOrders.filter(order => {
+          const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+          return orderDate.getHours() === hour;
+        });
+
+        chartData.push({
+          period: hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`,
+          orders: hourOrders.length,
+          revenue: hourOrders.reduce((sum, order) => sum + order.total, 0)
+        });
+      }
+    } else if (timeRange === 'week') {
+      // Daily data for this week (all 7 days)
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(startOfWeek);
+        day.setDate(startOfWeek.getDate() + i);
+
+        const dayOrders = filteredOrders.filter(order => {
+          const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+          return orderDate.toDateString() === day.toDateString();
+        });
+
+        chartData.push({
+          period: dayNames[i],
+          orders: dayOrders.length,
+          revenue: dayOrders.reduce((sum, order) => sum + order.total, 0)
+        });
+      }
+    } else {
+      // Daily data for this month (all days of the month)
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const day = new Date(now.getFullYear(), now.getMonth(), i);
+
+        const dayOrders = filteredOrders.filter(order => {
+          const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+          return orderDate.toDateString() === day.toDateString();
+        });
+
+        chartData.push({
+          period: i.toString(),
+          orders: dayOrders.length,
+          revenue: dayOrders.reduce((sum, order) => sum + order.total, 0)
+        });
+      }
+    }
+
+    // Return all data points, including zeros for better UX
+    return chartData;
+  };
+
+  const chartData = getChartData();
+
+  const chartConfig = {
+    orders: {
+      label: "Orders",
+      color: "hsl(var(--chart-1))",
+    },
+    revenue: {
+      label: "Revenue",
+      color: "hsl(var(--chart-2))",
+    },
+  } satisfies ChartConfig;
+
   // Get recent orders (last 4) from filtered data
   const getTimeAgo = (date: Date) => {
     const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
@@ -249,8 +343,8 @@ export default function AdminDashboard() {
               }}
               disabled={isFilterLoading}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${timeRange === range
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
             >
               {range.charAt(0).toUpperCase() + range.slice(1)}
@@ -357,6 +451,169 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Analytics Charts */}
+      <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Orders Chart */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Orders
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {timeRange === 'today' ? 'Hourly orders' :
+                timeRange === 'week' ? 'Daily orders' :
+                  'Weekly orders'}
+            </p>
+          </div>
+
+          <div className="h-48">
+            <ChartContainer config={chartConfig} className="h-full w-full">
+              <BarChart
+                accessibilityLayer
+                data={chartData}
+                margin={{ top: 10, right: 20, left: 20, bottom: 20 }}
+                barCategoryGap={2}
+              >
+                <XAxis
+                  dataKey="period"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: 'currentColor' }}
+                  className="text-gray-500 dark:text-gray-400"
+                  tickFormatter={(value) => {
+                    if (timeRange === 'today') {
+                      return value.replace(':00', '');
+                    }
+                    return value.length > 3 ? value.slice(0, 3) : value;
+                  }}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2">
+                          <p className="text-xs font-medium text-gray-900 dark:text-white">{label}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            Orders: <span className="font-semibold text-blue-600">{payload[0]?.value}</span>
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  dataKey="orders"
+                  fill="#60a5fa"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={50}
+                />
+              </BarChart>
+            </ChartContainer>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-500 dark:text-gray-400">Total: {stats.totalOrders}</span>
+              <div className="flex items-center gap-1">
+                {(() => {
+                  const change = formatPercentageChange(ordersChange);
+                  const Icon = change.icon;
+                  return (
+                    <>
+                      <span className={`font-medium ${change.color}`}>{change.text}</span>
+                      <Icon className={`h-3 w-3 ${change.color}`} />
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Revenue Chart */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Revenue
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {timeRange === 'today' ? 'Hourly revenue' :
+                timeRange === 'week' ? 'Daily revenue' :
+                  'Weekly revenue'}
+            </p>
+          </div>
+
+          <div className="h-48">
+            <ChartContainer config={chartConfig} className="h-full w-full">
+              <BarChart
+                accessibilityLayer
+                data={chartData}
+                margin={{ top: 10, right: 20, left: 20, bottom: 20 }}
+                barCategoryGap={2}
+              >
+                <XAxis
+                  dataKey="period"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: 'currentColor' }}
+                  className="text-gray-500 dark:text-gray-400"
+                  tickFormatter={(value) => {
+                    if (timeRange === 'today') {
+                      return value.replace(':00', '');
+                    }
+                    return value.length > 3 ? value.slice(0, 3) : value;
+                  }}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2">
+                          <p className="text-xs font-medium text-gray-900 dark:text-white">{label}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            Revenue: <span className="font-semibold text-green-600">₹{Number(payload[0]?.payload?.revenue || 0).toFixed(2)}</span>
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  dataKey="revenue"
+                  fill="#34d399"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={50}
+                />
+              </BarChart>
+            </ChartContainer>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-500 dark:text-gray-400">Total: ₹{stats.totalRevenue.toFixed(2)}</span>
+              <div className="flex items-center gap-1">
+                {(() => {
+                  const change = formatPercentageChange(revenueChange);
+                  const Icon = change.icon;
+                  return (
+                    <>
+                      <span className={`font-medium ${change.color}`}>{change.text}</span>
+                      <Icon className={`h-3 w-3 ${change.color}`} />
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Orders */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -414,7 +671,7 @@ export default function AdminDashboard() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Order Completion Rate</span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.completionRate}%</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.completionRate.toFixed(1)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
                   <div

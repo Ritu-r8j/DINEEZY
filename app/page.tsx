@@ -702,7 +702,7 @@ export default function HomePage() {
                   <>
                   <ProfileDropdown />
                    <Link href="/user/menu">
-                  <button className="sm:block rounded-[8px]  font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-4 py-2 text-sm">
+                  <button className=" hidden md:block rounded-[8px]  font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-4 py-2 text-sm">
                     Order Now
                   </button>
                 </Link>

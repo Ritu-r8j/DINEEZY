@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProviderWrapper from "./(components)/AuthProviderWrapper";
 import { Toaster } from "sonner";
+import ScrollRestorationFix from "./(components)/ScrollRestore";
 
 
 const geistSans = Geist({
@@ -54,6 +55,7 @@ export default function RootLayout({
       ><>
            <Toaster/>
           <AuthProviderWrapper>
+            <ScrollRestorationFix/>
             {children}
           </AuthProviderWrapper>
         </>

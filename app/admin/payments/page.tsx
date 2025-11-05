@@ -27,13 +27,13 @@ export default function PaymentsPage() {
     useEffect(() => {
         const loadOrders = async () => {
             if (!user) return;
-            
+
             try {
                 setIsLoading(true);
                 setError(null);
-                
+
                 const ordersResult = await getRestaurantOrders(user.uid);
-                
+
                 if (ordersResult.success && ordersResult.data) {
                     setOrders(ordersResult.data);
                 } else {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Clock, Eye, Phone, MapPin, DollarSign, Search, RefreshCw, X, ChefHat, Package, Loader2 } from 'lucide-react';
+import { Bell, Clock, Eye, Phone, MapPin, DollarSign, Search, RefreshCw, X, ChefHat, Package, Loader2, CheckCircle } from 'lucide-react';
 import { getRestaurantOrders, updateOrderStatus, updateOrderEstimatedTime, OrderData, subscribeToRestaurantOrders } from '@/app/(utils)/firebaseOperations';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { sendNotification } from '@/app/(utils)/notification';
@@ -16,20 +16,17 @@ interface OrderItem {
 }
 
 interface Order extends Omit<OrderData, 'estimatedTime'> {
-  // Additional fields for display
   customerName?: string;
   customerPhone?: string;
   customerAddress?: string;
   totalAmount?: number;
   orderTime?: Date;
-  estimatedTime?: number; // Override as number for display
-  adminEstimatedTime?: number; // Admin-set estimated time
+  estimatedTime?: number;
+  adminEstimatedTime?: number;
   paymentMethod: string;
   orderType: string;
   specialNotes?: string;
 }
-
-
 
 export default function OrderManagement() {
   const { user } = useAuth();
@@ -56,12 +53,10 @@ export default function OrderManagement() {
         setIsLoading(true);
         setError(null);
 
-        const restaurantId = user.uid; // This should be the restaurant ID
+        const restaurantId = user.uid;
 
-        // Set up real-time listener for restaurant orders
         unsubscribe = subscribeToRestaurantOrders(restaurantId, (orders) => {
           if (orders.length > 0) {
-            // Transform database orders to display format
             const transformedOrders: Order[] = orders.map(order => ({
               ...order,
               customerName: `${order.customerInfo.firstName} ${order.customerInfo.lastName}`,
@@ -69,7 +64,7 @@ export default function OrderManagement() {
               customerAddress: order.customerInfo.address,
               totalAmount: order.total,
               orderTime: order.createdAt?.toDate ? order.createdAt.toDate() : new Date(),
-              estimatedTime: 20, // Default 20 minutes
+              estimatedTime: 20,
               adminEstimatedTime: order.adminEstimatedTime,
               paymentMethod: order.paymentMethod,
               orderType: order.orderType,
@@ -91,7 +86,6 @@ export default function OrderManagement() {
 
     setupRealTimeListener();
 
-    // Cleanup listener on unmount
     return () => {
       if (unsubscribe) {
         unsubscribe();
@@ -111,104 +105,62 @@ export default function OrderManagement() {
     }
   };
 
-  const getProgressWidth = (status: Order['status']) => {
-    switch (status) {
-      case 'pending': return '0%';
-      case 'confirmed': return '25%';
-      case 'preparing': return '50%';
-      case 'ready': return '75%';
-      case 'delivered': return '100%';
-      default: return '0%';
-    }
-  };
-
   const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     try {
       setIsUpdating(orderId);
-
       const result = await updateOrderStatus(orderId, newStatus);
 
       if (result.success) {
-        // Find the order to get customer info
         const order = orders.find(o => o.id === orderId);
-
-        // Update local state
         setOrders(orders.map(order =>
           order.id === orderId
             ? { ...order, status: newStatus, estimatedTime: newStatus === 'confirmed' ? 20 : order.estimatedTime }
             : order
         ));
 
-        // Send appropriate notification based on status
         if (order && order.customerPhone) {
           try {
             switch (newStatus) {
               case 'confirmed':
-                await sendNotification(
-                  'ORDER_ACCEPTED',
-                  order.customerPhone,
-                  {
-                    name: order.customerName || 'User',
-                    orderId: orderId,
-                    time: `${order.adminEstimatedTime || 20}`,
-                    restaurant: 'Restaurant' // You can get this from your restaurant context/state
-                  }
-                );
+                await sendNotification('ORDER_ACCEPTED', order.customerPhone, {
+                  name: order.customerName || 'User',
+                  orderId: orderId,
+                  time: `${order.adminEstimatedTime || 20}`,
+                  restaurant: 'Restaurant'
+                });
                 break;
-
               case 'preparing':
-                await sendNotification(
-                  'ORDER_PREPARING',
-                  order.customerPhone,
-                  {
-                    name: order.customerName || 'User',
-                    orderId: orderId,
-                    time: `${order.adminEstimatedTime || 20}`
-                  }
-                );
+                await sendNotification('ORDER_PREPARING', order.customerPhone, {
+                  name: order.customerName || 'User',
+                  orderId: orderId,
+                  time: `${order.adminEstimatedTime || 20}`
+                });
                 break;
-
               case 'ready':
-                await sendNotification(
-                  'ORDER_READY',
-                  order.customerPhone,
-                  {
-                    name: order.customerName || 'User',
-                    orderId: orderId
-                  }
-                );
+                await sendNotification('ORDER_READY', order.customerPhone, {
+                  name: order.customerName || 'User',
+                  orderId: orderId
+                });
                 break;
-
               case 'delivered':
-                await sendNotification(
-                  'PAYMENT_SUCCESS',
-                  order.customerPhone,
-                  {
-                    name: order.customerName || 'User',
-                    orderId: orderId,
-                    amount: order.totalAmount?.toFixed(2) || '0.00'
-                  }
-                );
+                await sendNotification('PAYMENT_SUCCESS', order.customerPhone, {
+                  name: order.customerName || 'User',
+                  orderId: orderId,
+                  amount: order.totalAmount?.toFixed(2) || '0.00'
+                });
                 break;
-
               case 'cancelled':
-                await sendNotification(
-                  'ORDER_CANCELED',
-                  order.customerPhone,
-                  {
-                    name: order.customerName || 'User',
-                    orderId: orderId,
-                    reason: 'Order cancelled by restaurant'
-                  }
-                );
+                await sendNotification('ORDER_CANCELED', order.customerPhone, {
+                  name: order.customerName || 'User',
+                  orderId: orderId,
+                  reason: 'Order cancelled by restaurant'
+                });
                 break;
             }
           } catch (notificationError) {
             console.error('Error sending notification:', notificationError);
-            // Don't fail the status update if notification fails
           }
         }
-
       } else {
         setError(result.error || 'Failed to update order status');
       }
@@ -223,38 +175,26 @@ export default function OrderManagement() {
   const handleSetEstimatedTime = async (orderId: string, estimatedTime: number) => {
     try {
       setIsUpdating(orderId);
-
       const result = await updateOrderEstimatedTime(orderId, estimatedTime);
 
       if (result.success) {
-        // Find the order to get customer info
         const order = orders.find(o => o.id === orderId);
-
-        // Update local state
         setOrders(orders.map(order =>
           order.id === orderId
             ? { ...order, adminEstimatedTime: estimatedTime }
             : order
         ));
 
-        console.log("Estimated Time")
-
-        // Send notification about updated time if order is confirmed or preparing
         if (order && order.customerPhone && ['confirmed', 'preparing'].includes(order.status)) {
           try {
-            await sendNotification(
-              'ORDER_ACCEPTED',
-              order.customerPhone,
-              {
-                name: order.customerName || 'User',
-                orderId: orderId,
-                time: `${estimatedTime}`,
-                restaurant: 'Restaurant' // You can get this from your restaurant context/state
-              }
-            );
+            await sendNotification('ORDER_ACCEPTED', order.customerPhone, {
+              name: order.customerName || 'User',
+              orderId: orderId,
+              time: `${estimatedTime}`,
+              restaurant: 'Restaurant'
+            });
           } catch (notificationError) {
             console.error('Error sending time update notification:', notificationError);
-            // Don't fail the time update if notification fails
           }
         }
 
@@ -276,7 +216,6 @@ export default function OrderManagement() {
     setCustomEstimatedTime(order.adminEstimatedTime || 20);
     setShowTimeModal(true);
   };
-
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = (order.customerName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -301,7 +240,7 @@ export default function OrderManagement() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-gray-600 dark:text-gray-400" />
           <p className="text-gray-600 dark:text-gray-400">Loading orders...</p>
@@ -313,7 +252,7 @@ export default function OrderManagement() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error Loading Orders</h2>
@@ -330,204 +269,242 @@ export default function OrderManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Compact Header */}
-      <div className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 shadow-lg border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Orders</h1>
-              {orders.filter(o => o.status === 'pending').length > 0 && (
-                <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-semibold px-2 py-1 rounded-full animate-pulse">
-                  {orders.filter(o => o.status === 'pending').length} New
-                </span>
-              )}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Clean Header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Orders</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">
+                Manage your orders
+              </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all">
-                <RefreshCw className="h-4 w-4" />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all relative">
-                <Bell className="h-4 w-4" />
-                <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+            <div className="flex items-center space-x-3">
+              {orders.filter(o => o.status === 'pending').length > 0 && (
+                <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-3 py-2 rounded-lg text-sm font-medium">
+                  {orders.filter(o => o.status === 'pending').length} new order{orders.filter(o => o.status === 'pending').length > 1 ? 's' : ''}
+                </div>
+              )}
+              <button
+                onClick={() => window.location.reload()}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <RefreshCw className="h-5 w-5" />
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
-        {/* Compact Search and Tabs */}
-        <div className="mb-4 space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search orders..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Clean Filters */}
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search orders..."
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-          <div className="flex space-x-1 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-1 shadow-sm">
-            {[
-              { key: 'all', label: 'All', count: orders.length },
-              { key: 'pending', label: 'New', count: orders.filter(o => o.status === 'pending').length },
-              { key: 'active', label: 'Active', count: orders.filter(o => ['confirmed', 'preparing', 'ready'].includes(o.status)).length },
-              { key: 'completed', label: 'Done', count: orders.filter(o => ['delivered', 'cancelled'].includes(o.status)).length }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${activeTab === tab.key
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-white/70 dark:hover:bg-gray-700/70'
-                  }`}
-              >
-                {tab.label} {tab.count > 0 && <span className="ml-1">({tab.count})</span>}
-              </button>
-            ))}
+            {/* Status Tabs */}
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              {[
+                { key: 'all', label: 'All', count: orders.length },
+                { key: 'pending', label: 'New', count: orders.filter(o => o.status === 'pending').length },
+                { key: 'active', label: 'Active', count: orders.filter(o => ['confirmed', 'preparing', 'ready'].includes(o.status)).length },
+                { key: 'completed', label: 'Done', count: orders.filter(o => ['delivered', 'cancelled'].includes(o.status)).length }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.key
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Compact Orders Grid */}
-        <div className="grid gap-3 sm:gap-4">
+        {/* Compact Order Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredOrders.map((order) => (
-            <div key={order.id} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-4 hover:shadow-xl transition-all duration-300">
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Main Order Info */}
-                <div className="flex-1 min-w-0">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">{order.customerName}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(order.status)}`}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setShowOrderDetails(true);
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
+            <div key={order.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-all duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${order.status === 'pending' ? 'bg-yellow-500' :
+                      order.status === 'confirmed' ? 'bg-blue-500' :
+                        order.status === 'preparing' ? 'bg-orange-500' :
+                          order.status === 'ready' ? 'bg-green-500' :
+                            order.status === 'delivered' ? 'bg-gray-500' :
+                              'bg-red-500'
+                    }`}>
+                    {order.customerName?.charAt(0) || 'U'}
                   </div>
-
-                  {/* Order Meta */}
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {order.orderTime ? getTimeAgo(order.orderTime) : 'Unknown'}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {order.orderType}
-                    </span>
-                    <span className="flex items-center gap-1 font-medium text-green-600 dark:text-green-400">
-                      <DollarSign className="h-3 w-3" />
-                      ₹{order.totalAmount?.toFixed(2) || '0.00'}
-                    </span>
-                    <span className="text-gray-400">#{order.id}</span>
-                  </div>
-
-                  {/* Items Preview */}
-                  <div className="flex items-center gap-2 mb-3 overflow-x-auto">
-                    {order.items.slice(0, 3).map((item) => (
-                      <div key={item.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-2 py-1 whitespace-nowrap">
-                        <img src={item.image} alt={item.name} className="w-6 h-6 rounded object-cover" />
-                        <span className="text-xs text-gray-700 dark:text-gray-300">
-                          {item.quantity}x {item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name}
-                        </span>
-                      </div>
-                    ))}
-                    {order.items.length > 3 && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">+{order.items.length - 3} more</span>
-                    )}
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-3">
-                    <div className="flex justify-between text-xs text-gray-400 mb-1">
-                      <span>New</span>
-                      <span>Cooking</span>
-                      <span>Ready</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                      <div
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-500"
-                        style={{ width: getProgressWidth(order.status) }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-2">
-                    {order.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => handleUpdateOrderStatus(order.id, 'confirmed')}
-                          className="flex-1 sm:flex-none px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 text-sm font-medium transition-all shadow-sm"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => handleUpdateOrderStatus(order.id, 'cancelled')}
-                          className="px-3 py-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 text-sm font-medium transition-all shadow-sm"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
-                    {order.status === 'confirmed' && (
-                      <button
-                        onClick={() => handleUpdateOrderStatus(order.id, 'preparing')}
-                        className="flex-1 sm:flex-none px-3 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg hover:from-orange-600 hover:to-amber-600 text-sm font-medium transition-all shadow-sm flex items-center justify-center gap-1"
-                      >
-                        <ChefHat className="h-3 w-3" />
-                        Start Cooking
-                      </button>
-                    )}
-                    {order.status === 'preparing' && (
-                      <button
-                        onClick={() => handleUpdateOrderStatus(order.id, 'ready')}
-                        className="flex-1 sm:flex-none px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 text-sm font-medium transition-all shadow-sm flex items-center justify-center gap-1"
-                      >
-                        <Package className="h-3 w-3" />
-                        Mark Ready
-                      </button>
-                    )}
-                    {order.status === 'ready' && (
-                      <button
-                        onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
-                        className="flex-1 sm:flex-none px-3 py-1.5 bg-gradient-to-r from-gray-500 to-slate-500 text-white rounded-lg hover:from-gray-600 hover:to-slate-600 text-sm font-medium transition-all shadow-sm"
-                      >
-                        Complete
-                      </button>
-                    )}
-                    <button className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium transition-all flex items-center gap-1">
-                      <Phone className="h-3 w-3" />
-                      Call
-                    </button>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white truncate">{order.customerName}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">#{order.id}</p>
                   </div>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setShowOrderDetails(true);
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  {order.customerPhone && (
+                    <a
+                      href={`tel:${order.customerPhone}`}
+                      className="p-1.5 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                    >
+                      <Phone className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+              </div>
 
-                {/* Timer Sidebar */}
-                <div className="sm:w-20 bg-gradient-to-br max-h-fit from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-xl p-3 text-center">
-                  <div className="text-lg font-bold text-gray-900 dark:text-white">
-                    {order.adminEstimatedTime || 20}
+              {/* Order Info Grid */}
+              <div className="grid grid-cols-3 gap-3 mb-3 text-xs">
+                <div className="text-center">
+                  <Clock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
+                  <p className="text-gray-500 dark:text-gray-400">Ordered</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{order.orderTime ? getTimeAgo(order.orderTime) : 'Unknown'}</p>
+                </div>
+                <div className="text-center">
+                  <MapPin className="h-4 w-4 mx-auto mb-1 text-gray-400" />
+                  <p className="text-gray-500 dark:text-gray-400">Type</p>
+                  <p className="font-medium text-gray-900 dark:text-white capitalize">{order.orderType}</p>
+                </div>
+                <div className="text-center">
+                  <DollarSign className="h-4 w-4 mx-auto mb-1 text-green-500" />
+                  <p className="text-gray-500 dark:text-gray-400">Total</p>
+                  <p className="font-semibold text-green-600 dark:text-green-400">₹{order.totalAmount?.toFixed(2) || '0.00'}</p>
+                </div>
+              </div>
+
+              {/* Items */}
+              <div className="mb-3">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Items ({order.items.length})</p>
+                <div className="space-y-2">
+                  {order.items.slice(0, 2).map((item) => (
+                    <div key={item.id} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-2 min-w-0 flex-1">
+                        <img src={item.image} alt={item.name} className="w-6 h-6 rounded object-cover flex-shrink-0" />
+                        <span className="text-gray-700 dark:text-gray-300 truncate">
+                          {item.quantity}x {item.name}
+                        </span>
+                      </div>
+                      <span className="font-medium text-gray-900 dark:text-white ml-2">₹{(item.price * item.quantity).toFixed(0)}</span>
+                    </div>
+                  ))}
+                  {order.items.length > 2 && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">+{order.items.length - 2} more items</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Progress */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Order Progress</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  {['pending', 'confirmed', 'preparing', 'ready', 'delivered'].map((status, index) => {
+                    const isActive = ['pending', 'confirmed', 'preparing', 'ready', 'delivered'].indexOf(order.status) >= index;
+                    const isCurrent = order.status === status;
+                    return (
+                      <div key={status} className="flex items-center flex-1">
+                        <div className={`h-2 rounded-full flex-1 ${isCurrent ? 'bg-blue-500' :
+                            isActive ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'
+                          }`}></div>
+                        {index < 4 && <div className="w-1"></div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-2">
+                {order.status === 'pending' && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleUpdateOrderStatus(order.id, 'confirmed')}
+                      disabled={isUpdating === order.id}
+                      className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-1"
+                    >
+                      {isUpdating === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3" />}
+                      <span>Accept</span>
+                    </button>
+                    <button
+                      onClick={() => handleUpdateOrderStatus(order.id, 'cancelled')}
+                      disabled={isUpdating === order.id}
+                      className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {order.adminEstimatedTime ? 'min (set)' : 'min (default)'}
+                )}
+                {order.status === 'confirmed' && (
+                  <button
+                    onClick={() => handleUpdateOrderStatus(order.id, 'preparing')}
+                    disabled={isUpdating === order.id}
+                    className="w-full px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  >
+                    {isUpdating === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChefHat className="h-4 w-4" />}
+                    <span>Start Preparing</span>
+                  </button>
+                )}
+                {order.status === 'preparing' && (
+                  <button
+                    onClick={() => handleUpdateOrderStatus(order.id, 'ready')}
+                    disabled={isUpdating === order.id}
+                    className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  >
+                    {isUpdating === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Package className="h-4 w-4" />}
+                    <span>Mark Ready</span>
+                  </button>
+                )}
+                {order.status === 'ready' && (
+                  <button
+                    onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
+                    disabled={isUpdating === order.id}
+                    className="w-full px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  >
+                    {isUpdating === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                    <span>Complete Order</span>
+                  </button>
+                )}
+
+                {/* Time Update */}
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                  <div className="text-xs">
+                    <span className="text-gray-500 dark:text-gray-400">Prep Time: </span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{order.adminEstimatedTime || 20} min</span>
                   </div>
                   <button
                     onClick={() => openTimeModal(order)}
-                    className="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    className="px-2 py-1 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                   >
-                    Set Time
+                    Update Time
                   </button>
                 </div>
               </div>
@@ -537,38 +514,43 @@ export default function OrderManagement() {
 
         {filteredOrders.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-500 dark:text-gray-400">No orders found matching your criteria.</div>
+            <Package className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No orders found</h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchTerm
+                ? `No orders match "${searchTerm}". Try adjusting your search.`
+                : activeTab === 'pending'
+                  ? "No new orders at the moment. New orders will appear here automatically."
+                  : `No ${activeTab} orders found.`
+              }
+            </p>
           </div>
         )}
       </div>
 
-      {/* Enhanced Order Details Modal */}
+      {/* Order Details Modal */}
       {showOrderDetails && selectedOrder && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 z-50">
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-2xl max-w-lg w-full max-h-[85vh] overflow-hidden shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Order #{selectedOrder.id}</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{selectedOrder.orderTime ? getTimeAgo(selectedOrder.orderTime) : 'Unknown'}</p>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Order Details</h2>
+                <p className="text-gray-500 dark:text-gray-400">#{selectedOrder.id}</p>
               </div>
               <button
                 onClick={() => setShowOrderDetails(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-all"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="overflow-y-auto max-h-[calc(85vh-80px)]">
-              <div className="p-4 space-y-4">
-                {/* Customer Info Card */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-600/50 rounded-xl p-4">
-                  <h3 className="font-semibold mb-2 text-gray-900 dark:text-white flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Customer Details
-                  </h3>
-                  <div className="space-y-2 text-sm">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="space-y-6">
+                {/* Customer Info */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Customer Information</h3>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Name:</span>
                       <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.customerName}</span>
@@ -578,41 +560,32 @@ export default function OrderManagement() {
                       <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.customerPhone}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Type:</span>
+                      <span className="text-gray-600 dark:text-gray-400">Order Type:</span>
                       <span className="font-medium text-gray-900 dark:text-white capitalize">{selectedOrder.orderType}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Payment:</span>
-                      <span className="font-medium text-gray-900 dark:text-white capitalize">{selectedOrder.paymentMethod}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Order Items */}
                 <div>
-                  <h3 className="font-semibold mb-3 text-gray-900 dark:text-white flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Items ({selectedOrder.items.length})
-                  </h3>
-                  <div className="space-y-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Items ({selectedOrder.items.length})</h3>
+                  <div className="space-y-3">
                     {selectedOrder.items.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-3 bg-white/70 dark:bg-gray-700/70 rounded-xl border border-gray-200/50 dark:border-gray-600/50">
-                        <div className="flex items-center gap-3">
-                          <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover shadow-sm" />
+                      <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <img src={item.image} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
                           <div>
-                            <div className="font-medium text-gray-900 dark:text-white text-sm">{item.name}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Qty: {item.quantity}</div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.name}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Qty: {item.quantity}</p>
                           </div>
                         </div>
-                        <div className="font-semibold text-green-600 dark:text-green-400">₹{(item.price * item.quantity).toFixed(2)}</div>
+                        <p className="font-semibold text-gray-900 dark:text-white">₹{(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     ))}
                   </div>
-
-                  {/* Total */}
-                  <div className="mt-3 pt-3 border-t border-gray-200/50 dark:border-gray-600/50">
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold text-gray-900 dark:text-white">Total:</span>
+                      <span className="text-lg font-semibold text-gray-900 dark:text-white">Total:</span>
                       <span className="text-xl font-bold text-green-600 dark:text-green-400">₹{selectedOrder.totalAmount?.toFixed(2) || '0.00'}</span>
                     </div>
                   </div>
@@ -620,117 +593,79 @@ export default function OrderManagement() {
 
                 {/* Special Notes */}
                 {selectedOrder.specialNotes && (
-                  <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200/50 dark:border-yellow-700/50 rounded-xl p-4">
-                    <h3 className="font-semibold mb-2 text-gray-900 dark:text-white flex items-center gap-2">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                      Special Instructions
-                    </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedOrder.specialNotes}</p>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Special Instructions</h3>
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                      <p className="text-gray-700 dark:text-gray-300">{selectedOrder.specialNotes}</p>
+                    </div>
                   </div>
                 )}
-
-                {/* Quick Actions */}
-                <div className="flex gap-2 pt-2">
-                  <button className="flex-1 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium text-sm hover:from-blue-600 hover:to-indigo-600 transition-all shadow-sm flex items-center justify-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Call Customer
-                  </button>
-                </div>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Set Estimated Time Modal */}
+      {/* Time Modal */}
       {showTimeModal && selectedOrderForTime && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 z-50">
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-2xl max-w-md w-full shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 dark:border-gray-700/50">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Set Estimated Time</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Order #{selectedOrderForTime.id}</p>
-              </div>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Set Preparation Time</h2>
               <button
                 onClick={() => setShowTimeModal(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-all"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-4 space-y-4">
-              {/* Current Time Display */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-600/50 rounded-xl p-4">
-                <h3 className="font-semibold mb-2 text-gray-900 dark:text-white">Current Time</h3>
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {selectedOrderForTime.adminEstimatedTime || 20} minutes
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {selectedOrderForTime.adminEstimatedTime ? 'Admin set' : 'Default (20 min)'}
-                </div>
-              </div>
-
-              {/* Time Input */}
+            <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Set New Estimated Time (minutes)
+                  Estimated Time (minutes)
                 </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="number"
-                    min="5"
-                    max="120"
-                    value={customEstimatedTime}
-                    onChange={(e) => setCustomEstimatedTime(parseInt(e.target.value) || 20)}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                  <span className="text-sm text-gray-500 dark:text-gray-400">min</span>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  This will override the default 20-minute preparation time.
-                </p>
+                <input
+                  type="number"
+                  min="5"
+                  max="120"
+                  value={customEstimatedTime}
+                  onChange={(e) => setCustomEstimatedTime(parseInt(e.target.value) || 20)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
               </div>
 
-              {/* Quick Time Buttons */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Quick Set
-                </label>
-                <div className="flex gap-2 flex-wrap">
-                  {[15, 20, 25, 30, 45, 60].map((time) => (
-                    <button
-                      key={time}
-                      onClick={() => setCustomEstimatedTime(time)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${customEstimatedTime === time
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
-                    >
-                      {time}m
-                    </button>
-                  ))}
-                </div>
+              <div className="flex gap-2 flex-wrap">
+                {[15, 20, 25, 30, 45, 60].map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => setCustomEstimatedTime(time)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${customEstimatedTime === time
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                  >
+                    {time}m
+                  </button>
+                ))}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setShowTimeModal(false)}
-                  className="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleSetEstimatedTime(selectedOrderForTime.id, customEstimatedTime)}
                   disabled={isUpdating === selectedOrderForTime.id}
-                  className="flex-1 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium text-sm hover:from-blue-600 hover:to-indigo-600 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                 >
                   {isUpdating === selectedOrderForTime.id ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Updating...
+                      <span>Updating...</span>
                     </>
                   ) : (
                     'Set Time'
