@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { getAllRestaurants, getAllMenuItems, getFilteredMenuItems, getMenuItemsRatings, RestaurantSettings, MenuItem as FirebaseMenuItem, getRestaurantRating}  from '@/app/(utils)/firebaseOperations';
 import { useRouter } from 'next/navigation';
 import { CartManager } from '@/app/(utils)/cartUtils';
-import EnhancedCartModal from '../../(components)/EnhancedCartModal';
+import { useCart } from '@/app/(contexts)/CartContext';
 
 // Custom Gradient Star Component
 const GradientStar = ({ size = 16 }: { size?: number }) => {
@@ -727,9 +727,7 @@ export default function MenuPage() {
   });
 
 
-  // State for cart modal
-  const [showCartModal, setShowCartModal] = useState(false);
-  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const { openCustomization } = useCart();
 
   const addToCart = (item: MenuItem) => {
     try {
@@ -739,9 +737,8 @@ export default function MenuPage() {
       // Check if item has variants or add-ons
       if ((item.variants && Array.isArray(item.variants) && item.variants.length > 0) || 
           (item.addons && Array.isArray(item.addons) && item.addons.length > 0)) {
-        // Show modal for customization
-        setSelectedMenuItem(item);
-        setShowCartModal(true);
+        // Open cart with customization
+        openCustomization(item, restaurantId);
       } else {
         // Add directly to cart if no customization needed
         const result = CartManager.addToCart(item, 1, restaurantId);
@@ -764,20 +761,6 @@ export default function MenuPage() {
     } catch (error) {
       console.error('Error adding item to cart:', error);
     }
-  };
-
-  const handleCartModalSuccess = () => {
-    // Update cart count when modal succeeds
-    const newCartCount = CartManager.getCartCount();
-    setCartCount(newCartCount);
-    
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('cartUpdated', {
-      detail: { 
-        cartItems: CartManager.getCartItems(), 
-        cartCount: newCartCount 
-      }
-    }));
   };
 
   const toggleFilter = (filterId: string) => {
@@ -1184,16 +1167,7 @@ export default function MenuPage() {
         </section>
       </div>
 
-      {/* Enhanced Cart Modal */}
-      {selectedMenuItem && (
-        <EnhancedCartModal
-          isOpen={showCartModal}
-          onClose={() => setShowCartModal(false)}
-          menuItem={selectedMenuItem}
-          restaurantId={selectedMenuItem.adminId}
-          onSuccess={handleCartModalSuccess}
-        />
-      )}
+
     </div>
   );
 }

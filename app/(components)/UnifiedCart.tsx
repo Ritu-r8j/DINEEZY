@@ -4,14 +4,17 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ShoppingCart } from 'lucide-react';
 import { CartManager } from '@/app/(utils)/cartUtils';
-import CartPreview from './CartPreview';
+import EnhancedCartPreview from './EnhancedCartPreview';
+import { useCart } from '@/app/(contexts)/CartContext';
 
 export default function UnifiedCart() {
     const router = useRouter();
     const pathname = usePathname();
     const [cartCount, setCartCount] = useState(0);
     const [totalPrice, setTotalPrice] = useState(0);
-    const [showCartPreview, setShowCartPreview] = useState(false);
+    const { showCart, customizationMode, menuItem, restaurantId, openCart, closeCart, closeCustomization } = useCart();
+    
+
 
     // Update cart count and total price when component mounts or cart changes
     useEffect(() => {
@@ -50,11 +53,19 @@ export default function UnifiedCart() {
     };
 
     const handleCartClick = () => {
-        setShowCartPreview(!showCartPreview);
+        if (showCart) {
+            closeCart();
+        } else {
+            openCart();
+        }
     };
 
     const handleCloseCartPreview = () => {
-        setShowCartPreview(false);
+        closeCart();
+    };
+
+    const handleCustomizationComplete = () => {
+        closeCustomization();
     };
 
     // Don't show cart on checkout page or auth pages
@@ -67,14 +78,16 @@ export default function UnifiedCart() {
     const isAuthPage = authPrefixes.some(route => pathname.startsWith(route));
     const isCheckoutPage = pathname.startsWith('/user/checkout');
 
-    // Don't render if no items in cart or on checkout/auth pages
-    if (cartCount === 0 || isAuthPage || isCheckoutPage) {
+    // Don't render if no items in cart or on checkout/auth pages (unless in customization mode)
+    if ((cartCount === 0 && !customizationMode) || isAuthPage || isCheckoutPage) {
         return null;
     }
 
     return (
         <>
-            <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up">
+            {/* Hide cart footer when cart preview is open or in customization mode */}
+            {!showCart && (
+                <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up">
                 <div className="bg-background/95 backdrop-blur-xl border-t border-border/50 shadow-xl">
                     <div className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-3 xs:py-4">
                         <div className="flex items-center justify-between gap-3 xs:gap-4">
@@ -127,12 +140,17 @@ export default function UnifiedCart() {
                     </div>
                 </div>
             </div>
+            )}
 
-            {/* Cart Preview */}
-            <CartPreview
-                isOpen={showCartPreview}
+            {/* Enhanced Cart Preview */}
+            <EnhancedCartPreview
+                isOpen={showCart}
                 onClose={handleCloseCartPreview}
                 onViewCart={handleViewCart}
+                customizationMode={customizationMode}
+                menuItem={menuItem}
+                restaurantId={restaurantId}
+                onCustomizationComplete={handleCustomizationComplete}
             />
         </>
     );

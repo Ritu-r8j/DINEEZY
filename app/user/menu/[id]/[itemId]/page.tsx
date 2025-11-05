@@ -178,7 +178,7 @@ import ReviewList from './components/ReviewList';
 import ReviewSummary from './components/ReviewSummary';
 import CustomerMedia from './components/CustomerMedia';
 import AllReviewsModal from './components/AllReviewsModal';
-import EnhancedCartModal from '../../../../(components)/EnhancedCartModal';
+import { useCart } from '@/app/(contexts)/CartContext';
 
 // CartMenuItem is now imported from cartUtils
 
@@ -442,7 +442,7 @@ export default function MenuItemDetailPage() {
         if (!timestamp) return 'Recently';
 
         let date;
-        
+
         // Handle Firestore server timestamp objects
         if (timestamp._methodName === 'serverTimestamp') {
             // This is a server timestamp placeholder, use current time
@@ -480,26 +480,22 @@ export default function MenuItemDetailPage() {
         });
     };
 
-    // State for cart modal
-    const [showCartModal, setShowCartModal] = useState(false);
+    const { openCustomization } = useCart();
 
     const handleAddToCart = (qty: number) => {
         if (menuItem) {
             // Check if item has variants or add-ons
-            if ((menuItem.variants && Array.isArray(menuItem.variants) && menuItem.variants.length > 0) || 
-                (menuItem.addons && Array.isArray(menuItem.addons) && menuItem.addons.length > 0)) {
-                // Show modal for customization
-                setShowCartModal(true);
+            const hasVariants = menuItem.variants && Array.isArray(menuItem.variants) && menuItem.variants.length > 0;
+            const hasAddons = menuItem.addons && Array.isArray(menuItem.addons) && menuItem.addons.length > 0;
+
+            if (hasVariants || hasAddons) {
+                // Open cart with customization
+                openCustomization(menuItem, restaurantId);
             } else {
                 // Add directly to cart if no customization needed
                 CartManager.addToCart(menuItem, qty, restaurantId);
             }
         }
-    };
-
-    const handleCartModalSuccess = () => {
-        // Optional: Show success message or update UI
-        console.log('Item added to cart successfully!');
     };
 
     const handleViewAllReviews = () => {
@@ -531,8 +527,8 @@ export default function MenuItemDetailPage() {
                 <div className="text-center max-w-sm mx-auto animate-fade-in">
                     <div className="w-16 h-16 xs:w-20 xs:h-20 mx-auto mb-4 xs:mb-6 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center">
                         <div className="w-8 h-8 xs:w-10 xs:h-10 bg-gray-900 dark:bg-white rounded flex items-center justify-center">
-                              <span className="text-white dark:text-gray-900 font-bold text-sm xs:text-base">D</span>
-                            </div>
+                            <span className="text-white dark:text-gray-900 font-bold text-sm xs:text-base">D</span>
+                        </div>
                     </div>
                     <h2 className="text-lg xs:text-xl font-bold text-foreground mb-2 xs:mb-3">
                         Oops! Something went wrong
@@ -620,7 +616,7 @@ export default function MenuItemDetailPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Action Button */}
                                     <div className="flex-shrink-0">
                                         {user ? (
@@ -704,16 +700,7 @@ export default function MenuItemDetailPage() {
                 formatDate={formatDate}
             />
 
-            {/* Enhanced Cart Modal */}
-            {menuItem && (
-                <EnhancedCartModal
-                    isOpen={showCartModal}
-                    onClose={() => setShowCartModal(false)}
-                    menuItem={menuItem}
-                    restaurantId={restaurantId}
-                    onSuccess={handleCartModalSuccess}
-                />
-            )}
+
         </>
     );
 }

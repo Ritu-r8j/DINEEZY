@@ -32,7 +32,7 @@ import ThemeToggle from "./(components)/ThemeToggle";
 import { getAllMenuItems, MenuItem, getMenuItemsRatings, getAllRestaurants, RestaurantSettings, getRestaurantRating } from "./(utils)/firebaseOperations";
 import { CartManager } from "./(utils)/cartUtils";
 import { useRouter } from "next/navigation";
-import EnhancedCartModal from "./(components)/EnhancedCartModal";
+import { useCart } from "@/app/(contexts)/CartContext";
 import { sendNotification } from "./(utils)/notification";
 import { toast } from "sonner";
 
@@ -382,9 +382,7 @@ export default function HomePage() {
     });
   };
 
-  // State for cart modal
-  const [showCartModal, setShowCartModal] = useState(false);
-  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const { openCustomization } = useCart();
 
   // Handle quick order - add item to cart and navigate to checkout
   const handleQuickOrder = (dish: MenuItem) => {
@@ -397,9 +395,8 @@ export default function HomePage() {
     // Check if item has variants or add-ons
     if ((dish.variants && Array.isArray(dish.variants) && dish.variants.length > 0) || 
         (dish.addons && Array.isArray(dish.addons) && dish.addons.length > 0)) {
-      // Show modal for customization
-      setSelectedMenuItem(dish);
-      setShowCartModal(true);
+      // Open cart with customization
+      openCustomization(dish, dish.adminId);
     } else {
       // Add directly to cart if no customization needed
       const result = CartManager.addToCart(dish, 1, dish.adminId);
@@ -413,15 +410,6 @@ export default function HomePage() {
         router.push('/user/checkout');
       }
     }
-  };
-
-  const handleCartModalSuccess = () => {
-    // Show notification
-    setShowCartNotification(true);
-    setTimeout(() => setShowCartNotification(false), 2000);
-
-    // Navigate to checkout page
-    router.push('/user/checkout');
   };
 
   // Format distance for display
@@ -1388,16 +1376,7 @@ export default function HomePage() {
         </motion.div>
       )}
 
-      {/* Enhanced Cart Modal */}
-      {selectedMenuItem && (
-        <EnhancedCartModal
-          isOpen={showCartModal}
-          onClose={() => setShowCartModal(false)}
-          menuItem={selectedMenuItem}
-          restaurantId={selectedMenuItem.adminId}
-          onSuccess={handleCartModalSuccess}
-        />
-      )}
+
     </div>
   );
 }

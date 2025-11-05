@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProviderWrapper from "./(components)/AuthProviderWrapper";
+import { CartProvider } from "./(contexts)/CartContext";
 import { Toaster } from "sonner";
 import ScrollRestorationFix from "./(components)/ScrollRestore";
 
@@ -55,8 +56,10 @@ export default function RootLayout({
       ><>
            <Toaster/>
           <AuthProviderWrapper>
-            <ScrollRestorationFix/>
-            {children}
+            <CartProvider>
+              <ScrollRestorationFix/>
+              {children}
+            </CartProvider>
           </AuthProviderWrapper>
         </>
       </body>
