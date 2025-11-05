@@ -190,7 +190,7 @@ export default function Checkout() {
         }
     };
 
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+    const subtotal = cartItems.reduce((sum, item) => sum + ((item.customPrice || item.price) * (item.quantity || 1)), 0);
     const selectedDeliveryOption = deliveryOptions.find(option => option.selected);
     const selectedOrderType = orderTypes.find(type => type.selected);
     const deliveryFee = selectedOrderType?.id === 'delivery' ? (selectedDeliveryOption?.price || 0) : 0;
@@ -300,7 +300,7 @@ export default function Checkout() {
                     id: item.id.toString(),
                     name: item.name,
                     quantity: item.quantity || 1,
-                    price: item.price,
+                    price: item.customPrice || item.price,
                     image: item.image
                 })),
                 orderType: selectedOrderType?.id || 'takeaway',
@@ -763,8 +763,17 @@ export default function Checkout() {
                                                             className="w-12 h-12 sm:w-15 sm:h-15 object-cover rounded-lg flex-shrink-0"
                                                         />
                                                         <div className="flex-1 min-w-0">
-                                                            <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate">{item.name}</h3>
-                                                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">{item.description}</p>
+                                                            <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate">
+                                                                {item.name}
+                                                                {item.selectedVariant && (
+                                                                    <span className="text-xs text-gray-500 ml-1">({item.selectedVariant.name})</span>
+                                                                )}
+                                                            </h3>
+                                                            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                                {item.selectedAddons && item.selectedAddons.length > 0 && (
+                                                                    <div className="truncate">+ {item.selectedAddons.map(addon => addon.name).join(', ')}</div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <div className="flex items-center gap-2 sm:gap-3">
                                                             <div className="flex items-center gap-1 sm:gap-2">
@@ -787,7 +796,7 @@ export default function Checkout() {
                                                                 </button>
                                                             </div>
                                                             <p className="font-bold text-gray-900 dark:text-white min-w-[60px] sm:min-w-[80px] text-right text-xs sm:text-sm">
-                                                                ₹{(item.price * (item.quantity || 1)).toFixed(2)}
+                                                                ₹{((item.customPrice || item.price) * (item.quantity || 1)).toFixed(2)}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -925,12 +934,21 @@ export default function Checkout() {
                                             className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
                                         />
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">{item.name}</h3>
-                                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{item.description}</p>
+                                            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                                {item.name}
+                                                {item.selectedVariant && (
+                                                    <span className="text-xs text-gray-500 ml-1">({item.selectedVariant.name})</span>
+                                                )}
+                                            </h3>
+                                            <div className="text-xs text-gray-600 dark:text-gray-400">
+                                                {item.selectedAddons && item.selectedAddons.length > 0 && (
+                                                    <div className="truncate">+ {item.selectedAddons.map(addon => addon.name).join(', ')}</div>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
-                                                ₹{(item.price * (item.quantity || 1)).toFixed(2)}
+                                                ₹{((item.customPrice || item.price) * (item.quantity || 1)).toFixed(2)}
                                             </p>
                                             <p className="text-xs text-gray-600 dark:text-gray-400">Qty: {item.quantity || 1}</p>
                                         </div>
@@ -1063,11 +1081,21 @@ export default function Checkout() {
                                         className="w-7 h-7 sm:w-8 sm:h-8 object-cover rounded flex-shrink-0"
                                     />
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-xs font-semibold text-gray-900 dark:text-white truncate">{item.name}</h3>
-                                        <p className="text-xs text-gray-600 dark:text-gray-300">Qty: {item.quantity || 1}</p>
+                                        <h3 className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                                            {item.name}
+                                            {item.selectedVariant && (
+                                                <span className="text-xs text-gray-500 ml-1">({item.selectedVariant.name})</span>
+                                            )}
+                                        </h3>
+                                        <div className="text-xs text-gray-600 dark:text-gray-300">
+                                            <div>Qty: {item.quantity || 1}</div>
+                                            {item.selectedAddons && item.selectedAddons.length > 0 && (
+                                                <div className="truncate">+ {item.selectedAddons.map(addon => addon.name).join(', ')}</div>
+                                            )}
+                                        </div>
                                     </div>
                                     <p className="text-xs font-bold text-gray-900 dark:text-white">
-                                        ₹{(item.price * (item.quantity || 1)).toFixed(2)}
+                                        ₹{((item.customPrice || item.price) * (item.quantity || 1)).toFixed(2)}
                                     </p>
                                 </div>
                             ))}

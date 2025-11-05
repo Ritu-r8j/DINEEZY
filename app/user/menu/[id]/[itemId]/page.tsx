@@ -178,6 +178,7 @@ import ReviewList from './components/ReviewList';
 import ReviewSummary from './components/ReviewSummary';
 import CustomerMedia from './components/CustomerMedia';
 import AllReviewsModal from './components/AllReviewsModal';
+import EnhancedCartModal from '../../../../(components)/EnhancedCartModal';
 
 // CartMenuItem is now imported from cartUtils
 
@@ -479,10 +480,26 @@ export default function MenuItemDetailPage() {
         });
     };
 
+    // State for cart modal
+    const [showCartModal, setShowCartModal] = useState(false);
+
     const handleAddToCart = (qty: number) => {
         if (menuItem) {
-            CartManager.addToCart(menuItem, qty, restaurantId);
+            // Check if item has variants or add-ons
+            if ((menuItem.variants && Array.isArray(menuItem.variants) && menuItem.variants.length > 0) || 
+                (menuItem.addons && Array.isArray(menuItem.addons) && menuItem.addons.length > 0)) {
+                // Show modal for customization
+                setShowCartModal(true);
+            } else {
+                // Add directly to cart if no customization needed
+                CartManager.addToCart(menuItem, qty, restaurantId);
+            }
         }
+    };
+
+    const handleCartModalSuccess = () => {
+        // Optional: Show success message or update UI
+        console.log('Item added to cart successfully!');
     };
 
     const handleViewAllReviews = () => {
@@ -538,19 +555,6 @@ export default function MenuItemDetailPage() {
         <>
             <style dangerouslySetInnerHTML={{ __html: customStyles }} />
             <div className="min-h-screen bg-gradient-to-br from-background via-muted/10 to-background">
-                {/* Mobile-Optimized Back Button */}
-                <div className="sticky top-0 bottom-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50 shadow-sm md:h-12 flex items-center">
-                    <div className="container mx-auto px-2 xs:px-3 sm:px-4 lg:px-8 py-2 xs:py-3 flex items-center h-full">
-                        <button
-                            onClick={() => router.back()}
-                            className=" cursor-pointer flex items-center gap-1.5 xs:gap-2 text-muted-foreground hover:text-foreground transition-colors group animate-fade-in"
-                        >
-                            <ArrowLeft className="w-3.5 h-3.5 xs:w-4 xs:h-4 group-hover:-translate-x-1 transition-transform" />
-                            <span className="text-xs xs:text-sm font-medium">Back to Menu</span>
-                        </button>
-                    </div>
-                </div>
-
                 {/* Mobile-Optimized Main Content */}
                 <main className="py-2 xs:py-3 sm:py-4 lg:py-6">
                     <div className="container mx-auto px-2 xs:px-3 sm:px-4 lg:px-8">
@@ -699,6 +703,17 @@ export default function MenuItemDetailPage() {
                 onVoteReview={handleVoteReview}
                 formatDate={formatDate}
             />
+
+            {/* Enhanced Cart Modal */}
+            {menuItem && (
+                <EnhancedCartModal
+                    isOpen={showCartModal}
+                    onClose={() => setShowCartModal(false)}
+                    menuItem={menuItem}
+                    restaurantId={restaurantId}
+                    onSuccess={handleCartModalSuccess}
+                />
+            )}
         </>
     );
 }

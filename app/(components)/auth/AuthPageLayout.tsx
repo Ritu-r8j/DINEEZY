@@ -56,7 +56,7 @@ export function AuthPageLayout({
               <div className="flex items-center justify-center gap-3">
 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-900 text-white shadow-lg shadow-gray-900/20 transition dark:bg-gray-100 dark:text-gray-900 dark:shadow-gray-100/20">
                   {emblem ?? (
-                    <img src="/logo.png" alt="Logo" className="invert w-16 h-16 object-cover" />
+                    <img src="/logo.png" alt="Logo" className="invert dark:invert-0 w-16 h-16 object-cover" />
                   )}
                 </div>
                 <span className="text-3xl font-semibold tracking-tight">Dineezy</span>

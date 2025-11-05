@@ -579,36 +579,73 @@ export const getFilteredRestaurants = async (filters: {
 // Menu Item Operations
 export interface MenuItem {
   id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  image: string;
-  available: boolean;
-  preparationTime: number;
-  ingredients: string;
-  allergens: string[];
-  spiceLevel: 'none' | 'mild' | 'medium' | 'hot' | 'very-hot';
-  isVegetarian: boolean;
-  isVegan: boolean;
-  isGlutenFree: boolean;
-  calories: number;
-  rating: number;
-  tags: string[];
-  discount?: number;
+  
+  // Admin & Restaurant Info
   adminId: string;
-  createdAt?: any;
-  // Restaurant location and address for delivery/ordering purposes
-  restaurantLocation?: {
-    lat: number;
-    lng: number;
-  } | null;
+  restaurantId?: string;
+  restaurantName?: string;
   restaurantAddress?: {
     street: string;
     city: string;
     state: string;
     postalCode: string;
   } | null;
+  restaurantLocation?: {
+    lat: number;
+    lng: number;
+  } | null;
+  
+  // Item Info
+  name: string;
+  description: string;
+  category: string;
+  image: string;
+  tags: string[];
+  
+  // Pricing
+  price: number;
+  discountPrice?: number;
+  currency?: string;
+  isAvailable: boolean;
+  
+  // Legacy field for backward compatibility
+  available?: boolean;
+  
+  // Details
+  spiceLevel: 'none' | 'mild' | 'medium' | 'hot' | 'very-hot';
+  preparationTime: number;
+  calories: number;
+  
+  // Dietary Info
+  isVegetarian: boolean;
+  isVegan: boolean;
+  isGlutenFree: boolean;
+  allergens: string[];
+  
+  // Ingredients
+  ingredients: string | string[];
+  
+  // Variants & Add-ons
+  variants?: Array<{name: string, price: number}>;
+  addons?: Array<{name: string, price: number}>;
+  
+  // Meta Info
+  rating: number;
+  totalRatings?: number;
+  totalOrders?: number;
+  isBestSeller?: boolean;
+  isRecommended?: boolean;
+  
+  // Analytics
+  viewCount?: number;
+  orderCount?: number;
+  lastOrderedAt?: any;
+  
+  // Legacy fields for backward compatibility
+  discount?: number;
+  
+  // Timestamps
+  createdAt?: any;
   updatedAt?: any;
 }
 
@@ -684,7 +721,8 @@ export const toggleMenuItemAvailability = async (itemId: string, available: bool
   try {
     const menuItemRef = doc(db, 'menuItems', itemId);
     await updateDoc(menuItemRef, {
-      available,
+      isAvailable: available,
+      available, // Keep for backward compatibility
       updatedAt: serverTimestamp(),
     });
     return { success: true };
@@ -927,6 +965,46 @@ export const subscribeToRestaurantOrders = (
     return unsubscribe;
   } catch (error: any) {
     console.error('Error setting up restaurant orders listener:', error);
+    return () => { }; // Return empty function as fallback
+  }
+};
+
+// Optimized real-time listener for orders by date
+export const subscribeToRestaurantOrdersByDate = (
+  restaurantId: string,
+  selectedDate: string,
+  callback: (orders: OrderData[]) => void
+) => {
+  try {
+    // Create start and end timestamps for the selected date
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const ordersRef = collection(db, 'orders');
+    const q = query(
+      ordersRef,
+      where('restaurantId', '==', restaurantId),
+      where('createdAt', '>=', Timestamp.fromDate(startOfDay)),
+      where('createdAt', '<=', Timestamp.fromDate(endOfDay)),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const orders: OrderData[] = [];
+      snapshot.forEach((doc) => {
+        orders.push(doc.data() as OrderData);
+      });
+      callback(orders);
+    }, (error) => {
+      console.error('Error listening to restaurant orders by date:', error);
+    });
+
+    return unsubscribe;
+  } catch (error: any) {
+    console.error('Error setting up restaurant orders by date listener:', error);
     return () => { }; // Return empty function as fallback
   }
 };

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Clock, Eye, Phone, MapPin, DollarSign, Search, RefreshCw, X, ChefHat, Package, Loader2, CheckCircle } from 'lucide-react';
-import { getRestaurantOrders, updateOrderStatus, updateOrderEstimatedTime, OrderData, subscribeToRestaurantOrders } from '@/app/(utils)/firebaseOperations';
+import { Bell, Clock, Eye, Phone, MapPin, DollarSign, Search, RefreshCw, X, ChefHat, Package, Loader2, CheckCircle, Calendar } from 'lucide-react';
+import { getRestaurantOrders, updateOrderStatus, updateOrderEstimatedTime, OrderData, subscribeToRestaurantOrdersByDate } from '@/app/(utils)/firebaseOperations';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { sendNotification } from '@/app/(utils)/notification';
 
@@ -11,8 +11,11 @@ interface OrderItem {
   name: string;
   quantity: number;
   price: number;
+  customPrice?: number;
   image: string;
   specialInstructions?: string;
+  selectedVariant?: {name: string, price: number};
+  selectedAddons?: Array<{name: string, price: number}>;
 }
 
 interface Order extends Omit<OrderData, 'estimatedTime'> {
@@ -42,6 +45,10 @@ export default function OrderManagement() {
   const [selectedOrderForTime, setSelectedOrderForTime] = useState<Order | null>(null);
   const [customEstimatedTime, setCustomEstimatedTime] = useState<number>(20);
 
+  // Date filtering state - default to today
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   // Load orders with real-time listeners
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -55,7 +62,7 @@ export default function OrderManagement() {
 
         const restaurantId = user.uid;
 
-        unsubscribe = subscribeToRestaurantOrders(restaurantId, (orders) => {
+        unsubscribe = subscribeToRestaurantOrdersByDate(restaurantId, selectedDate, (orders) => {
           if (orders.length > 0) {
             const transformedOrders: Order[] = orders.map(order => ({
               ...order,
@@ -71,6 +78,7 @@ export default function OrderManagement() {
               specialNotes: order.specialInstructions
             }));
 
+            // No need for client-side date filtering anymore - Firebase handles it
             setOrders(transformedOrders);
           } else {
             setOrders([]);
@@ -91,7 +99,7 @@ export default function OrderManagement() {
         unsubscribe();
       }
     };
-  }, [user]);
+  }, [user, selectedDate]); // Re-fetch when date changes
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
@@ -237,6 +245,45 @@ export default function OrderManagement() {
     return `${hours}h ago`;
   };
 
+  // Helper function to get date labels
+  const getDateLabel = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (dateString === today.toISOString().split('T')[0]) {
+      return 'Today';
+    } else if (dateString === yesterday.toISOString().split('T')[0]) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+  };
+
+  // Quick date options
+  const getQuickDateOptions = () => {
+    const today = new Date();
+    const options = [];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+      options.push({
+        value: dateString,
+        label: getDateLabel(dateString),
+        isToday: i === 0
+      });
+    }
+
+    return options;
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -277,7 +324,10 @@ export default function OrderManagement() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Orders</h1>
               <p className="text-gray-500 dark:text-gray-400 mt-1">
-                Manage your orders
+                {selectedDate === new Date().toISOString().split('T')[0]
+                  ? "Today's orders and order management"
+                  : `Orders for ${getDateLabel(selectedDate)}`
+                }
               </p>
             </div>
             <div className="flex items-center space-x-3">
@@ -298,8 +348,45 @@ export default function OrderManagement() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Clean Filters */}
-        <div className="mb-6">
+        {/* Enhanced Filters with Date Selection */}
+        <div className="mb-6 space-y-4">
+          {/* Date Filter */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-5 w-5 text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Date:</span>
+            </div>
+
+            {/* Quick Date Options */}
+            <div className="flex flex-wrap gap-2">
+              {getQuickDateOptions().map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSelectedDate(option.value)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedDate === option.value
+                      ? option.isToday
+                        ? 'bg-blue-500 text-white shadow-sm'
+                        : 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-sm'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+
+              {/* Custom Date Picker */}
+              <div className="relative">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Search and Status Filters */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
@@ -334,6 +421,24 @@ export default function OrderManagement() {
               ))}
             </div>
           </div>
+
+          {/* Selected Date Info */}
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+              <span>Showing orders for:</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {getDateLabel(selectedDate)}
+                {selectedDate !== new Date().toISOString().split('T')[0] && (
+                  <span className="ml-2 text-xs">({new Date(selectedDate).toLocaleDateString()})</span>
+                )}
+              </span>
+            </div>
+            {orders.length > 0 && (
+              <span className="text-gray-500 dark:text-gray-400">
+                {orders.length} order{orders.length !== 1 ? 's' : ''} found
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Compact Order Cards */}
@@ -344,11 +449,11 @@ export default function OrderManagement() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${order.status === 'pending' ? 'bg-yellow-500' :
-                      order.status === 'confirmed' ? 'bg-blue-500' :
-                        order.status === 'preparing' ? 'bg-orange-500' :
-                          order.status === 'ready' ? 'bg-green-500' :
-                            order.status === 'delivered' ? 'bg-gray-500' :
-                              'bg-red-500'
+                    order.status === 'confirmed' ? 'bg-blue-500' :
+                      order.status === 'preparing' ? 'bg-orange-500' :
+                        order.status === 'ready' ? 'bg-green-500' :
+                          order.status === 'delivered' ? 'bg-gray-500' :
+                            'bg-red-500'
                     }`}>
                     {order.customerName?.charAt(0) || 'U'}
                   </div>
@@ -407,9 +512,12 @@ export default function OrderManagement() {
                         <img src={item.image} alt={item.name} className="w-6 h-6 rounded object-cover flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-300 truncate">
                           {item.quantity}x {item.name}
+                          {(item as any).selectedVariant && (
+                            <span className="text-xs text-gray-500 ml-1">({(item as any).selectedVariant.name})</span>
+                          )}
                         </span>
                       </div>
-                      <span className="font-medium text-gray-900 dark:text-white ml-2">₹{(item.price * item.quantity).toFixed(0)}</span>
+                      <span className="font-medium text-gray-900 dark:text-white ml-2">₹{(((item as any).customPrice || item.price) * item.quantity).toFixed(0)}</span>
                     </div>
                   ))}
                   {order.items.length > 2 && (
@@ -433,7 +541,7 @@ export default function OrderManagement() {
                     return (
                       <div key={status} className="flex items-center flex-1">
                         <div className={`h-2 rounded-full flex-1 ${isCurrent ? 'bg-blue-500' :
-                            isActive ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'
+                          isActive ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'
                           }`}></div>
                         {index < 4 && <div className="w-1"></div>}
                       </div>
@@ -516,14 +624,22 @@ export default function OrderManagement() {
           <div className="text-center py-12">
             <Package className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No orders found</h3>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
               {searchTerm
-                ? `No orders match "${searchTerm}". Try adjusting your search.`
+                ? `No orders match "${searchTerm}" for ${getDateLabel(selectedDate).toLowerCase()}.`
                 : activeTab === 'pending'
-                  ? "No new orders at the moment. New orders will appear here automatically."
-                  : `No ${activeTab} orders found.`
+                  ? `No new orders for ${getDateLabel(selectedDate).toLowerCase()}. New orders will appear here automatically.`
+                  : `No ${activeTab} orders found for ${getDateLabel(selectedDate).toLowerCase()}.`
               }
             </p>
+            {selectedDate !== new Date().toISOString().split('T')[0] && (
+              <button
+                onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                View Today's Orders
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -575,11 +691,21 @@ export default function OrderManagement() {
                         <div className="flex items-center space-x-3">
                           <img src={item.image} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{item.name}</p>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {item.name}
+                              {(item as any).selectedVariant && (
+                                <span className="text-sm text-gray-500 ml-1">({(item as any).selectedVariant.name})</span>
+                              )}
+                            </p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">Qty: {item.quantity}</p>
+                            {(item as any).selectedAddons && (item as any).selectedAddons.length > 0 && (
+                              <p className="text-xs text-gray-500">
+                                + {(item as any).selectedAddons.map((addon: any) => addon.name).join(', ')}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <p className="font-semibold text-gray-900 dark:text-white">₹{(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-semibold text-gray-900 dark:text-white">₹{(((item as any).customPrice || item.price) * item.quantity).toFixed(2)}</p>
                       </div>
                     ))}
                   </div>

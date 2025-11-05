@@ -98,6 +98,7 @@ import {
     MenuItem
 } from '@/app/(utils)/firebaseOperations';
 import { CartManager, CartMenuItem } from '@/app/(utils)/cartUtils';
+import EnhancedCartModal from '@/app/(components)/EnhancedCartModal';
 
 // CartMenuItem is now imported from cartUtils
 export default function Menu() {
@@ -257,11 +258,28 @@ export default function Menu() {
         }
     };
 
+    // State for cart modal
+    const [showCartModal, setShowCartModal] = useState(false);
+    const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+
     const addToCart = (item: MenuItem) => {
+        // Check if item has variants or add-ons
+        if ((item.variants && item.variants.length > 0) || 
+            (item.addons && item.addons.length > 0)) {
+            // Show modal for customization
+            setSelectedMenuItem(item);
+            setShowCartModal(true);
+        } else {
+            // Add directly to cart if no customization needed
+            setIsAnimating(true);
+            setTimeout(() => setIsAnimating(false), 500);
+            CartManager.addToCart(item, 1, restaurantId);
+        }
+    };
+
+    const handleCartModalSuccess = () => {
         setIsAnimating(true);
         setTimeout(() => setIsAnimating(false), 500);
-
-        CartManager.addToCart(item, 1, restaurantId);
     };
 
 

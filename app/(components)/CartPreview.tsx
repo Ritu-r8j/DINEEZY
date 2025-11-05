@@ -56,23 +56,23 @@ export default function CartPreview({ isOpen, onClose, onViewCart }: CartPreview
         };
     }, []);
 
-    const updateQuantity = (itemId: string, change: number) => {
-        const currentItem = cartItems.find(item => item.id === itemId);
+    const updateQuantity = (cartItemId: string, change: number) => {
+        const currentItem = cartItems.find(item => item.cartItemId === cartItemId);
         if (!currentItem) return;
 
         const newQuantity = (currentItem.quantity || 1) + change;
         
         if (newQuantity <= 0) {
             // Remove item from cart
-            CartManager.removeFromCart(itemId);
+            CartManager.removeFromCart(cartItemId);
         } else {
             // Update quantity
-            CartManager.updateCartItemQuantity(itemId, newQuantity);
+            CartManager.updateCartItemQuantity(cartItemId, newQuantity);
         }
     };
 
-    const removeItem = (itemId: string) => {
-        CartManager.removeFromCart(itemId);
+    const removeItem = (cartItemId: string) => {
+        CartManager.removeFromCart(cartItemId);
     };
 
     if (!isOpen || cartItems.length === 0) return null;
@@ -113,7 +113,7 @@ export default function CartPreview({ isOpen, onClose, onViewCart }: CartPreview
                     {/* Cart Items */}
                     <div className="max-h-80 overflow-y-auto">
                         {cartItems.map((item) => (
-                            <div key={item.id} className="flex items-center gap-3 p-4 border-b border-border/20 last:border-b-0">
+                            <div key={item.cartItemId || item.id} className="flex items-center gap-3 p-4 border-b border-border/20 last:border-b-0">
                                 {/* Item Image */}
                                 <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
                                     <Image
@@ -129,19 +129,28 @@ export default function CartPreview({ isOpen, onClose, onViewCart }: CartPreview
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-medium text-foreground text-sm truncate">
                                         {item.name}
+                                        {item.selectedVariant && (
+                                            <span className="text-xs text-muted-foreground ml-1">
+                                                ({item.selectedVariant.name})
+                                            </span>
+                                        )}
                                     </h4>
-                                    <p className="text-xs text-muted-foreground truncate">
-                                        {item.description}
-                                    </p>
+                                    <div className="text-xs text-muted-foreground">
+                                        {item.selectedAddons && item.selectedAddons.length > 0 && (
+                                            <div className="truncate">
+                                                + {item.selectedAddons.map(addon => addon.name).join(', ')}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="flex items-center justify-between mt-1">
                                         <span className="text-sm font-semibold text-foreground">
-                                            ₹{item.price}
+                                            ₹{item.customPrice || item.price}
                                         </span>
                                         <div className="flex items-center gap-2">
                                             {/* Quantity Controls */}
                                             <div className="flex items-center gap-1">
                                                 <button
-                                                    onClick={() => updateQuantity(item.id, -1)}
+                                                    onClick={() => updateQuantity(item.cartItemId || item.id, -1)}
                                                     className="w-6 h-6 flex items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors"
                                                 >
                                                     <Minus className="w-3 h-3 text-muted-foreground" />
@@ -150,7 +159,7 @@ export default function CartPreview({ isOpen, onClose, onViewCart }: CartPreview
                                                     {item.quantity || 1}
                                                 </span>
                                                 <button
-                                                    onClick={() => updateQuantity(item.id, 1)}
+                                                    onClick={() => updateQuantity(item.cartItemId || item.id, 1)}
                                                     className="w-6 h-6 flex items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors"
                                                 >
                                                     <Plus className="w-3 h-3 text-muted-foreground" />
@@ -158,7 +167,7 @@ export default function CartPreview({ isOpen, onClose, onViewCart }: CartPreview
                                             </div>
                                             {/* Remove Button */}
                                             <button
-                                                onClick={() => removeItem(item.id)}
+                                                onClick={() => removeItem(item.cartItemId || item.id)}
                                                 className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
                                             >
                                                 <Trash className="w-3 h-3 text-red-500" />

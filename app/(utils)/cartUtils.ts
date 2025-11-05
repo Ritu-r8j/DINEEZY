@@ -3,6 +3,10 @@ import { MenuItem } from './firebaseOperations';
 // Extended MenuItem interface for cart functionality
 export interface CartMenuItem extends MenuItem {
     quantity?: number;
+    selectedVariant?: any;
+    selectedAddons?: any[];
+    customPrice?: number; // Price including variant and addons
+    cartItemId?: string; // Unique identifier for cart item (id + variant + addons)
 }
 
 // Cart utility functions
@@ -15,7 +19,15 @@ export class CartManager {
     static getCartItems(): CartMenuItem[] {
         try {
             const cartItems = localStorage.getItem(this.CART_KEY);
-            return cartItems ? JSON.parse(cartItems) : [];
+            const items = cartItems ? JSON.parse(cartItems) : [];
+            
+            // Add backward compatibility for items without cartItemId
+            return items.map((item: CartMenuItem) => {
+                if (!item.cartItemId) {
+                    item.cartItemId = `${item.id}_default_none`;
+                }
+                return item;
+            });
         } catch (error) {
             console.error('Error getting cart items:', error);
             return [];
@@ -43,17 +55,35 @@ export class CartManager {
         }
     }
 
-    // Add item to cart
-    static addToCart(item: MenuItem, quantity: number = 1, restaurantId: string): { success: boolean; cartItems: CartMenuItem[]; cartCount: number } {
+    // Add item to cart with variants and addons
+    static addToCart(
+        item: MenuItem,
+        quantity: number = 1,
+        restaurantId: string,
+        selectedVariant?: any,
+        selectedAddons?: any[]
+    ): { success: boolean; cartItems: CartMenuItem[]; cartCount: number } {
         try {
             const existingCart = this.getCartItems();
-            const existingItemIndex = existingCart.findIndex(cartItem => cartItem.id === item.id);
+
+            // Calculate custom price including variant and addons
+            let customPrice = selectedVariant ? selectedVariant.price : item.price;
+            if (selectedAddons && selectedAddons.length > 0) {
+                customPrice += selectedAddons.reduce((sum, addon) => sum + addon.price, 0);
+            }
+
+            // Create a unique identifier for items with different variants/addons
+            const cartItemId = `${item.id}_${selectedVariant?.name || 'default'}_${selectedAddons?.map(a => a.name).sort().join(',') || 'none'}`;
+
+            const existingItemIndex = existingCart.findIndex(cartItem => 
+                cartItem.cartItemId === cartItemId
+            );
 
             let updatedItems: CartMenuItem[];
             let newCartCount: number;
 
             if (existingItemIndex >= 0) {
-                // Item exists, update quantity
+                // Item with same variant/addons exists, update quantity
                 updatedItems = existingCart.map((cartItem, index) =>
                     index === existingItemIndex
                         ? { ...cartItem, quantity: (cartItem.quantity || 1) + quantity }
@@ -61,8 +91,16 @@ export class CartManager {
                 );
                 newCartCount = this.getCartCount() + quantity;
             } else {
-                // New item
-                updatedItems = [...existingCart, { ...item, quantity }];
+                // New item or different variant/addons combination
+                const cartItem: CartMenuItem = {
+                    ...item,
+                    quantity,
+                    selectedVariant,
+                    selectedAddons: selectedAddons || [],
+                    customPrice,
+                    cartItemId
+                };
+                updatedItems = [...existingCart, cartItem];
                 newCartCount = this.getCartCount() + quantity;
             }
 
@@ -82,10 +120,10 @@ export class CartManager {
     }
 
     // Update item quantity in cart
-    static updateCartItemQuantity(itemId: string, newQuantity: number): { success: boolean; cartItems: CartMenuItem[]; cartCount: number } {
+    static updateCartItemQuantity(cartItemId: string, newQuantity: number): { success: boolean; cartItems: CartMenuItem[]; cartCount: number } {
         try {
             const existingCart = this.getCartItems();
-            const itemIndex = existingCart.findIndex(cartItem => cartItem.id === itemId);
+            const itemIndex = existingCart.findIndex(cartItem => cartItem.cartItemId === cartItemId);
 
             if (itemIndex === -1) {
                 return { success: false, cartItems: existingCart, cartCount: this.getCartCount() };
@@ -126,10 +164,10 @@ export class CartManager {
     }
 
     // Remove item from cart
-    static removeFromCart(itemId: string): { success: boolean; cartItems: CartMenuItem[]; cartCount: number } {
+    static removeFromCart(cartItemId: string): { success: boolean; cartItems: CartMenuItem[]; cartCount: number } {
         try {
             const existingCart = this.getCartItems();
-            const itemIndex = existingCart.findIndex(cartItem => cartItem.id === itemId);
+            const itemIndex = existingCart.findIndex(cartItem => cartItem.cartItemId === cartItemId);
 
             if (itemIndex === -1) {
                 return { success: false, cartItems: existingCart, cartCount: this.getCartCount() };
@@ -172,7 +210,8 @@ export class CartManager {
         try {
             const cartItems = this.getCartItems();
             return cartItems.reduce((total, item) => {
-                return total + (item.price * (item.quantity || 1));
+                const itemPrice = item.customPrice || item.price;
+                return total + (itemPrice * (item.quantity || 1));
             }, 0);
         } catch (error) {
             console.error('Error calculating total price:', error);
@@ -187,10 +226,10 @@ export class CartManager {
     }
 
     // Get cart item by ID
-    static getCartItem(itemId: string): CartMenuItem | null {
+    static getCartItem(cartItemId: string): CartMenuItem | null {
         try {
             const cartItems = this.getCartItems();
-            return cartItems.find(item => item.id === itemId) || null;
+            return cartItems.find(item => item.cartItemId === cartItemId) || null;
         } catch (error) {
             console.error('Error getting cart item:', error);
             return null;

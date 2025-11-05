@@ -369,13 +369,21 @@ export default function CustomerOrdersPage() {
                       <div className="flex-1">
                         <h4 className="font-medium text-gray-900 dark:text-white">
                           {item.quantity}x {item.name}
+                          {item.selectedVariant && (
+                            <span className="text-sm text-gray-500 ml-1">({item.selectedVariant.name})</span>
+                          )}
                         </h4>
+                        {item.selectedAddons && item.selectedAddons.length > 0 && (
+                          <p className="text-xs text-gray-500">
+                            + {item.selectedAddons.map(addon => addon.name).join(', ')}
+                          </p>
+                        )}
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          ₹{item.price.toFixed(2)} each
+                          ₹{(item.customPrice || item.price).toFixed(2)} each
                         </p>
                       </div>
                       <p className="font-medium text-gray-900 dark:text-white">
-                        ₹{(item.price * item.quantity).toFixed(2)}
+                        ₹{((item.customPrice || item.price) * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   ))}
