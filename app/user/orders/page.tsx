@@ -11,6 +11,9 @@ interface OrderItem {
   quantity: number;
   price: number;
   image: string;
+  selectedVariant?: any;
+  selectedAddons?: any[];
+  customPrice?: number;
 }
 
 interface Order {

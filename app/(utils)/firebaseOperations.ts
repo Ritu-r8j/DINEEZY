@@ -464,11 +464,15 @@ export const getFilteredMenuItems = async (filters: {
 
     if (filters.searchQuery) {
       const searchLower = filters.searchQuery.toLowerCase();
-      menuItems = menuItems.filter(item =>
-        item.name.toLowerCase().includes(searchLower) ||
-        item.description.toLowerCase().includes(searchLower) ||
-        item.ingredients.toLowerCase().includes(searchLower)
-      );
+      menuItems = menuItems.filter(item => {
+        const ingredientsMatch = Array.isArray(item.ingredients)
+          ? item.ingredients.some(ingredient => ingredient.toLowerCase().includes(searchLower))
+          : item.ingredients.toLowerCase().includes(searchLower);
+        
+        return item.name.toLowerCase().includes(searchLower) ||
+               item.description.toLowerCase().includes(searchLower) ||
+               ingredientsMatch;
+      });
     }
 
     return { success: true, data: menuItems };

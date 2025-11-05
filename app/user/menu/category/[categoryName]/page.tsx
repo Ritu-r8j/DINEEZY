@@ -14,7 +14,7 @@ interface MenuItem {
   calories: number;
   category: string;
   allergens: string[];
-  ingredients: string;
+  ingredients: string | string[];
   isGlutenFree: boolean;
   isVegan: boolean;
   isVegetarian: boolean;
@@ -211,7 +211,7 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
             rating: item.rating,
             spiceLevel: item.spiceLevel,
             tags: item.tags || [],
-            available: item.available,
+            available: item.available ?? item.isAvailable,
             adminId: item.adminId,
             restaurantLocation: item.restaurantLocation,
             restaurantAddress: item.restaurantAddress

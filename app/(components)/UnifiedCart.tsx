@@ -148,8 +148,8 @@ export default function UnifiedCart() {
                 onClose={handleCloseCartPreview}
                 onViewCart={handleViewCart}
                 customizationMode={customizationMode}
-                menuItem={menuItem}
-                restaurantId={restaurantId}
+                menuItem={menuItem || undefined}
+                restaurantId={restaurantId || undefined}
                 onCustomizationComplete={handleCustomizationComplete}
             />
         </>
