@@ -15,6 +15,18 @@ import {
 import { CartManager } from '@/app/(utils)/cartUtils';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 
+// Enhanced MenuItem interface with discount and badges
+interface EnhancedMenuItem extends MenuItem {
+    discountPrice?: number;
+    currency?: string;
+    isBestSeller?: boolean;
+    isRecommended?: boolean;
+    totalRatings?: number;
+    totalOrders?: number;
+    viewCount?: number;
+    orderCount?: number;
+}
+
 // Enhanced custom styles for better mobile experience and polished UI
 const customStyles = `
   .animate-fade-in {
@@ -191,7 +203,7 @@ export default function MenuItemDetailPage() {
     const itemId = params.itemId as string;
 
     // State variables
-    const [menuItem, setMenuItem] = useState<MenuItem | null>(null);
+    const [menuItem, setMenuItem] = useState<EnhancedMenuItem | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [reviews, setReviews] = useState<ReviewData[]>([]);
@@ -202,6 +214,21 @@ export default function MenuItemDetailPage() {
     const [votingReviews, setVotingReviews] = useState<{ [reviewId: string]: boolean }>({});
     const [optimisticUpdates, setOptimisticUpdates] = useState<{ [reviewId: string]: { helpful: number, notHelpful: number } }>({});
     const [showAllReviewsModal, setShowAllReviewsModal] = useState(false);
+
+    // Helper functions for enhanced display
+    const hasDiscount = (item: EnhancedMenuItem) => {
+        return !!(item.discountPrice && item.discountPrice < item.price);
+    };
+
+    const getDiscountPercentage = (item: EnhancedMenuItem) => {
+        if (!hasDiscount(item)) return 0;
+        return Math.round(((item.price - item.discountPrice!) / item.price) * 100);
+    };
+
+    const formatCurrency = (amount: number, currency: string = 'INR') => {
+        const symbol = currency === 'INR' ? '₹' : '$';
+        return `${symbol}${amount.toFixed(0)}`;
+    };
 
     // Load menu data
     useEffect(() => {
@@ -224,7 +251,19 @@ export default function MenuItemDetailPage() {
                 if (menuResult.success && menuResult.data) {
                     const item = menuResult.data.find(item => item.id === itemId);
                     if (item) {
-                        setMenuItem(item);
+                        // Transform to enhanced menu item
+                        const enhancedItem: EnhancedMenuItem = {
+                            ...item,
+                            discountPrice: (item as any).discountPrice,
+                            currency: (item as any).currency || 'INR',
+                            isBestSeller: (item as any).isBestSeller || false,
+                            isRecommended: (item as any).isRecommended || false,
+                            totalRatings: (item as any).totalRatings || 0,
+                            totalOrders: (item as any).totalOrders || 0,
+                            viewCount: (item as any).viewCount || 0,
+                            orderCount: (item as any).orderCount || 0,
+                        };
+                        setMenuItem(enhancedItem);
                     } else {
                         setError('Menu item not found');
                     }

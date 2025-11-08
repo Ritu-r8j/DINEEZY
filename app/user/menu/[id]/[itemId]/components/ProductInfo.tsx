@@ -2,11 +2,23 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Minus, ShoppingCart, Star, Clock, Flame, Sparkles } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Star, Clock, Flame, Sparkles, Heart, TrendingUp } from 'lucide-react';
 import { MenuItem } from '@/app/(utils)/firebaseOperations';
 
+// Enhanced MenuItem interface
+interface EnhancedMenuItem extends MenuItem {
+    discountPrice?: number;
+    currency?: string;
+    isBestSeller?: boolean;
+    isRecommended?: boolean;
+    totalRatings?: number;
+    totalOrders?: number;
+    viewCount?: number;
+    orderCount?: number;
+}
+
 interface ProductInfoProps {
-    menuItem: MenuItem;
+    menuItem: EnhancedMenuItem;
     onAddToCart: (quantity: number) => void;
 }
 
@@ -22,6 +34,25 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
     const handleQuantityChange = (newQuantity: number) => {
         const updatedQuantity = Math.max(1, newQuantity);
         setQuantity(updatedQuantity);
+    };
+
+    // Helper functions
+    const hasDiscount = () => {
+        return !!(menuItem.discountPrice && menuItem.discountPrice < menuItem.price);
+    };
+
+    const getDiscountPercentage = () => {
+        if (!hasDiscount()) return 0;
+        return Math.round(((menuItem.price - menuItem.discountPrice!) / menuItem.price) * 100);
+    };
+
+    const formatCurrency = (amount: number) => {
+        const symbol = menuItem.currency === 'INR' ? '₹' : '$';
+        return `${symbol}${amount.toFixed(0)}`;
+    };
+
+    const getCurrentPrice = () => {
+        return hasDiscount() ? menuItem.discountPrice! : menuItem.price;
     };
 
     return (
@@ -42,8 +73,32 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl xs:rounded-3xl"></div>
                     </div>
 
-                    {/* Enhanced Availability Badge */}
-                    <div className="absolute top-3 xs:top-4 right-3 xs:right-4">
+                    {/* Enhanced Badges Container */}
+                    <div className="absolute top-3 xs:top-4 right-3 xs:right-4 flex flex-col gap-2">
+                        {/* Discount Badge */}
+                        {hasDiscount() && (
+                            <div className="bg-red-500 text-white px-3 xs:px-4 py-1.5 xs:py-2 rounded-full text-xs xs:text-sm font-bold backdrop-blur-sm shadow-lg border border-white/20">
+                                {getDiscountPercentage()}% OFF
+                            </div>
+                        )}
+                        
+                        {/* Best Seller Badge */}
+                        {menuItem.isBestSeller && (
+                            <div className="bg-yellow-500 text-white px-3 xs:px-4 py-1.5 xs:py-2 rounded-full text-xs xs:text-sm font-bold backdrop-blur-sm shadow-lg border border-white/20 flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3" />
+                                BESTSELLER
+                            </div>
+                        )}
+                        
+                        {/* Recommended Badge */}
+                        {menuItem.isRecommended && (
+                            <div className="bg-green-500 text-white px-3 xs:px-4 py-1.5 xs:py-2 rounded-full text-xs xs:text-sm font-bold backdrop-blur-sm shadow-lg border border-white/20 flex items-center gap-1">
+                                <Heart className="w-3 h-3" />
+                                Recommended
+                            </div>
+                        )}
+                        
+                        {/* Availability Badge */}
                         <div
                             className={`flex items-center gap-1.5 px-3 xs:px-4 py-1.5 xs:py-2 rounded-full text-xs xs:text-sm font-semibold backdrop-blur-sm shadow-lg border ${
                                 menuItem.available
@@ -93,20 +148,32 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
 
                     {/* Enhanced Price and Quantity */}
                     <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-4 xs:gap-6 py-4 xs:py-6 border-y border-border/50">
-                        <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4">
+                        <div className="flex flex-col gap-2">
                             <div className="flex items-baseline gap-2">
-                                <span className="text-2xl xs:text-3xl font-bold text-foreground">
-                                    ₹{menuItem.price}
-                                </span>
-                                {(menuItem as any).originalPrice && (menuItem as any).originalPrice > menuItem.price && (
-                                    <span className="text-lg text-muted-foreground line-through">
-                                        ₹{(menuItem as any).originalPrice}
+                                {hasDiscount() ? (
+                                    <>
+                                        <span className="text-2xl xs:text-3xl font-bold text-green-600 dark:text-green-400">
+                                            {formatCurrency(menuItem.discountPrice!)}
+                                        </span>
+                                        <span className="text-lg text-muted-foreground line-through">
+                                            {formatCurrency(menuItem.price)}
+                                        </span>
+                                        <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2 py-1 rounded-full text-xs font-semibold">
+                                            Save {formatCurrency(menuItem.price - menuItem.discountPrice!)}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <span className="text-2xl xs:text-3xl font-bold text-foreground">
+                                        {formatCurrency(menuItem.price)}
                                     </span>
                                 )}
                             </div>
-                            {(menuItem as any).originalPrice && (menuItem as any).originalPrice > menuItem.price && (
-                                <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2 py-1 rounded-full text-xs font-semibold">
-                                    Save ₹{(menuItem as any).originalPrice - menuItem.price}
+                            
+                            {/* Total Orders Display */}
+                            {(menuItem.totalOrders || 0) > 0 && (
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <TrendingUp className="w-3 h-3" />
+                                    <span>{menuItem.totalOrders} orders placed</span>
                                 </div>
                             )}
                         </div>
@@ -143,7 +210,7 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
                     >
                         <ShoppingCart className="w-4 xs:w-5 h-4 xs:h-5" />
                         <span>
-                            {menuItem.available ? `Add to Cart - ₹${menuItem.price * quantity}` : 'Currently Unavailable'}
+                            {menuItem.available ? `Add to Cart - ${formatCurrency(getCurrentPrice() * quantity)}` : 'Currently Unavailable'}
                         </span>
                         {menuItem.available && (
                             <Plus className="w-4 xs:w-5 h-4 xs:h-5" />

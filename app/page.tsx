@@ -36,6 +36,18 @@ import { useCart } from "@/app/(contexts)/CartContext";
 import { sendNotification } from "./(utils)/notification";
 import { toast } from "sonner";
 
+// Enhanced MenuItem interface
+interface EnhancedMenuItem extends MenuItem {
+  discountPrice?: number;
+  currency?: string;
+  isBestSeller?: boolean;
+  isRecommended?: boolean;
+  totalRatings?: number;
+  totalOrders?: number;
+  viewCount?: number;
+  orderCount?: number;
+}
+
 const services = [
   {
     title: "QR Code Ordering System",
@@ -271,7 +283,7 @@ export default function HomePage() {
   const isDarkMode = theme === "dark";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [dishes, setDishes] = useState<MenuItem[]>([]);
+  const [dishes, setDishes] = useState<EnhancedMenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -284,6 +296,21 @@ export default function HomePage() {
   const router = useRouter();
   const dishMarqueeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const restaurantMarqueeRef = useRef<HTMLDivElement | null>(null);
+
+  // Helper functions for enhanced display
+  const hasDiscount = (dish: EnhancedMenuItem) => {
+    return !!(dish.discountPrice && dish.discountPrice < dish.price);
+  };
+
+  const getDiscountPercentage = (dish: EnhancedMenuItem) => {
+    if (!hasDiscount(dish)) return 0;
+    return Math.round(((dish.price - dish.discountPrice!) / dish.price) * 100);
+  };
+
+  const formatCurrency = (amount: number, currency: string = 'INR') => {
+    const symbol = currency === 'INR' ? '₹' : '$';
+    return `${symbol}${amount.toFixed(0)}`;
+  };
 
   // Navigation items - dynamic based on auth status
   const navItems = user ? [
@@ -347,7 +374,7 @@ export default function HomePage() {
   };
 
   // Filter dishes by location radius
-  const filterDishesByLocation = (allDishes: MenuItem[], userLat: number, userLng: number, radiusKm: number = 50): MenuItem[] => {
+  const filterDishesByLocation = (allDishes: MenuItem[], userLat: number, userLng: number, radiusKm: number = 50): EnhancedMenuItem[] => {
     return allDishes.filter(dish => {
       if (!dish.restaurantLocation?.lat || !dish.restaurantLocation?.lng) {
         return false; // Skip dishes without location data
@@ -361,7 +388,17 @@ export default function HomePage() {
       );
 
       return distance <= radiusKm;
-    });
+    }).map(dish => ({
+      ...dish,
+      discountPrice: (dish as any).discountPrice,
+      currency: (dish as any).currency || 'INR',
+      isBestSeller: (dish as any).isBestSeller || false,
+      isRecommended: (dish as any).isRecommended || false,
+      totalRatings: (dish as any).totalRatings || 0,
+      totalOrders: (dish as any).totalOrders || 0,
+      viewCount: (dish as any).viewCount || 0,
+      orderCount: (dish as any).orderCount || 0,
+    }));
   };
 
   // Filter restaurants by location radius
@@ -385,7 +422,7 @@ export default function HomePage() {
   const { openCustomization } = useCart();
 
   // Handle quick order - add item to cart and navigate to checkout
-  const handleQuickOrder = (dish: MenuItem) => {
+  const handleQuickOrder = (dish: EnhancedMenuItem) => {
     // Check if cart is from different restaurant
     if (CartManager.isDifferentRestaurant(dish.adminId)) {
       // Clear cart if from different restaurant
@@ -532,7 +569,17 @@ export default function HomePage() {
           }
 
           // Efficient filtering and processing
-          let processedDishes = allDishes;
+          let processedDishes: EnhancedMenuItem[] = allDishes.map(dish => ({
+            ...dish,
+            discountPrice: (dish as any).discountPrice,
+            currency: (dish as any).currency || 'INR',
+            isBestSeller: (dish as any).isBestSeller || false,
+            isRecommended: (dish as any).isRecommended || false,
+            totalRatings: (dish as any).totalRatings || 0,
+            totalOrders: (dish as any).totalOrders || 0,
+            viewCount: (dish as any).viewCount || 0,
+            orderCount: (dish as any).orderCount || 0,
+          }));
 
           // Apply location filter if available
           if (userCoords) {
@@ -994,6 +1041,31 @@ export default function HomePage() {
                                   className="object-cover transition-all duration-500 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                
+                                {/* Enhanced Badges */}
+                                <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                  {/* Discount Badge */}
+                                  {hasDiscount(dish) && (
+                                    <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                                      {getDiscountPercentage(dish)}% OFF
+                                    </div>
+                                  )}
+                                  
+                                  {/* Best Seller Badge */}
+                                  {dish.isBestSeller && (
+                                    <div className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                                      <Sparkles className="w-2.5 h-2.5" />
+                                      <span>BESTSELLER</span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Recommended Badge */}
+                                  {dish.isRecommended && (
+                                    <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                                      ❤️ Recommended
+                                    </div>
+                                  )}
+                                </div>
                               </div>
 
                               <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
@@ -1019,9 +1091,35 @@ export default function HomePage() {
                                 </div>
 
                                 <div className="mt-auto flex items-center justify-between">
-                                  <span className="text-base sm:text-lg font-semibold text-foreground">₹{dish.price}</span>
+                                  <div className="flex flex-col">
+                                    {hasDiscount(dish) ? (
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-base sm:text-lg font-semibold text-green-600 dark:text-green-400">
+                                          {formatCurrency(dish.discountPrice!, dish.currency)}
+                                        </span>
+                                        <span className="text-sm text-muted-foreground line-through">
+                                          {formatCurrency(dish.price, dish.currency)}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-base sm:text-lg font-semibold text-foreground">
+                                        {formatCurrency(dish.price, dish.currency)}
+                                      </span>
+                                    )}
+                                    
+                                    {/* Total Orders */}
+                                    {(dish.totalOrders || 0) > 0 && (
+                                      <span className="text-xs text-muted-foreground">
+                                        {dish.totalOrders} orders
+                                      </span>
+                                    )}
+                                  </div>
+                                  
                                   <button
-                                    onClick={() => handleQuickOrder(dish)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleQuickOrder(dish);
+                                    }}
                                     className="cursor-pointer inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1.5 text-xs sm:text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary/20 hover:shadow-md"
                                   >
                                     Quick Order

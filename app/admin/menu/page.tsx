@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, EyeOff, Search, X, Clock, Tag, Star, Loader2, Leaf, Sprout, ShieldX, Flame, TrendingUp, Award, Heart, Users, BarChart3, Percent, Globe } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, Search, X, Clock, Tag, Star, Loader2, Leaf, Sprout, ShieldX, Flame, TrendingUp, Award, Heart, Users, BarChart3, Percent, Globe, Settings } from 'lucide-react';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import {
   getMenuItems,
@@ -12,6 +12,9 @@ import {
   getRestaurantSettings,
   MenuItem
 } from '@/app/(utils)/firebaseOperations';
+import CategoryManagementModal from '@/app/(components)/CategoryManagementModal';
+import { DEFAULT_CATEGORIES, getCategoryDisplayName } from '@/lib/categoryData';
+import { getCategoryMappings, CategoryMappings } from '@/app/(utils)/categoryOperations';
 
 
 
@@ -33,6 +36,11 @@ export default function MenuManagement() {
   const [variants, setVariants] = useState<Array<{ name: string, price: number }>>([]);
   const [addons, setAddons] = useState<Array<{ name: string, price: number }>>([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  
+  // Category management state
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryMappings, setCategoryMappings] = useState<CategoryMappings>({});
+  const [customCategories, setCustomCategories] = useState<any[]>([]);
 
   // Helper functions for variants and add-ons
   const addVariant = () => {
@@ -80,10 +88,11 @@ export default function MenuManagement() {
       setError(null);
 
       try {
-        // Fetch both menu items and restaurant data in parallel
-        const [menuResult, restaurantResult] = await Promise.all([
+        // Fetch menu items, restaurant data, and category mappings in parallel
+        const [menuResult, restaurantResult, categoryResult] = await Promise.all([
           getMenuItems(user.uid),
-          getRestaurantSettings(user.uid)
+          getRestaurantSettings(user.uid),
+          getCategoryMappings(user.uid)
         ]);
 
         if (menuResult.success && menuResult.data) {
@@ -97,6 +106,11 @@ export default function MenuManagement() {
         } else {
           console.warn('Failed to fetch restaurant data:', restaurantResult.error);
         }
+
+        if (categoryResult.success) {
+          setCategoryMappings(categoryResult.data);
+          setCustomCategories(categoryResult.customCategories || []);
+        }
       } catch (err) {
         setError('An unexpected error occurred');
         console.error('Error fetching data:', err);
@@ -108,7 +122,20 @@ export default function MenuManagement() {
     fetchData();
   }, [user?.uid]);
 
-  const categories = ['all', ...Array.from(new Set(menuItems.map(item => item.category)))];
+  // Get unique categories from menu items (these are default category IDs)
+  const uniqueCategories = Array.from(new Set(menuItems.map(item => item.category)));
+  
+  // Combine default and custom categories
+  const allCategories = [...DEFAULT_CATEGORIES, ...customCategories];
+  
+  // Map categories to display names
+  const categories = [
+    { id: 'all', displayName: 'All' },
+    ...uniqueCategories.map(catId => ({
+      id: catId,
+      displayName: getCategoryDisplayName(catId, categoryMappings, customCategories)
+    }))
+  ];
 
   const filteredItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -164,7 +191,31 @@ export default function MenuManagement() {
 
   const openEditModal = (item: MenuItem) => {
     setEditingItem(item);
-    setFormData(item);
+    
+    // Normalize category to ensure it's a valid default category ID
+    let normalizedCategory = item.category;
+    
+    // Check if category is already a valid default category ID
+    const isValidCategoryId = DEFAULT_CATEGORIES.some(cat => cat.id === item.category);
+    
+    if (!isValidCategoryId) {
+      // Try to find matching default category by name (case-insensitive)
+      const matchingCategory = DEFAULT_CATEGORIES.find(
+        cat => cat.name.toLowerCase() === item.category.toLowerCase()
+      );
+      
+      if (matchingCategory) {
+        normalizedCategory = matchingCategory.id;
+      } else {
+        // Default to main-course if no match found
+        normalizedCategory = 'main-course';
+      }
+    }
+    
+    setFormData({
+      ...item,
+      category: normalizedCategory
+    });
     setVariants(item.variants || []);
     setAddons(item.addons || []);
     setShowEditModal(true);
@@ -230,7 +281,7 @@ export default function MenuManagement() {
         // Item Info
         name: formData.name,
         description: formData.description || '',
-        category: formData.category || 'Main Course',
+        category: formData.category || 'main-course', // Store default category ID
         image: formData.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&h=200&fit=crop&crop=center',
         tags: formData.tags || [],
 
@@ -306,21 +357,30 @@ export default function MenuManagement() {
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">Menu</h1>
               <div className="flex items-center gap-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400">{menuItems.length} items</p>
-
               </div>
             </div>
-            <button
-              onClick={() => {
-                setFormData({ isAvailable: true }); // Default to available when adding
-                setVariants([]);
-                setAddons([]);
-                setShowAddModal(true);
-              }}
-              className="flex items-center px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Item
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowCategoryModal(true)}
+                className="flex items-center px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
+                title="Manage Categories"
+              >
+                <Settings className="h-4 w-4 mr-1" />
+                Categories
+              </button>
+              <button
+                onClick={() => {
+                  setFormData({ isAvailable: true }); // Default to available when adding
+                  setVariants([]);
+                  setAddons([]);
+                  setShowAddModal(true);
+                }}
+                className="flex items-center px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Item
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -385,14 +445,14 @@ export default function MenuManagement() {
             <div className="flex space-x-1 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-1 shadow-sm overflow-x-auto">
               {categories.map(category => (
                 <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${selectedCategory === category
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${selectedCategory === category.id
                     ? 'bg-gray-900 dark:bg-gray-600 text-white shadow-md'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-white/70 dark:hover:bg-gray-700/70'
                     }`}
                 >
-                  {category === 'all' ? 'All' : category}
+                  {category.displayName}
                 </button>
               ))}
             </div>
@@ -517,7 +577,7 @@ export default function MenuManagement() {
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 px-2 py-0.5 rounded-full">
-                        {item.category}
+                        {getCategoryDisplayName(item.category, categoryMappings, customCategories)}
                       </span>
                     </div>
                   </div>
@@ -727,12 +787,28 @@ export default function MenuManagement() {
           ))}
         </div>
 
-        {filteredItems.length === 0 && (
+        {filteredItems.length === 0 && !loading && (
           <div className="text-center py-12">
             <div className="text-gray-500 dark:text-gray-400">No menu items found matching your criteria.</div>
           </div>
         )}
 
+        {/* Category Management Modal */}
+        {user?.uid && (
+          <CategoryManagementModal
+            isOpen={showCategoryModal}
+            onClose={() => setShowCategoryModal(false)}
+            adminId={user.uid}
+            onSave={async () => {
+              // Refresh category mappings and custom categories after save
+              const result = await getCategoryMappings(user.uid);
+              if (result.success) {
+                setCategoryMappings(result.data);
+                setCustomCategories(result.customCategories || []);
+              }
+            }}
+          />
+        )}
 
         {/* Enhanced Add/Edit Modal */}
         {(showAddModal || showEditModal) && (
@@ -833,18 +909,30 @@ export default function MenuManagement() {
                         Category
                       </label>
                       <select
-                        value={formData.category || 'Main Course'}
+                        value={formData.category || 'main-course'}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       >
-                        <option>Main Course</option>
-                        <option>Appetizers</option>
-                        <option>Salads</option>
-                        <option>Pizza</option>
-                        <option>Burgers</option>
-                        <option>Desserts</option>
-                        <option>Beverages</option>
+                        <optgroup label="Default Categories">
+                          {DEFAULT_CATEGORIES.map(cat => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.icon} {getCategoryDisplayName(cat.id, categoryMappings, customCategories)}
+                            </option>
+                          ))}
+                        </optgroup>
+                        {customCategories.length > 0 && (
+                          <optgroup label="Custom Categories">
+                            {customCategories.map(cat => (
+                              <option key={cat.id} value={cat.id}>
+                                {cat.icon} {cat.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                       </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Showing: {getCategoryDisplayName(formData.category || 'main-course', categoryMappings, customCategories)}
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

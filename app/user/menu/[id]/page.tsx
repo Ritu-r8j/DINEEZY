@@ -99,6 +99,20 @@ import {
 } from '@/app/(utils)/firebaseOperations';
 import { CartManager, CartMenuItem } from '@/app/(utils)/cartUtils';
 import EnhancedCartModal from '@/app/(components)/EnhancedCartModal';
+import { getCategoryMappings, CategoryMappings } from '@/app/(utils)/categoryOperations';
+import { getCategoryDisplayName } from '@/lib/categoryData';
+
+// Enhanced MenuItem interface with discount and badges
+interface EnhancedMenuItem extends MenuItem {
+    discountPrice?: number;
+    currency?: string;
+    isBestSeller?: boolean;
+    isRecommended?: boolean;
+    totalRatings?: number;
+    totalOrders?: number;
+    viewCount?: number;
+    orderCount?: number;
+}
 
 // CartMenuItem is now imported from cartUtils
 export default function Menu() {
@@ -108,7 +122,7 @@ export default function Menu() {
 
     const [activeCategory, setActiveCategory] = useState("All");
     const [searchTerm, setSearchTerm] = useState("");
-    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const [menuItems, setMenuItems] = useState<EnhancedMenuItem[]>([]);
     const [restaurantInfo, setRestaurantInfo] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -116,6 +130,33 @@ export default function Menu() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+    const [categoryMappings, setCategoryMappings] = useState<CategoryMappings>({});
+    const [customCategories, setCustomCategories] = useState<any[]>([]);
+
+    // Helper functions for enhanced display
+    const hasDiscount = (item: EnhancedMenuItem) => {
+        return !!(item.discountPrice && item.discountPrice < item.price);
+    };
+
+    const getDiscountPercentage = (item: EnhancedMenuItem) => {
+        if (!hasDiscount(item)) return 0;
+        return Math.round(((item.price - item.discountPrice!) / item.price) * 100);
+    };
+
+    const formatCurrency = (amount: number, currency: string = 'INR') => {
+        const symbol = currency === 'INR' ? '₹' : '$';
+        return `${symbol}${amount.toFixed(0)}`;
+    };
+
+    const getSpiceCount = (spiceLevel?: string) => {
+        switch (spiceLevel) {
+            case 'mild': return 1;
+            case 'medium': return 2;
+            case 'hot': return 3;
+            case 'very-hot': return 4;
+            default: return 0;
+        }
+    };
 
     // Load menu data
     useEffect(() => {
@@ -138,12 +179,33 @@ export default function Menu() {
                 if (restaurantResult.success && restaurantResult.data) {
                     setRestaurantInfo(restaurantResult.data);
 
-                    // Fetch menu items using the restaurant's admin ID
-                    const menuResult = await getMenuItems(restaurantResult.data.adminId);
+                    // Fetch menu items and category mappings in parallel
+                    const [menuResult, mappingsResult] = await Promise.all([
+                        getMenuItems(restaurantResult.data.adminId),
+                        getCategoryMappings(restaurantResult.data.adminId)
+                    ]);
+
                     if (menuResult.success && menuResult.data) {
-                        setMenuItems(menuResult.data);
+                        // Transform menu items to include enhanced fields
+                        const enhancedItems: EnhancedMenuItem[] = menuResult.data.map((item: MenuItem) => ({
+                            ...item,
+                            discountPrice: (item as any).discountPrice,
+                            currency: (item as any).currency || 'INR',
+                            isBestSeller: (item as any).isBestSeller || false,
+                            isRecommended: (item as any).isRecommended || false,
+                            totalRatings: (item as any).totalRatings || 0,
+                            totalOrders: (item as any).totalOrders || 0,
+                            viewCount: (item as any).viewCount || 0,
+                            orderCount: (item as any).orderCount || 0,
+                        }));
+                        setMenuItems(enhancedItems);
                     } else {
                         setError(menuResult.error || 'Failed to load menu items');
+                    }
+
+                    if (mappingsResult.success) {
+                        setCategoryMappings(mappingsResult.data);
+                        setCustomCategories(mappingsResult.customCategories || []);
                     }
                 } else {
                     setError(restaurantResult.error || 'Restaurant not found');
@@ -159,13 +221,21 @@ export default function Menu() {
         loadData();
     }, [restaurantId]);
 
-    // Get categories dynamically from menu items
-    const categories = ["All", ...Array.from(new Set(menuItems.map(item => item.category)))];
+    // Get categories dynamically from menu items with custom display names
+    const categoryIds = Array.from(new Set(menuItems.map(item => item.category)));
+    const categories = [
+        { id: "All", displayName: "All" },
+        ...categoryIds.map(catId => ({
+            id: catId,
+            displayName: getCategoryDisplayName(catId, categoryMappings, customCategories)
+        }))
+    ];
 
     const filteredItems = menuItems.filter(item => {
         const matchesCategory = activeCategory === "All" || item.category === activeCategory;
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.description.toLowerCase().includes(searchTerm.toLowerCase());
+            item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            getCategoryDisplayName(item.category, categoryMappings, customCategories).toLowerCase().includes(searchTerm.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
@@ -181,9 +251,10 @@ export default function Menu() {
                 suggestions.add(item.name);
             }
             
-            // Add categories that contain the search term
-            if (item.category.toLowerCase().includes(term.toLowerCase())) {
-                suggestions.add(item.category);
+            // Add custom category names that contain the search term
+            const categoryDisplayName = getCategoryDisplayName(item.category, categoryMappings, customCategories);
+            if (categoryDisplayName.toLowerCase().includes(term.toLowerCase())) {
+                suggestions.add(categoryDisplayName);
             }
             
             // Add words from description that contain the search term
@@ -603,17 +674,17 @@ export default function Menu() {
                         <div className="category-pills-container flex flex-nowrap justify-start gap-2 xs:gap-3 pb-2">
                             {categories.map((category, index) => (
                                 <button
-                                    key={category}
-                                    onClick={() => setActiveCategory(category)}
-                                    className={`relative px-4 xs:px-5 py-2.5 text-xs xs:text-sm font-semibold rounded-full transition-all duration-300 hover:scale-105 whitespace-nowrap animate-fade-in flex-shrink-0 border ${activeCategory === category
+                                    key={category.id}
+                                    onClick={() => setActiveCategory(category.id)}
+                                    className={`relative px-4 xs:px-5 py-2.5 text-xs xs:text-sm font-semibold rounded-full transition-all duration-300 hover:scale-105 whitespace-nowrap animate-fade-in flex-shrink-0 border ${activeCategory === category.id
                                         ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 border-primary'
                                         : 'bg-background/50 text-muted-foreground hover:bg-muted/80 hover:text-foreground border-border/50 hover:border-primary/50'
                                         }`}
                                 >
-                                    {activeCategory === category && (
+                                    {activeCategory === category.id && (
                                         <div className="absolute inset-0 bg-primary rounded-full transition-all duration-300" />
                                     )}
-                                    <span className="relative z-10">{category}</span>
+                                    <span className="relative z-10">{category.displayName}</span>
                                 </button>
                             ))}
                         </div>
@@ -663,7 +734,7 @@ export default function Menu() {
                                     >
                                         <div className="flex items-center ml-5"> {/* <-- add items-center here */}
                                             {/* Mobile Image - Left Side */}
-                                            <div className="relative w-24 h-24 flex-shrink-0 flex items-center"> {/* <-- add flex items-center here */}
+                                            <div className="relative w-24 h-24 flex-shrink-0 flex items-center">
                                             <Image
                                                 src={item.image}
                                                 alt={item.name}
@@ -672,13 +743,38 @@ export default function Menu() {
                                                     className="object-cover rounded-md"
                                                     priority={index < 4}
                                             />
-                                                {/* Mobile Badges */}
-                                            {item.tags?.includes('Popular') && (
-                                                    <div className="absolute -top-1 -right-1 bg-primary text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-                                                        <Sparkles className="w-2 h-2 inline mr-1" />
-                                                    Popular
-                                                    </div>
-                                            )}
+                                                {/* Enhanced Mobile Badges */}
+                                                <div className="absolute -top-1 -right-1 flex flex-col gap-1">
+                                                    {/* Discount Badge */}
+                                                    {hasDiscount(item) && (
+                                                        <div className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                                                            {getDiscountPercentage(item)}% OFF
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Best Seller Badge */}
+                                                    {item.isBestSeller && (
+                                                        <div className="bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                                                            ⭐
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Recommended Badge */}
+                                                    {item.isRecommended && (
+                                                        <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                                                            ❤️
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Popular Badge (fallback) */}
+                                                    {!item.isBestSeller && !item.isRecommended && item.tags?.includes('Popular') && (
+                                                        <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                                                            <Sparkles className="w-2 h-2 inline mr-1" />
+                                                            Popular
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                
                                             {!item.available && (
                                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                                                         <AlertCircle className="w-5 h-5 text-white" />
@@ -725,12 +821,30 @@ export default function Menu() {
                                                     </div>
                                             </div>
 
-                                                {/* Price and Button */}
+                                                {/* Enhanced Price and Button */}
                                                 <div className="flex items-center justify-between mt-3">
-                                                <div>
-                                                        <p className="text-lg font-bold text-foreground">
-                                                            ₹{item.price.toFixed(0)}
-                                                        </p>
+                                                    <div className="flex flex-col">
+                                                        {hasDiscount(item) ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                                                                    {formatCurrency(item.discountPrice!, item.currency)}
+                                                                </span>
+                                                                <span className="text-sm text-gray-400 line-through">
+                                                                    {formatCurrency(item.price, item.currency)}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-lg font-bold text-foreground">
+                                                                {formatCurrency(item.price, item.currency)}
+                                                            </p>
+                                                        )}
+                                                        
+                                                        {/* Total Orders */}
+                                                        {(item.totalOrders || 0) > 0 && (
+                                                            <span className="text-xs text-gray-500">
+                                                                {item.totalOrders} orders
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     
                                                     <button
@@ -777,17 +891,37 @@ export default function Menu() {
                                             {/* Enhanced Gradient Overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
                                             
-                                            {/* Top Right Badges Container */}
+                                            {/* Enhanced Top Right Badges Container */}
                                             <div className="absolute top-2 xs:top-3 right-2 xs:right-3 flex flex-col gap-1.5 xs:gap-2">
-                                            {/* Popular Badge */}
-                                            {item.tags?.includes('Popular') && (
-                                                    <div className="bg-gradient-to-r from-primary to-primary/80 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-semibold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20 group-hover:badge-glow transition-all duration-300">
-                                                        <Sparkles className="w-2.5 xs:w-3 h-2.5 xs:h-3 inline mr-1" />
-                                                    Popular
+                                                {/* Discount Badge */}
+                                                {hasDiscount(item) && (
+                                                    <div className="bg-red-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">
+                                                        {getDiscountPercentage(item)}% OFF
                                                     </div>
                                                 )}
                                                 
-                                              
+                                                {/* Best Seller Badge */}
+                                                {item.isBestSeller && (
+                                                    <div className="bg-yellow-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20 group-hover:badge-glow transition-all duration-300">
+                                                        <Sparkles className="w-2.5 xs:w-3 h-2.5 xs:h-3 inline mr-1" />
+                                                        BESTSELLER
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Recommended Badge */}
+                                                {item.isRecommended && (
+                                                    <div className="bg-green-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">
+                                                        ❤️ Recommended
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Popular Badge (fallback) */}
+                                                {!item.isBestSeller && !item.isRecommended && item.tags?.includes('Popular') && (
+                                                    <div className="bg-gradient-to-r from-primary to-primary/80 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-semibold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20 group-hover:badge-glow transition-all duration-300">
+                                                        <Sparkles className="w-2.5 xs:w-3 h-2.5 xs:h-3 inline mr-1" />
+                                                        Popular
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Bottom Left Info */}
@@ -806,9 +940,16 @@ export default function Menu() {
                                                         )}
                                                     </div>
                                                     
-                                                    {/* Price Badge */}
+                                                    {/* Enhanced Price Badge */}
                                                     <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs xs:text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20 group-hover:price-glow transition-all duration-300">
-                                                        ₹{item.price.toFixed(0)}
+                                                        {hasDiscount(item) ? (
+                                                            <div className="flex items-center gap-1">
+                                                                <span>{formatCurrency(item.discountPrice!, item.currency)}</span>
+                                                                <span className="text-xs line-through opacity-70">{formatCurrency(item.price, item.currency)}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span>{formatCurrency(item.price, item.currency)}</span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -848,7 +989,7 @@ export default function Menu() {
                                                 {/* Category */}
                                                 <div className="flex items-center gap-1.5 bg-primary/10 rounded-full px-3 py-1.5">
                                                     <div className="w-2 h-2 bg-primary rounded-full"></div>
-                                                    <span className="text-xs xs:text-sm font-medium text-primary">{item.category}</span>
+                                                    <span className="text-xs xs:text-sm font-medium text-primary">{getCategoryDisplayName(item.category, categoryMappings, customCategories)}</span>
                                                 </div>
                                                 
                                                 {/* Vegetarian/Non-Veg */}
@@ -871,10 +1012,31 @@ export default function Menu() {
                                             <div className="flex items-center justify-between pt-3 xs:pt-4 border-t border-border/50">
                                                 <div className="space-y-1">
                                                     <div className="flex items-baseline gap-2">
-                                                        <p className="text-xl xs:text-2xl font-bold text-foreground">
-                                                            ₹{item.price.toFixed(0)}
-                                                        </p>
+                                                        {hasDiscount(item) ? (
+                                                            <div className="flex flex-col">
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="text-xl xs:text-2xl font-bold text-green-600 dark:text-green-400">
+                                                                        {formatCurrency(item.discountPrice!, item.currency)}
+                                                                    </p>
+                                                                    <p className="text-sm xs:text-base text-gray-400 line-through">
+                                                                        {formatCurrency(item.price, item.currency)}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-xl xs:text-2xl font-bold text-foreground">
+                                                                {formatCurrency(item.price, item.currency)}
+                                                            </p>
+                                                        )}
                                                     </div>
+                                                    
+                                                    {/* Total Orders */}
+                                                    {(item.totalOrders || 0) > 0 && (
+                                                        <div className="text-xs text-gray-500">
+                                                            {item.totalOrders} orders
+                                                        </div>
+                                                    )}
+                                                    
                                                     {item.available ? (
                                                         <div className="flex items-center gap-1.5 text-xs xs:text-sm text-green-600 dark:text-green-400 animate-fade-in">
                                                             <CheckCircle className="w-3 xs:w-4 h-3 xs:h-4" />

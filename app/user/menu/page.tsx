@@ -7,6 +7,7 @@ import { getAllRestaurants, getAllMenuItems, getFilteredMenuItems, getMenuItemsR
 import { useRouter } from 'next/navigation';
 import { CartManager } from '@/app/(utils)/cartUtils';
 import { useCart } from '@/app/(contexts)/CartContext';
+import { DEFAULT_CATEGORIES } from '@/lib/categoryData';
 
 // Custom Gradient Star Component
 const GradientStar = ({ size = 16 }: { size?: number }) => {
@@ -189,6 +190,8 @@ interface MenuItem {
   name: string;
   description: string;
   price: number;
+  discountPrice?: number;  // Added discount price
+  currency: string;        // Added currency
   image: string;
   calories: number;
   category: string;
@@ -204,6 +207,15 @@ interface MenuItem {
   available: boolean;
   isAvailable: boolean;
   adminId: string;
+  
+  // Enhanced fields
+  isBestSeller?: boolean;
+  isRecommended?: boolean;
+  totalRatings?: number;
+  totalOrders?: number;
+  viewCount?: number;
+  orderCount?: number;
+  
   restaurantLocation?: {
     lat: number;
     lng: number;
@@ -372,6 +384,39 @@ export default function MenuPage() {
   // Function to get restaurant image from database
   const getRestaurantImage = useCallback((restaurant: RestaurantSettings) => {
     return restaurant.logoDataUrl || restaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+  }, []);
+
+  // Function to get category display name for a menu item
+  // For main menu page, always use default category names (no custom mappings)
+  const getItemCategoryDisplayName = useCallback((item: MenuItem) => {
+    // Find the default category
+    const defaultCat = DEFAULT_CATEGORIES.find(cat => cat.id === item.category);
+    return defaultCat?.name || item.category;
+  }, []);
+
+  // Helper functions for enhanced display
+  const hasDiscount = useCallback((item: MenuItem) => {
+    return !!(item.discountPrice && item.discountPrice < item.price);
+  }, []);
+
+  const getDiscountPercentage = useCallback((item: MenuItem) => {
+    if (!hasDiscount(item)) return 0;
+    return Math.round(((item.price - item.discountPrice!) / item.price) * 100);
+  }, [hasDiscount]);
+
+  const formatCurrency = useCallback((amount: number, currency: string) => {
+    const symbol = currency === 'INR' ? '₹' : '$';
+    return `${symbol}${amount.toFixed(0)}`;
+  }, []);
+
+  const getSpiceCount = useCallback((spiceLevel: string) => {
+    switch (spiceLevel) {
+      case 'mild': return 1;
+      case 'medium': return 2;
+      case 'hot': return 3;
+      case 'very-hot': return 4;
+      default: return 0;
+    }
   }, []);
 
   // Location utility functions
@@ -543,6 +588,7 @@ export default function MenuPage() {
         setError(null);
 
         // Parallel data fetching for better performance
+        // Note: We don't fetch category mappings on main menu page - only default categories shown
         const [locationPromise, restaurantsPromise, menuItemsPromise, ratingsPromise] = await Promise.allSettled([
           getUserLocation().catch(() => null), // Don't fail if location fails
           getAllRestaurants(),
@@ -619,6 +665,8 @@ export default function MenuPage() {
             name: item.name,
             description: item.description,
             price: item.price,
+            discountPrice: item.discountPrice,
+            currency: item.currency || 'INR',
             image: item.image,
             calories: item.calories,
             category: item.category,
@@ -634,6 +682,15 @@ export default function MenuPage() {
             available: item.available || false,
             isAvailable: item.isAvailable || item.available || false,
             adminId: item.adminId,
+            
+            // Enhanced fields
+            isBestSeller: item.isBestSeller || false,
+            isRecommended: item.isRecommended || false,
+            totalRatings: item.totalRatings || 0,
+            totalOrders: item.totalOrders || 0,
+            viewCount: item.viewCount || 0,
+            orderCount: item.orderCount || 0,
+            
             restaurantLocation: item.restaurantLocation,
             restaurantAddress: item.restaurantAddress,
             variants: item.variants || [],
@@ -1002,8 +1059,13 @@ export default function MenuPage() {
 
           {/* Menu Items by Category */}
           {(() => {
-            // Group menu items by category
-            const groupedItems = filteredItems.reduce((acc, item) => {
+            // Group menu items by category (using default category IDs)
+            // Filter out items with custom categories (not in DEFAULT_CATEGORIES)
+            const itemsWithDefaultCategories = filteredItems.filter(item => {
+              return DEFAULT_CATEGORIES.some(cat => cat.id === item.category);
+            });
+
+            const groupedItems = itemsWithDefaultCategories.reduce((acc, item) => {
               const category = item.category || 'Other';
               if (!acc[category]) {
                 acc[category] = [];
@@ -1012,16 +1074,21 @@ export default function MenuPage() {
               return acc;
             }, {} as Record<string, MenuItem[]>);
 
-            return Object.entries(groupedItems).map(([category, items]) => (
-              <div key={category} className="mb-6">
-                <div className="flex items-center justify-between mb-3 border-b border-gray-200 dark:border-gray-700 pb-1">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {category}
-                  </h3>
+            return Object.entries(groupedItems).map(([categoryId, items]) => {
+              // Always use default category name for main menu page
+              const defaultCat = DEFAULT_CATEGORIES.find(cat => cat.id === categoryId);
+              const displayName = defaultCat?.name || categoryId;
+              
+              return (
+                <div key={categoryId} className="mb-6">
+                  <div className="flex items-center justify-between mb-3 border-b border-gray-200 dark:border-gray-700 pb-1">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                      {displayName}
+                    </h3>
                   <div className="hidden md:flex gap-2">
                     <button
                       onClick={() => {
-                        const container = document.getElementById(`menu-items-${category}`);
+                        const container = document.getElementById(`menu-items-${categoryId}`);
                         if (container) {
                           container.scrollBy({ left: -400, behavior: 'smooth' });
                         }
@@ -1032,7 +1099,7 @@ export default function MenuPage() {
                     </button>
                     <button
                       onClick={() => {
-                        const container = document.getElementById(`menu-items-${category}`);
+                        const container = document.getElementById(`menu-items-${categoryId}`);
                         if (container) {
                           container.scrollBy({ left: 400, behavior: 'smooth' });
                         }
@@ -1043,7 +1110,7 @@ export default function MenuPage() {
                     </button>
                   </div>
                 </div>
-                <div id={`menu-items-${category}`} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                <div id={`menu-items-${categoryId}`} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                   {items.map((item) => (
                     <div key={item.id} className="group w-48 flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                       <div className="relative">
@@ -1056,6 +1123,34 @@ export default function MenuPage() {
                             target.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
                           }}
                         />
+                        
+                        {/* Enhanced Badges */}
+                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                          {/* Discount Badge */}
+                          {hasDiscount(item) && (
+                            <div className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                              {getDiscountPercentage(item)}% OFF
+                            </div>
+                          )}
+                          
+                          {/* Best Seller Badge */}
+                          {item.isBestSeller && (
+                            <div className="bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                              <span>⭐</span>
+                              <span>BESTSELLER</span>
+                            </div>
+                          )}
+                          
+                          {/* Recommended Badge */}
+                          {item.isRecommended && (
+                            <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                              <Heart className="h-3 w-3" />
+                              <span>Recommended</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Availability Overlay */}
                         {!item.available && (
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                             <span className="bg-red-500 text-white px-1.5 py-0.5 rounded text-xs font-medium">
@@ -1074,8 +1169,8 @@ export default function MenuPage() {
                               <span className="text-xs text-gray-600 dark:text-gray-400">
                                 {(ratings[item.id]?.average || item.rating || 0).toFixed(1)}
                               </span>
-                              {ratings[item.id]?.count && (
-                                <span className="text-xs text-gray-500">({ratings[item.id].count})</span>
+                              {(item.totalRatings || ratings[item.id]?.count) && (
+                                <span className="text-xs text-gray-500">({item.totalRatings || ratings[item.id].count})</span>
                               )}
                             </div>
                           )}
@@ -1111,38 +1206,95 @@ export default function MenuPage() {
                           </div>
                         </div>
 
-                        {/* Quick dietary info */}
-                        <div className="flex flex-wrap gap-0.5 mb-1">
+                        {/* Enhanced Meta Information */}
+                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          <div className="flex items-center gap-2">
+                            {item.preparationTime && (
+                              <div className="flex items-center gap-0.5">
+                                <Clock className="h-2.5 w-2.5" />
+                                <span>{item.preparationTime}m</span>
+                              </div>
+                            )}
+                            {item.calories > 0 && (
+                              <span>{item.calories} cal</span>
+                            )}
+                          </div>
+                          
+                          {/* Spice Level */}
+                          {item.spiceLevel && item.spiceLevel !== 'none' && (
+                            <div className="flex items-center">
+                              {Array.from({ length: getSpiceCount(item.spiceLevel) }).map((_, i) => (
+                                <Flame key={i} className="h-2.5 w-2.5 text-red-500" />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Enhanced Dietary Info */}
+                        <div className="flex flex-wrap gap-0.5 mb-2">
                           {item.isVegetarian && (
-                            <span className="px-1 py-0.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded">
-                              Veg
+                            <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full font-medium">
+                              🌱 Veg
                             </span>
                           )}
                           {item.isVegan && (
-                            <span className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded">
-                              Vegan
+                            <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full font-medium">
+                              🌿 Vegan
                             </span>
                           )}
                           {item.isGlutenFree && (
-                            <span className="px-1 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded">
-                              GF
+                            <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded-full font-medium">
+                              🚫 GF
+                            </span>
+                          )}
+                          
+                          {/* Variants & Add-ons Indicators */}
+                          {item.variants && item.variants.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full font-medium">
+                              {item.variants.length} variant{item.variants.length > 1 ? 's' : ''}
+                            </span>
+                          )}
+                          {item.addons && item.addons.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs rounded-full font-medium">
+                              +{item.addons.length} add-on{item.addons.length > 1 ? 's' : ''}
                             </span>
                           )}
                         </div>
 
+                        {/* Enhanced Pricing and Actions */}
                         <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-bold text-gray-900 dark:text-white">₹{item.price}</p>
+                          <div className="flex flex-col">
+                            {hasDiscount(item) ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                                  {formatCurrency(item.discountPrice!, item.currency)}
+                                </span>
+                                <span className="text-xs text-gray-400 line-through">
+                                  {formatCurrency(item.price, item.currency)}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                {formatCurrency(item.price, item.currency)}
+                              </span>
+                            )}
+                            
+                            {/* Analytics Info */}
+                            {(item.totalOrders || 0) > 0 && (
+                              <span className="text-xs text-gray-500">
+                                {item.totalOrders} orders
+                              </span>
+                            )}
                           </div>
+                          
                           <button
                             onClick={() => addToCart(item)}
                             disabled={!item.available}
-                            className="px-4 xs:px-6 py-2 xs:py-3 rounded-xl font-bold transition-all text-sm xs:text-base hover:scale-105 active:scale-95 shadow-lg bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:shadow-xl hover:from-primary/90 hover:to-primary disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="px-3 py-1.5 rounded-lg font-bold transition-all text-xs hover:scale-105 active:scale-95 shadow-md bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:shadow-lg hover:from-primary/90 hover:to-primary disabled:opacity-60 disabled:cursor-not-allowed"
                           >
-                            <div className="flex items-center gap-2">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-cart w-5 h-5" aria-hidden="true"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>
-                              <span className="hidden xs:inline">Add to Cart</span>
-                              <span className="xs:hidden">Add</span>
+                            <div className="flex items-center gap-1">
+                              <Plus className="h-3 w-3" />
+                              <span>Add</span>
                             </div>
                           </button>
                         </div>
@@ -1151,7 +1303,8 @@ export default function MenuPage() {
                   ))}
                 </div>
               </div>
-            ));
+              );
+            });
           })()}
 
           {/* Empty State */}
