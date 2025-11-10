@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { User, LogOut, ShoppingBag, Calendar, Settings } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProfileDropdownProps {
   className?: string;
@@ -84,122 +85,139 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
         className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 flex items-center justify-center cursor-pointer hover:opacity-80 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-primary/20"
         aria-label="Open profile menu"
       >
-        {getProfileImage() ? (
-          <img
-            src={getProfileImage()!}
-            alt="Profile"
-            className="w-full h-full rounded-full object-cover"
-            onError={(e) => {
-              // Fallback to initials if image fails to load
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent) {
-                const fallback = parent.querySelector('.fallback-initials') as HTMLElement;
-                if (fallback) {
-                  fallback.style.display = 'flex';
-                }
-              }
-            }}
-          />
-        ) : null}
-        <span className="text-xs sm:text-sm font-medium text-primary fallback-initials" style={{ display: getProfileImage() ? 'none' : 'flex' }}>
+        <span className="text-xs sm:text-sm font-medium text-primary">
           {getUserInitials()}
         </span>
       </button>
 
       {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
-          {/* User Info */}
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 flex items-center justify-center">
-                {getProfileImage() ? (
-                  <img
-                    src={getProfileImage()!}
-                    alt="Profile"
-                    className="w-full h-full rounded-full object-cover"
-                    onError={(e) => {
-                      // Fallback to initials if image fails to load
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const parent = target.parentElement;
-                      if (parent) {
-                        const fallback = parent.querySelector('.dropdown-fallback-initials') as HTMLElement;
-                        if (fallback) {
-                          fallback.style.display = 'flex';
-                        }
-                      }
-                    }}
-                  />
-                ) : null}
-                <span className="text-sm font-medium text-primary dropdown-fallback-initials" style={{ display: getProfileImage() ? 'none' : 'flex' }}>
-                  {getUserInitials()}
-                </span>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute right-0 mt-2 w-72 z-50"
+          >
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+              {/* User Info */}
+              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 flex items-center justify-center">
+                    <span className="text-sm font-medium text-primary">
+                      {getUserInitials()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {getUserName()}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {userProfile?.email || user.email}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {getUserName()}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {userProfile?.email || user.email}
-                </p>
+
+              {/* Menu Items */}
+              <motion.div
+                className="py-2"
+                initial="closed"
+                animate="open"
+                exit="closed"
+                variants={{
+                  open: {
+                    transition: {
+                      staggerChildren: 0.08,
+                      delayChildren: 0.05
+                    }
+                  },
+                  closed: {
+                    transition: {
+                      staggerChildren: 0.05,
+                      staggerDirection: -1
+                    }
+                  }
+                }}
+              >
+                <motion.div variants={{
+                  open: { opacity: 1, y: 0, scale: 1 },
+                  closed: { opacity: 0, y: -10, scale: 0.95 }
+                }} transition={{ duration: 0.3, ease: "easeOut" }}>
+                  <Link
+                    href="/user/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    <User className="w-4 h-4" />
+                    Profile
+                  </Link>
+                </motion.div>
+
+                <motion.div variants={{
+                  open: { opacity: 1, y: 0, scale: 1 },
+                  closed: { opacity: 0, y: -10, scale: 0.95 }
+                }} transition={{ duration: 0.3, ease: "easeOut" }}>
+                  <Link
+                    href="/user/orders"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    My Orders
+                  </Link>
+                </motion.div>
+
+                <motion.div variants={{
+                  open: { opacity: 1, y: 0, scale: 1 },
+                  closed: { opacity: 0, y: -10, scale: 0.95 }
+                }} transition={{ duration: 0.3, ease: "easeOut" }}>
+                  <Link
+                    href="/user/my-reservations"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Reservations
+                  </Link>
+                </motion.div>
+
+                <motion.div variants={{
+                  open: { opacity: 1, y: 0, scale: 1 },
+                  closed: { opacity: 0, y: -10, scale: 0.95 }
+                }} transition={{ duration: 0.3, ease: "easeOut" }}>
+                  <Link
+                    href="/user/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Settings
+                  </Link>
+                </motion.div>
+              </motion.div>
+
+              {/* Logout Button */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.3, ease: "easeOut", delay: 0.35 }}
+                >
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </motion.div>
               </div>
             </div>
-          </div>
-
-          {/* Menu Items */}
-          <div className="py-2">
-            <Link
-              href="/user/profile"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <User className="w-4 h-4" />
-              Profile
-            </Link>
-            
-            <Link
-              href="/user/orders"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              My Orders
-            </Link>
-            
-            <Link
-              href="/user/my-reservations"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <Calendar className="w-4 h-4" />
-              Reservations
-            </Link>
-            
-            <Link
-              href="/user/profile"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-              Settings
-            </Link>
-          </div>
-
-          {/* Logout Button */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

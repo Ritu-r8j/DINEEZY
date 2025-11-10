@@ -317,13 +317,13 @@ export default function HomePage() {
     { name: "Home", href: "#home" },
     { name: "Menu", href: "/user/menu" },
     { name: "Orders", href: "/user/orders" },
-    { name: "Reservation", href: "/user/reservation" },
+    { name: "Reservation", href: "/user/my-reservations" },
     { name: "Profile", href: "/user/profile" },
   ] : [
     { name: "Home", href: "#home" },
     { name: "Menu", href: "/user/menu" },
     { name: "Orders", href: "/user/orders" },
-    { name: "Reservation", href: "/user/reservation" },
+    { name: "Reservation", href: "/user/my-reservations" },
   ];
 
   const scrollToSection = (sectionId: string) => {
@@ -755,14 +755,11 @@ export default function HomePage() {
               </div>
               <div className= "flex items-center gap-1 md:gap-3 pr-[30px]">
                 {user ? (
-                  <>
-                  <ProfileDropdown />
-                   <Link href="/user/menu">
+                  <Link href="/user/menu">
                   <button className=" hidden md:block rounded-[8px]  font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-4 py-2 text-sm">
                     Order Now
                   </button>
                 </Link>
-                  </>
                 ) : (
                   // User is not logged in - show login/signup
                   <>
@@ -813,6 +810,32 @@ export default function HomePage() {
             <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-[32rem] opacity-100' : 'max-h-0 opacity-0'
               }`}>
               <div className="border-t border-gray-200 dark:border-gray-700 py-4 pb-6 px-2 sm:px-4">
+                {/* User Profile Section in Mobile Menu */}
+                {user && (
+                  <div
+                    className="flex items-center gap-3 px-4 py-3 mb-2 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20"
+                    style={{
+                      animationDelay: '0s',
+                      transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                      transition: 'all 0.3s ease-in-out'
+                    }}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 flex items-center justify-center">
+                      <span className="text-sm font-medium text-primary">
+                        {(userProfile?.displayName || user?.displayName || user?.email || 'U').charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {userProfile?.displayName || user?.displayName || 'User'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {userProfile?.email || user?.email}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <nav className="flex flex-col space-y-2">
                   {navItems.map((item, index) => (
                     <Link
@@ -824,9 +847,9 @@ export default function HomePage() {
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                         }`}
                       style={{
-                        animationDelay: `${index * 0.1}s`,
+                        animationDelay: `${(index + (user ? 1 : 0)) * 0.1}s`,
                         transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
-                        transition: `all 0.3s ease-in-out ${index * 0.1}s`
+                        transition: `all 0.3s ease-in-out ${(index + (user ? 1 : 0)) * 0.1}s`
                       }}
                     >
                       {item.name}
@@ -836,14 +859,61 @@ export default function HomePage() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white cursor-pointer"
                     style={{
-                      animationDelay: `${navItems.length * 0.1}s`,
+                      animationDelay: `${(navItems.length + (user ? 1 : 0)) * 0.1}s`,
                       transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
-                      transition: `all 0.3s ease-in-out ${navItems.length * 0.1}s`
+                      transition: `all 0.3s ease-in-out ${(navItems.length + (user ? 1 : 0)) * 0.1}s`
                     }}
                   >
                     <span>Theme</span>
                     <ThemeToggle size="sm" />
                   </div>
+
+                  {/* Login/Logout Section */}
+                  {user ? (
+                    <div
+                      className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700"
+                      style={{
+                        animationDelay: `${(navItems.length + (user ? 1 : 0) + 1) * 0.1}s`,
+                        transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                        transition: `all 0.3s ease-in-out ${(navItems.length + (user ? 1 : 0) + 1) * 0.1}s`
+                      }}
+                    >
+                      <button
+                        onClick={() => {
+                          signOut();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                          <path d="m16 17 5-5-5-5" />
+                          <path d="M21 12H9" />
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        </svg>
+                        Sign Out
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700"
+                      style={{
+                        animationDelay: `${(navItems.length + 1) * 0.1}s`,
+                        transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                        transition: `all 0.3s ease-in-out ${(navItems.length + 1) * 0.1}s`
+                      }}
+                    >
+                      <Link href="/user/phone-login" onClick={() => setIsMobileMenuOpen(false)}>
+                        <button className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                            <path d="M10 17l5-5-5-5" />
+                            <path d="M15 12H3" />
+                          </svg>
+                          Log in
+                        </button>
+                      </Link>
+                    </div>
+                  )}
                 </nav>
               </div>
             </div>

@@ -48,10 +48,24 @@ export default function OrderTypeSelection({
                         className={`${styles.orderTypeCard} ${type.selected ? styles.selectedCard : ''} p-4 cursor-pointer ${styles.focusVisible}`}
                     >
                         <div className="text-center">
-                            <div className="text-3xl mb-3">
-                                {type.id === 'dine-in' && <span className="text-orange-500">🍽️</span>}
-                                {type.id === 'takeaway' && <span className="text-green-500">🥡</span>}
-                                {type.id === 'delivery' && <span className="text-blue-500">🚚</span>}
+                            <div className="mb-3 flex items-center justify-center">
+                                {type.id === 'dine-in' && (
+                                    <svg className="w-8 h-8 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 7h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4-4v4M8 3v4m8-4v4" />
+                                        <circle cx="12" cy="12" r="3" strokeWidth="1.2" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M10.5 12h3M12 10.5v3" />
+                                    </svg>
+                                )}
+                                {type.id === 'takeaway' && (
+                                    <svg className="w-8 h-8 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                    </svg>
+                                )}
+                                {type.id === 'delivery' && (
+                                    <svg className="w-8 h-8 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 17l4 4 4-4m-4-5v9m5-5v2a2 2 0 11-4 0v-2m0 0V7a2 2 0 114 0v10a2 2 0 01-2 2H6a2 2 0 01-2-2z" />
+                                    </svg>
+                                )}
                             </div>
                             <h4 className={`text-base font-medium text-gray-900 dark:text-white mb-1 ${styles.subheading}`}>
                                 {type.name}
@@ -65,7 +79,7 @@ export default function OrderTypeSelection({
                         <div className="flex justify-center mt-4">
                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                                 type.selected
-                                    ? 'border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100'
+                                    ? 'border-gray-900 dark:border-gray-400 bg-gray-900 dark:bg-gray-400'
                                     : 'border-gray-300 dark:border-gray-600'
                             }`}>
                                 {type.selected && (
@@ -91,9 +105,9 @@ export default function OrderTypeSelection({
                                 className={`${styles.deliveryOption} ${option.selected ? styles.selectedCard : ''} flex items-center justify-between p-4 cursor-pointer ${styles.focusVisible}`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="text-2xl">
-                                        <span className="text-blue-500">🚚</span>
-                                    </div>
+                                    <svg className="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 17l4 4 4-4m-4-5v9m5-5v2a2 2 0 11-4 0v-2m0 0V7a2 2 0 114 0v10a2 2 0 01-2 2H6a2 2 0 01-2-2z" />
+                                    </svg>
                                     <div>
                                         <h5 className={`text-sm font-medium text-gray-900 dark:text-white ${styles.subheading}`}>
                                             {option.name}
@@ -111,7 +125,7 @@ export default function OrderTypeSelection({
                                     </div>
                                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                                         option.selected
-                                            ? 'border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100'
+                                            ? 'border-gray-900 dark:border-gray-400 bg-gray-900 dark:bg-gray-400'
                                             : 'border-gray-300 dark:border-gray-600'
                                     }`}>
                                         {option.selected && (

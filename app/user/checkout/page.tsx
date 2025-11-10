@@ -74,6 +74,13 @@ export default function Checkout() {
     ]);
 
     const [specialInstructions, setSpecialInstructions] = useState('');
+    const [tablePreference, setTablePreference] = useState('');
+    const [diningPreferences, setDiningPreferences] = useState({
+        windowSeat: false,
+        quietArea: false,
+        highChair: false,
+        wheelchairAccessible: false
+    });
 
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
 
@@ -315,6 +322,10 @@ export default function Checkout() {
                 estimatedTime,
                 status: 'pending' as const, // Start as pending, restaurant will accept to confirm
                 restaurantId,
+                ...(selectedOrderType?.id === 'dine-in' && {
+                    tablePreference,
+                    diningPreferences
+                }),
                 ...(user?.uid && { userId: user.uid }), // Only include userId if user is logged in
                 ...(guestSessionId && { guestSessionId }), // Include guest session ID for guest users
                 isGuest: !user // Track if this is a guest order
@@ -427,21 +438,22 @@ export default function Checkout() {
                 </div>
 
                 {/* Step Navigation */}
-                <div className={`mb-3 sm:mb-4 md:mb-6 ${styles.staggerIn}`}>
-                    <div className="flex items-center justify-center px-2">
-                        <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 lg:space-x-6 max-w-full overflow-x-auto">
+                <div className={`mb-3 sm:mb-4 md:mb-6 ${styles.staggerIn} ${styles.stepNavigationContainer}`}>
+                    <div className="flex items-center justify-center px-4 py-2">
+                        <div className="flex items-center space-x-3 sm:space-x-4 md:space-x-6 lg:space-x-8 max-w-full">
                             {/* Step 1 */}
-                            <div className="flex items-center min-w-0">
+                            <div className="flex items-center min-w-0 flex-shrink-0">
                                 <div
-                                    className={`w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-xs sm:text-sm md:text-base font-bold transition-all duration-300 ${currentStep >= 1
-                                        ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
-                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
+                                    className={`${styles.stepCircle} w-10 h-10 sm:w-11 sm:h-11 md:w-13 md:h-13 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-sm sm:text-base md:text-lg font-bold transition-all duration-300 shadow-lg ${currentStep >= 1
+                                        ? 'bg-gray-900 dark:bg-gray-700 text-white ring-4 ring-gray-400 dark:ring-gray-500'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-2 border-gray-300 dark:border-gray-600 ring-4 ring-transparent'
                                         }`}
+                                    style={{ padding: '8px' }}
                                 >
-                                    {currentStep > 1 ? <Check className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" /> : '1'}
+                                    {currentStep > 1 ? <Check className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" /> : <span className="leading-none">1</span>}
                                 </div>
                                 <span className={`ml-1 sm:ml-2 text-xs sm:text-sm md:text-base font-semibold transition-colors hidden sm:inline ${currentStep === 1
-                                    ? 'text-blue-600 dark:text-blue-400'
+                                    ? 'text-gray-900 dark:text-gray-300'
                                     : currentStep > 1
                                         ? 'text-gray-900 dark:text-white'
                                         : 'text-gray-500 dark:text-gray-400'
@@ -451,23 +463,24 @@ export default function Checkout() {
                             </div>
 
                             {/* Connector Line */}
-                            <div className={`w-6 sm:w-8 md:w-12 lg:w-16 h-0.5 transition-colors ${currentStep >= 2
-                                ? 'bg-blue-600 dark:bg-blue-500'
+                            <div className={`w-8 sm:w-10 md:w-16 lg:w-20 h-1 transition-colors ${currentStep >= 2
+                                ? 'bg-gray-900 dark:bg-gray-600'
                                 : 'bg-gray-200 dark:bg-gray-700'
                                 }`}></div>
 
                             {/* Step 2 */}
-                            <div className="flex items-center min-w-0">
+                            <div className="flex items-center min-w-0 flex-shrink-0">
                                 <div
-                                    className={`w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-xs sm:text-sm md:text-base font-bold transition-all duration-300 ${currentStep >= 2
-                                        ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
-                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
+                                    className={`${styles.stepCircle} w-10 h-10 sm:w-11 sm:h-11 md:w-13 md:h-13 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-sm sm:text-base md:text-lg font-bold transition-all duration-300 shadow-lg ${currentStep >= 2
+                                        ? 'bg-gray-900 dark:bg-gray-700 text-white ring-4 ring-gray-400 dark:ring-gray-500'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-2 border-gray-300 dark:border-gray-600 ring-4 ring-transparent'
                                         }`}
+                                    style={{ padding: '8px' }}
                                 >
-                                    {currentStep > 2 ? <Check className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" /> : '2'}
+                                    {currentStep > 2 ? <Check className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" /> : <span className="leading-none">2</span>}
                                 </div>
                                 <span className={`ml-1 sm:ml-2 text-xs sm:text-sm md:text-base font-semibold transition-colors hidden xs:inline ${currentStep === 2
-                                    ? 'text-blue-600 dark:text-blue-400'
+                                    ? 'text-gray-900 dark:text-gray-300'
                                     : currentStep > 2
                                         ? 'text-gray-900 dark:text-white'
                                         : 'text-gray-500 dark:text-gray-400'
@@ -477,23 +490,24 @@ export default function Checkout() {
                             </div>
 
                             {/* Connector Line */}
-                            <div className={`w-6 sm:w-8 md:w-12 lg:w-16 h-0.5 transition-colors ${currentStep >= 3
-                                ? 'bg-blue-600 dark:bg-blue-500'
+                            <div className={`w-8 sm:w-10 md:w-16 lg:w-20 h-1 transition-colors ${currentStep >= 3
+                                ? 'bg-gray-900 dark:bg-gray-600'
                                 : 'bg-gray-200 dark:bg-gray-700'
                                 }`}></div>
 
                             {/* Step 3 */}
-                            <div className="flex items-center min-w-0">
+                            <div className="flex items-center min-w-0 flex-shrink-0">
                                 <div
-                                    className={`w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-xs sm:text-sm md:text-base font-bold transition-all duration-300 ${currentStep >= 3
-                                        ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
-                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
+                                    className={`${styles.stepCircle} w-10 h-10 sm:w-11 sm:h-11 md:w-13 md:h-13 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-sm sm:text-base md:text-lg font-bold transition-all duration-300 shadow-lg ${currentStep >= 3
+                                        ? 'bg-gray-900 dark:bg-gray-700 text-white ring-4 ring-gray-400 dark:ring-gray-500'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-2 border-gray-300 dark:border-gray-600 ring-4 ring-transparent'
                                         }`}
+                                    style={{ padding: '8px' }}
                                 >
-                                    3
+                                    <span className="leading-none">3</span>
                                 </div>
                                 <span className={`ml-1 sm:ml-2 text-xs sm:text-sm md:text-base font-semibold transition-colors hidden xs:inline ${currentStep === 3
-                                    ? 'text-blue-600 dark:text-blue-400'
+                                    ? 'text-gray-900 dark:text-gray-300'
                                     : 'text-gray-500 dark:text-gray-400'
                                     }`}>
                                     Payment
@@ -507,7 +521,7 @@ export default function Checkout() {
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                     {/* Left Column - Step Content */}
                     <div className="xl:col-span-2">
-                        <div className={`bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-gray-200 dark:border-gray-600 p-3 sm:p-4 md:p-6 ${styles.staggerIn}`}>
+                        <div className={`bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 ${styles.staggerIn}`}>
                             {/* Step 1: Order Type */}
                             {currentStep === 1 && (
                                 <div className="space-y-3 sm:space-y-4 md:space-y-6">
@@ -516,12 +530,12 @@ export default function Checkout() {
 
                                         {/* Customer Information */}
                                         <div className="mb-4 sm:mb-6">
-                                            <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Customer Information</h3>
+                                            <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Customer Information</h3>
 
                                             {user ? (
                                                 <div className="space-y-3">
-                                                    <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-3">
-                                                        <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300">
+                                                    <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3">
+                                                        <div className="flex items-center gap-2 text-gray-800 dark:text-gray-300">
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                             </svg>
@@ -539,7 +553,7 @@ export default function Checkout() {
                                                                 value={customerInfo.firstName}
                                                                 onChange={(e) => setCustomerInfo({ ...customerInfo, firstName: e.target.value })}
                                                                 placeholder="Enter your first name"
-                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
                                                             />
                                                         </div>
                                                         <div>
@@ -551,7 +565,7 @@ export default function Checkout() {
                                                                 value={customerInfo.lastName}
                                                                 onChange={(e) => setCustomerInfo({ ...customerInfo, lastName: e.target.value })}
                                                                 placeholder="Enter your last name"
-                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
                                                             />
                                                         </div>
                                                         <div>
@@ -563,7 +577,7 @@ export default function Checkout() {
                                                                 value={customerInfo.email}
                                                                 onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })}
                                                                 placeholder="your.email@example.com"
-                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
                                                             />
                                                         </div>
                                                         <div>
@@ -575,21 +589,21 @@ export default function Checkout() {
                                                                 value={customerInfo.phone}
                                                                 onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
                                                                 placeholder="(555) 123-4567"
-                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
                                                             />
                                                         </div>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-3">
-                                                    <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-4">
-                                                        <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300">
+                                                    <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
+                                                        <div className="flex items-center gap-2 text-gray-800 dark:text-gray-300">
                                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                             </svg>
                                                             <span className="font-medium">Guest checkout</span>
                                                         </div>
-                                                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                                                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                                                             Create an account to save your information for faster checkout next time.
                                                         </p>
                                                     </div>
@@ -604,7 +618,7 @@ export default function Checkout() {
                                                                 value={customerInfo.firstName}
                                                                 onChange={(e) => setCustomerInfo({ ...customerInfo, firstName: e.target.value })}
                                                                 placeholder="Enter your first name"
-                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
                                                             />
                                                         </div>
                                                         <div>
@@ -616,7 +630,7 @@ export default function Checkout() {
                                                                 value={customerInfo.lastName}
                                                                 onChange={(e) => setCustomerInfo({ ...customerInfo, lastName: e.target.value })}
                                                                 placeholder="Enter your last name"
-                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
                                                             />
                                                         </div>
                                                         <div>
@@ -628,7 +642,7 @@ export default function Checkout() {
                                                                 value={customerInfo.email}
                                                                 onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })}
                                                                 placeholder="your.email@example.com"
-                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
                                                             />
                                                         </div>
                                                         <div>
@@ -640,7 +654,7 @@ export default function Checkout() {
                                                                 value={customerInfo.phone}
                                                                 onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
                                                                 placeholder="(555) 123-4567"
-                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
                                                             />
                                                         </div>
                                                     </div>
@@ -654,19 +668,37 @@ export default function Checkout() {
 
                                         {/* Order Type Selection */}
                                         <div>
-                                            <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Choose Order Type</h3>
+                                            <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Choose Order Type</h3>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
                                                 {orderTypes.map((type) => (
                                                     <div
                                                         key={type.id}
                                                         onClick={() => selectOrderType(type.id)}
                                                         className={`${styles.orderTypeCard} p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border-2 cursor-pointer transition-all ${type.selected
-                                                            ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 shadow-lg dark:shadow-blue-900/20'
+                                                            ? 'border-gray-900 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/50 shadow-lg'
                                                             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
                                                             }`}
                                                     >
                                                         <div className="text-center">
-                                                            <div className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3">{type.icon}</div>
+                                                            <div className="mb-2 sm:mb-3 flex items-center justify-center">
+                                                                {type.id === 'dine-in' && (
+                                                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 7h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4-4v4M8 3v4m8-4v4" />
+                                                                        <circle cx="12" cy="12" r="3" strokeWidth="1.2" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M10.5 12h3M12 10.5v3" />
+                                                                    </svg>
+                                                                )}
+                                                                {type.id === 'takeaway' && (
+                                                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                                                    </svg>
+                                                                )}
+                                                                {type.id === 'delivery' && (
+                                                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 17l4 4 4-4m-4-5v9m5-5v2a2 2 0 11-4 0v-2m0 0V7a2 2 0 114 0v10a2 2 0 01-2 2H6a2 2 0 01-2-2z" />
+                                                                    </svg>
+                                                                )}
+                                                            </div>
                                                             <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white mb-1">{type.name}</h3>
                                                             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
                                                         </div>
@@ -675,22 +707,122 @@ export default function Checkout() {
                                             </div>
                                         </div>
 
+                                        {/* Dine-In Special Options */}
+                                        {selectedOrderType?.id === 'dine-in' && (
+                                            <div className="mt-4 sm:mt-6 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+                                                    <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 7h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4-4v4M8 3v4m8-4v4" />
+                                                        <circle cx="12" cy="12" r="2.5" strokeWidth="1" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.8" d="M10.5 12h3M12 10.5v3" />
+                                                    </svg>
+                                                    Dine-In Preferences
+                                                </h3>
+
+                                                <div className="space-y-3 sm:space-y-4">
+                                                    {/* Table Preference */}
+                                                    <div>
+                                                        <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                                                            Table Preference (Optional)
+                                                        </label>
+                                                        <select
+                                                            value={tablePreference}
+                                                            onChange={(e) => setTablePreference(e.target.value)}
+                                                            className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
+                                                        >
+                                                            <option value="">No preference</option>
+                                                            <option value="window">Window seat</option>
+                                                            <option value="corner">Corner table</option>
+                                                            <option value="center">Center table</option>
+                                                            <option value="booth">Booth seating</option>
+                                                            <option value="outdoor">Outdoor seating</option>
+                                                        </select>
+                                                    </div>
+
+                                                    {/* Dining Preferences */}
+                                                    <div>
+                                                        <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                                                            Special Requirements
+                                                        </label>
+                                                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={diningPreferences.windowSeat}
+                                                                    onChange={(e) => setDiningPreferences({...diningPreferences, windowSeat: e.target.checked})}
+                                                                    className="w-4 h-4 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400"
+                                                                />
+                                                                <span className="text-sm text-gray-700 dark:text-gray-300">Window view</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={diningPreferences.quietArea}
+                                                                    onChange={(e) => setDiningPreferences({...diningPreferences, quietArea: e.target.checked})}
+                                                                    className="w-4 h-4 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400"
+                                                                />
+                                                                <span className="text-sm text-gray-700 dark:text-gray-300">Quiet area</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={diningPreferences.highChair}
+                                                                    onChange={(e) => setDiningPreferences({...diningPreferences, highChair: e.target.checked})}
+                                                                    className="w-4 h-4 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400"
+                                                                />
+                                                                <span className="text-sm text-gray-700 dark:text-gray-300">High chair</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={diningPreferences.wheelchairAccessible}
+                                                                    onChange={(e) => setDiningPreferences({...diningPreferences, wheelchairAccessible: e.target.checked})}
+                                                                    className="w-4 h-4 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400"
+                                                                />
+                                                                <span className="text-sm text-gray-700 dark:text-gray-300">Wheelchair access</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Dine-In Experience Info */}
+                                                <div className="mt-4 p-3 sm:p-4 bg-white/70 dark:bg-gray-800/70 rounded-lg border border-gray-200 dark:border-gray-600">
+                                                    <div className="flex items-start gap-2 sm:gap-3">
+                                                        <svg className="w-5 h-5 text-gray-700 dark:text-gray-300 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Dine-In Experience</h4>
+                                                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                                                                We'll do our best to accommodate your preferences. Our staff will confirm your table selection upon arrival.
+                                                                <span className="block mt-1 font-medium text-gray-700 dark:text-gray-300">
+                                                                    🍽️ No service charge • 💫 Premium dining experience
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* Delivery Options (only show if delivery is selected) */}
                                         {selectedOrderType?.id === 'delivery' && (
                                             <div className="mt-4">
-                                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3">Delivery Options</h3>
+                                                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3">Delivery Options</h3>
                                                 <div className="space-y-2">
                                                     {deliveryOptions.map((option) => (
                                                         <div
                                                             key={option.id}
                                                             onClick={() => selectDeliveryOption(option.id)}
                                                             className={`${styles.deliveryOption} flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${option.selected
-                                                                ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 shadow-lg dark:shadow-blue-900/20'
+                                                                ? 'border-gray-900 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 shadow-lg'
                                                                 : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
                                                                 }`}
                                                         >
                                                             <div className="flex items-center gap-3">
-                                                                <div className="text-xl sm:text-2xl">🚚</div>
+                                                                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 17l4 4 4-4m-4-5v9m5-5v2a2 2 0 11-4 0v-2m0 0V7a2 2 0 114 0v10a2 2 0 01-2 2H6a2 2 0 01-2-2z" />
+                                                            </svg>
                                                                 <div>
                                                                     <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">{option.name}</h3>
                                                                     <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{option.description}</p>
@@ -699,11 +831,11 @@ export default function Checkout() {
                                                             <div className="text-right">
                                                                 <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">₹{option.price.toFixed(2)}</p>
                                                                 <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center mt-1 ${option.selected
-                                                                    ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                                                                    ? 'border-gray-900 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50'
                                                                     : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
                                                                     }`}>
                                                                     {option.selected && (
-                                                                        <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-600 dark:bg-blue-400"></div>
+                                                                        <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-gray-900 dark:bg-gray-400"></div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -738,12 +870,12 @@ export default function Checkout() {
 
                                         {/* Special Instructions */}
                                         <div className="mb-6 sm:mb-8">
-                                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Special Instructions</h3>
+                                            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Special Instructions</h3>
                                             <textarea
                                                 value={specialInstructions}
                                                 onChange={(e) => setSpecialInstructions(e.target.value)}
                                                 placeholder="Any special requests for your order..."
-                                                className="w-full p-3 sm:p-4 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                                className="w-full p-3 sm:p-4 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 focus:bg-white dark:focus:bg-gray-700 transition-all resize-none"
                                                 rows={3}
                                             />
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Optional - Let us know if you have any dietary restrictions or preferences</p>
@@ -751,10 +883,10 @@ export default function Checkout() {
 
                                         {/* Cart Review */}
                                         <div>
-                                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Review Your Order</h3>
+                                            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Review Your Order</h3>
                                             <div className="space-y-2 sm:space-y-3">
                                                 {cartItems.map((item) => (
-                                                    <div key={item.id} className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                                                    <div key={item.id} className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
                                                         <Image
                                                             src={item.image}
                                                             alt={item.name}
@@ -809,7 +941,7 @@ export default function Checkout() {
                                     <div className="flex justify-between pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-600">
                                         <button
                                             onClick={prevStep}
-                                            className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 transition-colors cursor-pointer"
+                                            className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-all cursor-pointer hover:shadow-md transform hover:-translate-y-0.5"
                                         >
                                             <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
                                             Back to Order Type
@@ -818,7 +950,7 @@ export default function Checkout() {
                                             onClick={nextStep}
                                             disabled={!isStep2Valid()}
                                             className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${isStep2Valid()
-                                                ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-lg'
+                                                ? 'bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white shadow-lg'
                                                 : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
                                                 }`}
                                         >
@@ -837,27 +969,43 @@ export default function Checkout() {
 
                                         {/* Payment Method */}
                                         <div className="mb-6 sm:mb-8">
-                                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Payment Method</h3>
+                                            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Payment Method</h3>
                                             <div className="space-y-2 sm:space-y-3">
                                                 {paymentMethods.map((method) => (
                                                     <div
                                                         key={method.id}
                                                         onClick={() => selectPaymentMethod(method.id)}
                                                         className={`${styles.paymentMethod} flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all ${method.selected
-                                                            ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 shadow-lg dark:shadow-blue-900/20'
+                                                            ? 'border-gray-900 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 shadow-lg'
                                                             : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
                                                             }`}
                                                     >
-                                                        <div className="text-xl sm:text-2xl">{method.icon}</div>
+                                                        <div className="flex items-center justify-center w-8 h-8">
+                                                            {method.id === 'card' && (
+                                                                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                                                </svg>
+                                                            )}
+                                                            {method.id === 'upi' && (
+                                                                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                                </svg>
+                                                            )}
+                                                            {method.id === 'cash' && (
+                                                                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                </svg>
+                                                            )}
+                                                        </div>
                                                         <span className="flex-1 font-medium text-sm sm:text-base text-gray-900 dark:text-white">
                                                             {method.name}
                                                         </span>
                                                         <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center ${method.selected
-                                                            ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                                                            ? 'border-gray-900 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50'
                                                             : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
                                                             }`}>
                                                             {method.selected && (
-                                                                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-600 dark:bg-blue-400"></div>
+                                                                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-gray-900 dark:bg-gray-400"></div>
                                                             )}
                                                         </div>
                                                     </div>
@@ -867,14 +1015,14 @@ export default function Checkout() {
 
                                         {/* Promo Code */}
                                         <div className="mb-6 sm:mb-8">
-                                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Promo Code</h3>
+                                            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Promo Code</h3>
                                             <div className="flex gap-2 sm:gap-3">
                                                 <input
                                                     type="text"
                                                     value={promoCode}
                                                     onChange={(e) => setPromoCode(e.target.value)}
                                                     placeholder="Enter promo code"
-                                                    className="flex-1 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                                                    className="flex-1 px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:border-gray-500 dark:focus:border-gray-400 hover:border-gray-400 dark:hover:border-gray-500 focus:bg-white dark:focus:bg-gray-700 transition-all"
                                                 />
                                                 <button className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-xs sm:text-sm font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 transition-colors cursor-pointer">
                                                     Apply
@@ -887,7 +1035,7 @@ export default function Checkout() {
                                     <div className="flex justify-between pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-600">
                                         <button
                                             onClick={prevStep}
-                                            className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 transition-colors cursor-pointer"
+                                            className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-all cursor-pointer hover:shadow-md transform hover:-translate-y-0.5"
                                         >
                                             <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
                                             Back to Details
@@ -895,9 +1043,9 @@ export default function Checkout() {
                                         <button
                                             onClick={placeOrder}
                                             disabled={isPlacingOrder || !isFormValid()}
-                                            className={`px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${isPlacingOrder || !isFormValid()
+                                            className={`px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${isPlacingOrder || !isFormValid()
                                                 ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
-                                                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white shadow-lg'
+                                                : 'bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-white shadow-xl hover:shadow-2xl'
                                                 }`}
                                         >
                                             {isPlacingOrder ? (
@@ -919,7 +1067,7 @@ export default function Checkout() {
 
                     {/* Right Column - Order Summary (Desktop Only) */}
                     <div className="hidden xl:block xl:col-span-1">
-                        <div className={`bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl md:rounded-2xl shadow-sm border border-gray-200 dark:border-gray-600 p-4 sm:p-6 sticky top-20 ${styles.staggerIn}`}>
+                        <div className={`bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 sticky top-20 ${styles.staggerIn}`}>
                             <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Order Summary</h2>
 
                             {/* Cart Items */}
@@ -973,7 +1121,7 @@ export default function Checkout() {
                                     <span>₹{tax.toFixed(2)}</span>
                                 </div>
                                 {discount < 0 && (
-                                    <div className="flex justify-between text-blue-600 dark:text-blue-400 text-xs sm:text-sm">
+                                    <div className="flex justify-between text-gray-900 dark:text-gray-400 text-xs sm:text-sm">
                                         <span>Discount</span>
                                         <span>₹{discount.toFixed(2)}</span>
                                     </div>
@@ -987,15 +1135,44 @@ export default function Checkout() {
                             </div>
 
                             {/* Order Info */}
-                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 sm:p-4">
-                                <div className="text-xs sm:text-sm text-blue-800 dark:text-blue-400">
+                            {/* Dine-In Info Summary */}
+                            {selectedOrderType?.id === 'dine-in' && (tablePreference || Object.values(diningPreferences).some(v => v)) && (
+                                <div className="mt-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                    <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-1">
+                                        <svg className="w-3 h-3 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.8" d="M4 7h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4-4v4M8 3v4" />
+                                            <circle cx="12" cy="12" r="2" strokeWidth="0.6" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.6" d="M10.5 12h3M12 10.5v3" />
+                                        </svg>
+                                        Your Preferences
+                                    </h3>
+                                    <div className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
+                                        {tablePreference && (
+                                            <p><span className="font-semibold">Table:</span> {
+                                                tablePreference === 'window' ? 'Window seat' :
+                                                tablePreference === 'corner' ? 'Corner table' :
+                                                tablePreference === 'center' ? 'Center table' :
+                                                tablePreference === 'booth' ? 'Booth seating' :
+                                                'Outdoor seating'
+                                            }</p>
+                                        )}
+                                        {diningPreferences.windowSeat && <p>• Window view requested</p>}
+                                        {diningPreferences.quietArea && <p>• Quiet area preferred</p>}
+                                        {diningPreferences.highChair && <p>• High chair needed</p>}
+                                        {diningPreferences.wheelchairAccessible && <p>• Wheelchair accessible table</p>}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4">
+                                <div className="text-xs sm:text-sm text-gray-800 dark:text-gray-300">
                                     <div className="flex items-center gap-1 sm:gap-2 mb-1">
                                         <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                         <span className="font-medium">Estimated Time</span>
                                     </div>
-                                    <p className="text-blue-700 dark:text-blue-300">{estimatedTime}</p>
+                                    <p className="text-gray-900 dark:text-gray-200 font-semibold">{estimatedTime}</p>
                                 </div>
                             </div>
 
@@ -1013,14 +1190,14 @@ export default function Checkout() {
             </div>
 
             {/* Floating Order Summary for Mobile */}
-            <div className="xl:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t-2 border-gray-300 dark:border-gray-600 shadow-xl dark:shadow-gray-900/50 z-50 backdrop-blur-sm transition-all duration-300">
+            <div className="xl:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t-2 border-gray-200 dark:border-gray-700 shadow-2xl dark:shadow-gray-900/50 z-50 backdrop-blur-sm transition-all duration-300">
                 {/* Summary Header */}
                 <div
                     className="flex items-center justify-between p-2 sm:p-3 md:p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 ease-out"
                     onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
                 >
                     <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center shadow-lg ring-2 ring-blue-200 dark:ring-blue-800">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gray-900 dark:bg-gray-700 rounded-full flex items-center justify-center shadow-lg ring-2 ring-gray-400 dark:ring-gray-600">
                             <span className="text-white text-xs sm:text-sm font-bold">{cartItems.length}</span>
                         </div>
                         <div>
@@ -1040,7 +1217,7 @@ export default function Checkout() {
                             }}
                             disabled={!isFormValid() || isPlacingOrder}
                             className={`px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 ease-out relative overflow-hidden ${isFormValid() && !isPlacingOrder
-                                ? 'bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-800 hover:shadow-xl cursor-pointer'
+                                ? 'bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white shadow-lg ring-2 ring-gray-400 dark:ring-gray-600 hover:shadow-2xl transform hover:-translate-y-0.5 cursor-pointer'
                                 : 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed border border-gray-400 dark:border-gray-600'
                                 }`}
                         >
@@ -1118,7 +1295,7 @@ export default function Checkout() {
                                 <span>₹{tax.toFixed(2)}</span>
                             </div>
                             {discount < 0 && (
-                                <div className="flex justify-between text-blue-600 dark:text-blue-400">
+                                <div className="flex justify-between text-gray-900 dark:text-gray-400">
                                     <span>Discount</span>
                                     <span>₹{discount.toFixed(2)}</span>
                                 </div>
@@ -1132,15 +1309,44 @@ export default function Checkout() {
                         </div>
 
                         {/* Order Info */}
-                        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-2 sm:p-3">
-                            <div className="text-xs text-blue-800 dark:text-blue-300">
+                        {/* Dine-In Info Summary (Mobile) */}
+                        {selectedOrderType?.id === 'dine-in' && (tablePreference || Object.values(diningPreferences).some(v => v)) && (
+                            <div className="mt-3 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-1">
+                                    <svg className="w-3 h-3 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.8" d="M4 7h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4-4v4M8 3v4" />
+                                        <circle cx="12" cy="12" r="2" strokeWidth="0.6" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.6" d="M10.5 12h3M12 10.5v3" />
+                                    </svg>
+                                    Your Preferences
+                                </h3>
+                                <div className="text-xs text-gray-700 dark:text-gray-300 space-y-0.5">
+                                    {tablePreference && (
+                                        <p><span className="font-semibold">Table:</span> {
+                                            tablePreference === 'window' ? 'Window seat' :
+                                            tablePreference === 'corner' ? 'Corner table' :
+                                            tablePreference === 'center' ? 'Center table' :
+                                            tablePreference === 'booth' ? 'Booth seating' :
+                                            'Outdoor seating'
+                                        }</p>
+                                    )}
+                                    {diningPreferences.windowSeat && <p>• Window view</p>}
+                                    {diningPreferences.quietArea && <p>• Quiet area</p>}
+                                    {diningPreferences.highChair && <p>• High chair</p>}
+                                    {diningPreferences.wheelchairAccessible && <p>• Wheelchair access</p>}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-2 sm:p-3">
+                            <div className="text-xs text-gray-800 dark:text-gray-300">
                                 <div className="flex items-center gap-1 mb-1">
                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     <span className="font-medium">Estimated Time</span>
                                 </div>
-                                <p className="text-blue-700 dark:text-blue-300">{estimatedTime}</p>
+                                <p className="text-gray-900 dark:text-gray-200 font-semibold">{estimatedTime}</p>
                             </div>
                         </div>
 

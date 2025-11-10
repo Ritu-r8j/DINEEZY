@@ -41,17 +41,29 @@ export default function PaymentSection({
                                 onClick={() => selectPaymentMethod(method.id)}
                                 className={`${styles.paymentMethod} ${method.selected ? styles.selectedCard : ''} flex items-center gap-4 p-4 cursor-pointer ${styles.focusVisible}`}
                             >
-                                <div className="text-2xl">
-                                    {method.id === 'card' && <span className="text-blue-500">💳</span>}
-                                    {method.id === 'upi' && <span className="text-purple-500">📱</span>}
-                                    {method.id === 'cash' && <span className="text-green-500">💵</span>}
+                                <div className="flex items-center justify-center w-8 h-8">
+                                    {method.id === 'card' && (
+                                        <svg className="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                        </svg>
+                                    )}
+                                    {method.id === 'upi' && (
+                                        <svg className="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                    )}
+                                    {method.id === 'cash' && (
+                                        <svg className="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    )}
                                 </div>
                                 <span className={`flex-1 font-medium text-gray-900 dark:text-white ${styles.subheading}`}>
                                     {method.name}
                                 </span>
                                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                                     method.selected
-                                        ? 'border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100'
+                                        ? 'border-gray-900 dark:border-gray-400 bg-gray-900 dark:bg-gray-400'
                                         : 'border-gray-300 dark:border-gray-600'
                                 }`}>
                                     {method.selected && (
