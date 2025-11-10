@@ -82,7 +82,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
       {/* Profile Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 flex items-center justify-center cursor-pointer hover:opacity-80 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-primary/20"
+        className="hidden md:flex w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 items-center justify-center cursor-pointer hover:opacity-80 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-primary/20"
         aria-label="Open profile menu"
       >
         <span className="text-xs sm:text-sm font-medium text-primary">

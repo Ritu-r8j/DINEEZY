@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/(contexts)/AuthContext';
+import { useTheme } from '@/app/(contexts)/ThemeContext';
 import ProfileDropdown from './ProfileDropdown';
 import ThemeToggle from './ThemeToggle';
 
@@ -11,41 +12,22 @@ interface HeaderProps {
     currentPage?: 'home' | 'menu' | 'orders' | 'reservation';
 }
 
+interface NavItem {
+    name: string;
+    href: string;
+    key: string;
+}
+
 export default function Header({ currentPage = 'home' }: HeaderProps) {
-    const { user, loading } = useAuth();
+    const { user, userProfile, loading: authLoading, signOut } = useAuth();
+    const { theme: themeMode } = useTheme();
+    const isDarkMode = themeMode === "dark";
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [cartCount, setCartCount] = useState(0);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [mounted, setMounted] = useState(false);
-
-    // Initialize theme from localStorage and system preference
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        const initialTheme = savedTheme || systemTheme;
-
-        setTheme(initialTheme);
-        setMounted(true);
-    }, []);
-
-    // Apply theme to document
-    useEffect(() => {
-        if (mounted) {
-            const root = document.documentElement;
-            if (theme === 'dark') {
-                root.classList.add('dark');
-            } else {
-                root.classList.remove('dark');
-            }
-            localStorage.setItem('theme', theme);
-        }
-    }, [theme, mounted]);
-
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    };
 
     // Load cart count from localStorage
     useEffect(() => {
@@ -55,43 +37,29 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
         }
     }, []);
 
+    // Mounted effect
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle search functionality
         console.log('Searching for:', searchQuery);
-        // Close mobile search after search
         setIsSearchOpen(false);
     };
 
-    // Close mobile menus when clicking outside or on navigation
-    const closeMobileMenus = () => {
-        setIsMobileMenuOpen(false);
-        setIsSearchOpen(false);
-    };
-
-    // Close mobile menus when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as HTMLElement;
-            if (!target.closest('header')) {
-                closeMobileMenus();
-            }
-        };
-
-        if (isMobileMenuOpen || isSearchOpen) {
-            document.addEventListener('click', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-        };
-    }, [isMobileMenuOpen, isSearchOpen]);
-
-    const navItems = [
-        { name: 'Home', href: '/', key: 'home' },
-        { name: 'Menu', href: '/user/menu', key: 'menu' },
-        { name: 'Orders', href: '/user/orders', key: 'orders' },
-        { name: 'Reservation', href: '/user/reservation', key: 'reservation' },
+    // Navigation items - dynamic based on auth status
+    const navItems: NavItem[] = user ? [
+        { name: "Home", href: "/", key: "home" },
+        { name: "Menu", href: "/user/menu", key: "menu" },
+        { name: "Orders", href: "/user/orders", key: "orders" },
+        { name: "Reservation", href: "/user/my-reservations", key: "reservation" },
+        { name: "Profile", href: "/user/profile", key: "profile" },
+    ] : [
+        { name: "Home", href: "/", key: "home" },
+        { name: "Menu", href: "/user/menu", key: "menu" },
+        { name: "Orders", href: "/user/orders", key: "orders" },
+        { name: "Reservation", href: "/user/my-reservations", key: "reservation" },
     ];
 
     // Prevent hydration mismatch
@@ -228,83 +196,114 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                     </div>
                 </div>
 
-                {/* Mobile Search Bar */}
-                <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isSearchOpen ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'
-                    }`}>
-                    <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-                        <form onSubmit={handleSearch} className="flex items-center">
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search menu..."
-                                className="flex-1 px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all duration-200"
-                                autoFocus={isSearchOpen}
-                            />
-                            <button
-                                type="submit"
-                                className="ml-2 p-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-200 hover:scale-105"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setIsSearchOpen(false)}
-                                className="ml-2 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 hover:scale-110"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
                 {/* Mobile Navigation */}
-                <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
+                <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-[32rem] opacity-100' : 'max-h-0 opacity-0'
                     }`}>
-                    <div className="border-t border-gray-200 dark:border-gray-700 py-4">
+                    <div className="border-t border-gray-200 dark:border-gray-700 py-4 pb-6 px-2 sm:px-4">
+                        {/* User Profile Section in Mobile Menu */}
+                        {user && (
+                            <div
+                                className="flex items-center gap-3 px-4 py-3 mb-2 rounded-lg bg-gradient-to-r from-gray-900/10 to-gray-900/5 dark:from-gray-700/30 dark:to-gray-700/10 border border-gray-200 dark:border-gray-700"
+                                style={{
+                                    animationDelay: '0s',
+                                    transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                                    transition: 'all 0.3s ease-in-out'
+                                }}
+                            >
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-900/20 to-gray-900/10 dark:from-gray-600/30 dark:to-gray-600/10 border border-gray-200 dark:border-gray-600 flex items-center justify-center">
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {(userProfile?.displayName || user?.displayName || user?.email || 'U').charAt(0).toUpperCase()}
+                                    </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                        {userProfile?.displayName || user?.displayName || 'User'}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                        {userProfile?.email || user?.email}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         <nav className="flex flex-col space-y-2">
                             {navItems.map((item, index) => (
                                 <Link
                                     key={item.key}
                                     href={item.href}
                                     onClick={() => setIsMobileMenuOpen(false)}
-                                    className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 ${currentPage === item.key
-                                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-                                        }`}
+                                    className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 ${
+                                        item.href.startsWith('#')
+                                            ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                                    }`}
                                     style={{
-                                        animationDelay: `${index * 0.1}s`,
+                                        animationDelay: `${(index + (user ? 1 : 0)) * 0.1}s`,
                                         transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
-                                        transition: `all 0.3s ease-in-out ${index * 0.1}s`
+                                        transition: `all 0.3s ease-in-out ${(index + (user ? 1 : 0)) * 0.1}s`
                                     }}
                                 >
                                     {item.name}
                                 </Link>
                             ))}
-                        </nav>
-                        <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4 px-4">
-                            <button
-                                type="button"
-                                onClick={toggleTheme}
-                                className="flex w-fit gap-4 items-center justify-between rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 dark:bg-white dark:text-gray-900"
-                                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                            <div
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white cursor-pointer"
+                                style={{
+                                    animationDelay: `${(navItems.length + (user ? 1 : 0)) * 0.1}s`,
+                                    transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                                    transition: `all 0.3s ease-in-out ${(navItems.length + (user ? 1 : 0)) * 0.1}s`
+                                }}
                             >
-                                <span>Toggle theme</span>
-                                {theme === 'light' ? (
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                                    </svg>
-                                ) : (
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                                    </svg>
-                                )}
-                            </button>
-                        </div>
+                                <span>Theme</span>
+                                <ThemeToggle size="sm" />
+                            </div>
+                            {/* Login/Logout Section */}
+                            {user ? (
+                                <div
+                                    className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700"
+                                    style={{
+                                        animationDelay: `${(navItems.length + (user ? 1 : 0) + 1) * 0.1}s`,
+                                        transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                                        transition: `all 0.3s ease-in-out ${(navItems.length + (user ? 1 : 0) + 1) * 0.1}s`
+                                    }}
+                                >
+                                    <button
+                                        onClick={() => {
+                                            signOut();
+                                            setIsMobileMenuOpen(false);
+                                        }}
+                                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                            <path d="m16 17 5-5-5-5" />
+                                            <path d="M21 12H9" />
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                        </svg>
+                                        Sign Out
+                                    </button>
+                                </div>
+                            ) : (
+                                <div
+                                    className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700"
+                                    style={{
+                                        animationDelay: `${(navItems.length + 1) * 0.1}s`,
+                                        transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                                        transition: `all 0.3s ease-in-out ${(navItems.length + 1) * 0.1}s`
+                                    }}
+                                >
+                                    <Link href="/user/phone-login" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <button className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                                                <path d="M10 17l5-5-5-5" />
+                                                <path d="M15 12H3" />
+                                            </svg>
+                                            Log in
+                                        </button>
+                                    </Link>
+                                </div>
+                            )}
+                        </nav>
                     </div>
                 </div>
             </div>

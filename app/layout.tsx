@@ -53,15 +53,14 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      ><>
-           <Toaster/>
-          <AuthProviderWrapper>
-            <CartProvider>
-              <ScrollRestorationFix/>
-              {children}
-            </CartProvider>
-          </AuthProviderWrapper>
-        </>
+      >
+        <Toaster/>
+        <AuthProviderWrapper>
+          <CartProvider>
+            <ScrollRestorationFix/>
+            {children}
+          </CartProvider>
+        </AuthProviderWrapper>
       </body>
     </html>
   );

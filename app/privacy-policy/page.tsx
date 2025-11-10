@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, Shield, Eye, Lock, Database, Users, Globe, FileText } from "lucide-react";
 import { useTheme } from "../(contexts)/ThemeContext";
+import Header from "../(components)/Header";
 
 export default function PrivacyPolicyPage() {
   const { theme } = useTheme();
@@ -34,7 +35,8 @@ export default function PrivacyPolicyPage() {
 
   return (
     <div className={`min-h-screen ${isDarkMode ? "bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900 text-slate-100" : "bg-gray-100 text-slate-900"}`}>
-      {/* Header */}
+      <Header currentPage="home" />
+      {/* Back Button */}
       <div className="border-b border-gray-200 dark:border-gray-800">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
