@@ -754,7 +754,6 @@ export default function HomePage() {
                 </div>
               </div>
               <div className= "flex items-center gap-1 md:gap-3 pr-[30px]">
-                <ThemeToggle size="sm" className="shadow-none hover:scale-105" />
                 {user ? (
                   <>
                   <ProfileDropdown />
@@ -833,6 +832,18 @@ export default function HomePage() {
                       {item.name}
                     </Link>
                   ))}
+                  <div
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white cursor-pointer"
+                    style={{
+                      animationDelay: `${navItems.length * 0.1}s`,
+                      transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                      transition: `all 0.3s ease-in-out ${navItems.length * 0.1}s`
+                    }}
+                  >
+                    <span>Theme</span>
+                    <ThemeToggle size="sm" />
+                  </div>
                 </nav>
               </div>
             </div>
