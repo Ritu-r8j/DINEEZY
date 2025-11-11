@@ -317,7 +317,7 @@ export default function CustomerOrdersPage() {
           </div>
         ) : (
           currentOrders.map((order) => (
-            <div key={order.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div key={order.id} className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 overflow-hidden">
               {/* Order Header */}
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -460,7 +460,7 @@ export default function CustomerOrdersPage() {
 
       {/* Quick Actions */}
       {currentOrders.length > 0 && (
-        <div className="mt-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="mt-12 rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 p-6">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
