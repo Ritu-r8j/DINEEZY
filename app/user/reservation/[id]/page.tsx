@@ -791,106 +791,82 @@ export default function ReservationPage() {
                 </div>
               ) : (
                 <>
-                  {/* Media Grid - Masonry Layout */}
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    {/* Large featured image */}
-                    {getAllMedia().length > 0 && (
-                      <div
-                        className="col-span-2 relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group"
-                        onClick={() => {
-                          setSelectedMediaIndex(0);
-                          setShowFullGallery(true);
-                        }}
-                      >
-                        {getAllMedia()[0].type === 'image' ? (
-                          <img
-                            src={getAllMedia()[0].url}
-                            alt="Restaurant photo"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="relative w-full h-full">
-                            <video
-                              src={getAllMedia()[0].url}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              muted
-                              preload="metadata"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                              <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow-lg">
-                                <svg className="w-8 h-8 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M8 5v14l11-7z" />
-                                </svg>
+                  {/* Media Grid - Horizontal Scrollable Layout */}
+                  <div className="mb-4">
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+                      {getAllMedia().map((media, index) => (
+                        <div
+                          key={media.id}
+                          className="flex-shrink-0 relative group cursor-pointer snap-start"
+                          onClick={() => {
+                            setSelectedMediaIndex(index);
+                            setShowFullGallery(true);
+                          }}
+                        >
+                          <div className="relative w-[280px] sm:w-[320px] h-[280px] sm:h-[320px] rounded-2xl overflow-hidden">
+                            {media.type === 'image' ? (
+                              <img
+                                src={media.url}
+                                alt="Restaurant photo"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="relative w-full h-full">
+                                <video
+                                  src={media.url}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  muted
+                                  preload="metadata"
+                                />
+                                <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                                  <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow-lg">
+                                    <svg className="w-8 h-8 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                  </div>
+                                </div>
                               </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                            {/* Media Type Badge */}
+                            <div className="absolute top-3 right-3">
+                              <span className="px-3 py-1.5 bg-black/60 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                                {media.type === 'image' ? 'Photo' : 'Video'}
+                              </span>
                             </div>
                           </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-                    )}
-
-                    {/* Grid of smaller images */}
-                    {getAllMedia().slice(1, 5).map((media, index) => (
-                      <div
-                        key={media.id}
-                        className={`relative rounded-2xl overflow-hidden cursor-pointer group ${index === 0 ? 'aspect-square' :
-                          index === 1 ? 'aspect-[4/3]' :
-                            'aspect-square'
-                          }`}
-                        onClick={() => {
-                          setSelectedMediaIndex(index + 1);
-                          setShowFullGallery(true);
-                        }}
-                      >
-                        {media.type === 'image' ? (
-                          <img
-                            src={media.url}
-                            alt="Restaurant photo"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="relative w-full h-full">
-                            <video
-                              src={media.url}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              muted
-                              preload="metadata"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                              <div className="w-12 h-12 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                                <svg className="w-6 h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M8 5v14l11-7z" />
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                        {/* Show count overlay on last visible image */}
-                        {index === 3 && getAllMedia().length > 5 && (
-                          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                            <span className="text-white font-semibold text-xl">+{getAllMedia().length - 5}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* View All Button */}
-                  {getAllMedia().length > 5 && (
-                    <div className="text-center">
-                      <button
-                        onClick={() => setShowFullGallery(true)}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-xl font-medium transition-all duration-200"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  {/* Media Stats & View All Button */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                      <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
-                        View all {getAllMedia().length} photos
-                      </button>
+                        {getAllMedia().filter(m => m.type === 'image').length} Photos
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        {getAllMedia().filter(m => m.type === 'video').length} Videos
+                      </span>
                     </div>
-                  )}
+                    <button
+                      onClick={() => setShowFullGallery(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 rounded-lg transition-all duration-200"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                      View Gallery
+                    </button>
+                  </div>
                 </>
               )}
             </div>
