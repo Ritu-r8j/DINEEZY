@@ -724,14 +724,16 @@ export default function ReservationPage() {
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="max-w-md mx-auto px-4 text-center">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="w-12 h-12 mx-auto mb-4 text-red-400">
-              <AlertCircle className="w-full h-full" />
+            <div className="w-12 h-12 mx-auto mb-4">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-gray-900" />
+              </div>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Error</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error}</p>
             <button
               onClick={() => router.back()}
-              className="w-full px-4 py-2.5 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-200"
+              className="w-full px-4 py-2.5 bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-gray-900 dark:text-white rounded-lg font-medium hover:shadow-md transition-all duration-200"
             >
               Go Back
             </button>
@@ -764,7 +766,7 @@ export default function ReservationPage() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Photos</h2>
                 <button
                   onClick={() => setShowMediaUpload(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 rounded-lg transition-all duration-200"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] hover:shadow-md rounded-lg transition-all duration-200"
                 >
                   <Camera className="w-4 h-4" />
                   Add Media
@@ -784,7 +786,7 @@ export default function ReservationPage() {
                   <p className="text-gray-600 dark:text-gray-400 mb-6">Be the first to share photos and videos of this restaurant!</p>
                   <button
                     onClick={() => setShowMediaUpload(true)}
-                    className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-xl font-medium transition-all duration-200"
+                    className="px-6 py-3 bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] hover:shadow-md rounded-xl font-medium transition-all duration-200"
                   >
                     Add photo
                   </button>
@@ -859,7 +861,7 @@ export default function ReservationPage() {
                     </div>
                     <button
                       onClick={() => setShowFullGallery(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 rounded-lg transition-all duration-200"
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] hover:shadow-md rounded-lg transition-all duration-200"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -925,7 +927,7 @@ export default function ReservationPage() {
 
                 <div className="space-y-6">
                   {/* Upload Area */}
-                  <div className="border-2 border-dashed border-pink-200 dark:border-pink-800 rounded-2xl p-8 text-center hover:border-pink-300 dark:hover:border-pink-700 transition-colors bg-pink-50/30 dark:bg-pink-900/10">
+                  <div className="border-2 border-dashed border-[#b8dcff80] dark:border-[#c9cbff80] rounded-2xl p-8 text-center hover:border-[#c9cbff] dark:hover:border-[#e5c0ff] transition-colors bg-gradient-to-br from-[#b8dcff20] via-[#c9cbff20] to-[#e5c0ff20]">
                     <input
                       type="file"
                       multiple
@@ -939,8 +941,8 @@ export default function ReservationPage() {
                       htmlFor="media-upload"
                       className={`cursor-pointer ${isUploadingMedia ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <div className="w-16 h-16 mx-auto mb-4 bg-pink-100 dark:bg-pink-900/30 rounded-2xl flex items-center justify-center">
-                        <svg className="w-8 h-8 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-[#b8dcff40] dark:bg-[#c9cbff40] rounded-2xl flex items-center justify-center">
+                        <svg className="w-8 h-8 text-[#7c3aed]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
                       </div>
@@ -983,11 +985,11 @@ export default function ReservationPage() {
                                   <p className="text-xs text-gray-500 dark:text-gray-400">{formatFileSize(file.size)}</p>
                                 </div>
                               </div>
-                              <span className="text-sm font-medium text-pink-600 dark:text-pink-400">{progress}%</span>
+                              <span className="text-sm font-medium text-[#7c3aed]">{progress}%</span>
                             </div>
                             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                               <div
-                                className="bg-pink-600 dark:bg-pink-400 h-2 rounded-full transition-all duration-300"
+                                className="bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${progress}%` }}
                               />
                             </div>
@@ -999,10 +1001,10 @@ export default function ReservationPage() {
 
                   {/* Error Display */}
                   {error && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                    <div className="bg-gradient-to-br from-[#b8dcff20] via-[#c9cbff20] to-[#e5c0ff20] border border-[#b8dcff80] dark:border-[#c9cbff80] rounded-xl p-4">
                       <div className="flex items-center">
-                        <AlertCircle className="w-5 h-5 text-red-400 mr-3" />
-                        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                        <AlertCircle className="w-5 h-5 text-[#7c3aed] mr-3" />
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{error}</p>
                       </div>
                     </div>
                   )}
@@ -1062,8 +1064,8 @@ export default function ReservationPage() {
                       Time *
                     </label>
                     {reservationForm.date && !isRestaurantOpenOnDate(reservationForm.date) ? (
-                      <div className="w-full px-4 py-3 border border-red-300 dark:border-red-600 rounded-xl bg-red-50 dark:bg-red-900/20">
-                        <p className="text-sm text-red-600 dark:text-red-400">
+                      <div className="w-full px-4 py-3 border border-[#b8dcff80] dark:border-[#c9cbff80] rounded-xl bg-gradient-to-br from-[#b8dcff20] via-[#c9cbff20] to-[#e5c0ff20]">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
                           Restaurant is closed on this date. Please select another date.
                         </p>
                       </div>
@@ -1090,7 +1092,7 @@ export default function ReservationPage() {
                       </select>
                     )}
                     {reservationForm.date && isRestaurantOpenOnDate(reservationForm.date) && getAvailableTimeSlots().length === 0 && (
-                      <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+                      <p className="text-sm text-[#7c3aed] mt-1">
                         No available time slots for this date. Please select another date.
                       </p>
                     )}
@@ -1232,10 +1234,10 @@ export default function ReservationPage() {
 
                   {/* Error Display */}
                   {error && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                    <div className="bg-gradient-to-br from-[#b8dcff20] via-[#c9cbff20] to-[#e5c0ff20] border border-[#b8dcff80] dark:border-[#c9cbff80] rounded-xl p-4">
                       <div className="flex items-center">
-                        <AlertCircle className="w-5 h-5 text-red-400 mr-3" />
-                        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                        <AlertCircle className="w-5 h-5 text-[#7c3aed] mr-3" />
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{error}</p>
                       </div>
                     </div>
                   )}
@@ -1252,11 +1254,11 @@ export default function ReservationPage() {
                     <button
                       type="submit"
                       disabled={isSubmittingReservation}
-                      className="flex-1 px-4 py-3 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-3 bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-gray-900 dark:text-white rounded-xl font-medium hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {isSubmittingReservation ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 dark:border-white"></div>
                           Booking...
                         </>
                       ) : (
@@ -1289,7 +1291,7 @@ export default function ReservationPage() {
                 </div>
                 <button
                   onClick={() => setReservationSuccess(null)}
-                  className="w-full px-4 py-3 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-200"
+                  className="w-full px-4 py-3 bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-gray-900 dark:text-white rounded-xl font-medium hover:shadow-md transition-all duration-200"
                 >
                   Close
                 </button>
@@ -1434,7 +1436,7 @@ export default function ReservationPage() {
         <div className="fixed bottom-4 right-4 lg:hidden z-40">
           <button
             onClick={() => setShowReservationModal(true)}
-            className="bg-gray-900 dark:bg-white dark:text-gray-900 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 font-medium"
+            className="bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-gray-900 dark:text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 font-medium"
           >
             <Calendar className="w-5 h-5" />
             Book Table

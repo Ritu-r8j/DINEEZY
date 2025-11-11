@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProviderWrapper from "./(components)/AuthProviderWrapper";
 import { CartProvider } from "./(contexts)/CartContext";
+import { ThemeProvider } from "./(contexts)/ThemeContext";
 import { Toaster } from "sonner";
 import ScrollRestorationFix from "./(components)/ScrollRestore";
 
@@ -54,13 +55,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Toaster/>
-        <AuthProviderWrapper>
-          <CartProvider>
-            <ScrollRestorationFix/>
-            {children}
-          </CartProvider>
-        </AuthProviderWrapper>
+        <ThemeProvider>
+          <Toaster/>
+          <AuthProviderWrapper>
+            <CartProvider>
+              <ScrollRestorationFix/>
+              {children}
+            </CartProvider>
+          </AuthProviderWrapper>
+        </ThemeProvider>
       </body>
     </html>
   );

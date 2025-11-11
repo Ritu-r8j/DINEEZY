@@ -174,7 +174,7 @@ export default function ReviewsSection({
                     onChange={(e) => onReviewFormChange({ ...reviewForm, comment: e.target.value })}
                     placeholder="Tell others about your experience at this restaurant..."
                     rows={4}
-                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none transition-all"
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#c9cbff] focus:border-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none transition-all"
                   />
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-xs text-gray-400 dark:text-gray-500">
@@ -226,9 +226,9 @@ export default function ReviewsSection({
                       {reviewMedia.length < 4 && (
                         <label
                           htmlFor="review-photos"
-                          className="aspect-square border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-red-400 dark:hover:border-red-500 transition-colors bg-gray-50 dark:bg-gray-900/50"
+                          className="aspect-square border-2 border-dashed border-[#b8dcff80] dark:border-[#c9cbff80] rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#c9cbff] dark:hover:border-[#e5c0ff] transition-colors bg-gradient-to-br from-[#b8dcff20] via-[#c9cbff20] to-[#e5c0ff20]"
                         >
-                          <Camera className="w-6 h-6 text-gray-400 dark:text-gray-500 mb-1" />
+                          <Camera className="w-6 h-6 text-[#7c3aed] mb-1" />
                           <span className="text-xs text-gray-500 dark:text-gray-400 text-center px-1">
                             Add photo
                           </span>
@@ -259,11 +259,11 @@ export default function ReviewsSection({
                   <button
                     onClick={onSubmitReview}
                     disabled={isSubmittingReview || reviewForm.rating === 0 || !reviewForm.comment.trim() || reviewForm.comment.length < 10}
-                    className="flex-1 px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center gap-2 font-medium"
+                    className="flex-1 px-6 py-3 bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-gray-900 dark:text-white rounded-xl hover:shadow-md disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-2 font-medium"
                   >
                     {isSubmittingReview ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 dark:border-white" />
                         {editingReview ? 'Updating...' : 'Publishing...'}
                       </>
                     ) : (
@@ -377,7 +377,7 @@ export default function ReviewsSection({
                                   className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-colors cursor-pointer"
                                   title="Delete review"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
+                                  <Trash2 className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400" />
                                 </button>
                               </div>
                             )}
@@ -452,7 +452,7 @@ export default function ReviewsSection({
               <div className="px-4 sm:px-6">
                 <button
                   onClick={() => {/* Handle show all reviews */ }}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-red-500 hover:text-red-600 font-medium text-sm transition-colors cursor-pointer border border-red-200 dark:border-red-800 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10"
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] hover:shadow-md font-medium text-sm transition-all cursor-pointer rounded-xl"
                 >
                   See all {reviews.length} reviews
                   <ChevronRight className="w-4 h-4" />
@@ -475,7 +475,7 @@ export default function ReviewsSection({
         <div className="px-4 sm:px-6 pb-4">
           <button
             onClick={onShowReviewForm}
-            className="w-full flex items-center justify-center gap-2 py-3 border border-red-200 dark:border-red-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl font-medium text-sm transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] hover:shadow-md rounded-xl font-medium text-sm transition-all cursor-pointer"
           >
             <Edit3 className="w-4 h-4" />
             Leave a review

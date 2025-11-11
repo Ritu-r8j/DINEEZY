@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { User, LogOut, ShoppingBag, Calendar, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ThemeToggle from './ThemeToggle';
 
 interface ProfileDropdownProps {
   className?: string;
@@ -181,6 +182,22 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                     <Calendar className="w-4 h-4" />
                     Reservations
                   </Link>
+                </motion.div>
+
+                <motion.div variants={{
+                  open: { opacity: 1, y: 0, scale: 1 },
+                  closed: { opacity: 0, y: -10, scale: 0.95 }
+                }} transition={{ duration: 0.3, ease: "easeOut" }}>
+                  <div className="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white">
+                    <div className="flex items-center gap-3">
+                      <Settings className="w-4 h-4" />
+                      <span>Theme</span>
+                    </div>
+                    <ThemeToggle
+                        size="sm"
+                        onClick={() => setIsOpen(false)}
+                    />
+                  </div>
                 </motion.div>
 
                 <motion.div variants={{
