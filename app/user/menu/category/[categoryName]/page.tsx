@@ -452,7 +452,7 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
           </linearGradient>
         </defs>
       </svg>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900 transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header with back button */}
         <div className="flex items-center gap-4 mb-4 sm:mb-6">
@@ -565,7 +565,7 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
         {/* Menu Items Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-14">
           {filteredItems.map((item) => (
-            <div key={item.id} className="group flex flex-col overflow-hidden rounded-2xl border border-foreground/5 bg-background/70 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
+            <div key={item.id} className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm hover:shadow-lg dark:hover:border-primary/20 transition-all duration-300">
               <div className="relative">
                 <img 
                   src={item.image} 
