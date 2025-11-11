@@ -565,7 +565,7 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
         {/* Menu Items Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-14">
           {filteredItems.map((item) => (
-            <div key={item.id} className="group bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+            <div key={item.id} className="group flex flex-col overflow-hidden rounded-2xl border border-foreground/5 bg-background/70 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
               <div className="relative">
                 <img 
                   src={item.image} 

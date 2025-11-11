@@ -444,7 +444,7 @@ export default function OrderManagement() {
         {/* Compact Order Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredOrders.map((order) => (
-            <div key={order.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-all duration-200">
+            <div key={order.id} className="bg-background/70 rounded-xl border border-foreground/5 p-4 hover:shadow-lg hover:border-primary/20 transition-all duration-200">
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">

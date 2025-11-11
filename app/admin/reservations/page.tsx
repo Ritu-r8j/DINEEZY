@@ -323,7 +323,7 @@ export default function ReservationsPage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-                <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-shadow duration-200 hover:shadow-md">
+                <div className="bg-background/70 p-4 sm:p-6 rounded-xl shadow-sm border border-foreground/5 transition-all duration-200 hover:shadow-md hover:border-primary/20">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Total</p>
@@ -335,7 +335,7 @@ export default function ReservationsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-shadow duration-200 hover:shadow-md">
+                <div className="bg-background/70 p-4 sm:p-6 rounded-xl shadow-sm border border-foreground/5 transition-all duration-200 hover:shadow-md hover:border-primary/20">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Confirmed</p>
@@ -347,7 +347,7 @@ export default function ReservationsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-shadow duration-200 hover:shadow-md">
+                <div className="bg-background/70 p-4 sm:p-6 rounded-xl shadow-sm border border-foreground/5 transition-all duration-200 hover:shadow-md hover:border-primary/20">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
@@ -359,7 +359,7 @@ export default function ReservationsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-shadow duration-200 hover:shadow-md">
+                <div className="bg-background/70 p-4 sm:p-6 rounded-xl shadow-sm border border-foreground/5 transition-all duration-200 hover:shadow-md hover:border-primary/20">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Guests</p>

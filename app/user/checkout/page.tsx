@@ -379,7 +379,7 @@ export default function Checkout() {
     // Show loading state while cart items are being loaded
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900 flex items-center justify-center">
                 <div className="text-center">
                     <Loader2 className="h-12 w-12 animate-spin text-black-600 dark:text-white-400 mx-auto mb-4" />
                     <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">Loading your cart...</p>
@@ -391,7 +391,7 @@ export default function Checkout() {
     // Show error state
     if (error && !isPlacingOrder) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900 flex items-center justify-center">
                 <div className="text-center">
                     <div className="text-red-500 dark:text-red-400 text-6xl mb-4">⚠️</div>
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Error Loading Checkout</h2>
@@ -410,7 +410,7 @@ export default function Checkout() {
     // Show empty cart message if no items
     if (cartItems.length === 0) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900 flex items-center justify-center">
                 <div className="text-center">
                     <svg className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -429,7 +429,7 @@ export default function Checkout() {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900">
             <div className="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 pb-20 lg:pb-6 max-w-7xl">
                 {/* Page Title */}
                 <div className={`text-center mb-3 sm:mb-4 md:mb-6 ${styles.fadeInUp}`}>
@@ -886,7 +886,7 @@ export default function Checkout() {
                                             <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Review Your Order</h3>
                                             <div className="space-y-2 sm:space-y-3">
                                                 {cartItems.map((item) => (
-                                                    <div key={item.id} className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                                    <div key={item.id} className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-background/70 rounded-2xl border border-foreground/5 hover:shadow-lg hover:border-primary/20 transition-all duration-300">
                                                         <Image
                                                             src={item.image}
                                                             alt={item.name}

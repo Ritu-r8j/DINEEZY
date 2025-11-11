@@ -462,7 +462,7 @@ export default function MenuManagement() {
         {/* Perfect & Polished Menu Items Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredItems.map((item) => (
-            <div key={item.id} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-3xl shadow-xl border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 hover:border-blue-300/50 dark:hover:border-blue-600/50 relative">
+            <div key={item.id} className="group bg-background/70 backdrop-blur-md rounded-3xl shadow-xl border border-foreground/5 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 hover:border-primary/20 relative">
               <div className="relative overflow-hidden">
                 <img
                   src={item.image}

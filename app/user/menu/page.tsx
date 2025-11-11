@@ -920,7 +920,7 @@ export default function MenuPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Location Permission Request */}
         {locationPermission === 'denied' && (
@@ -1044,7 +1044,7 @@ export default function MenuPage() {
             {restaurants.slice(0, 6).map((restaurant) => (
               <div
                 onClick={() => router.push(`/user/menu/${restaurant.id}`)}
-                key={restaurant.id} className="cursor-pointer group w-48 flex-shrink-0 overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-sm transition-all duration-300 hover:shadow-md">
+                key={restaurant.id} className="cursor-pointer group w-48 flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-foreground/5 bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/20">
                 <div className="relative">
                   <img
                     alt={restaurant.name}
@@ -1178,7 +1178,7 @@ export default function MenuPage() {
                   </div>
                   <div id={`menu-items-${categoryId}`} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                     {items.map((item) => (
-                      <div key={item.id} className="group w-48 flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+                      <div key={item.id} className="group w-48 flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-foreground/5 bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/20">
                         <div className="relative">
                           <img
                             src={item.image}

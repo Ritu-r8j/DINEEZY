@@ -234,7 +234,7 @@ export default function CustomerOrdersPage() {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-gray-900 dark:text-white mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Loading your orders...</p>
@@ -246,7 +246,7 @@ export default function CustomerOrdersPage() {
   // Show error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error Loading Orders</h2>
@@ -263,8 +263,9 @@ export default function CustomerOrdersPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
         <h2 className="text-4xl font-bold text-gray-900 dark:text-white">My Orders</h2>
         <p className="text-base font-light text-gray-600 dark:text-gray-400 mt-1">
           Track your orders and view order history
@@ -316,7 +317,7 @@ export default function CustomerOrdersPage() {
           </div>
         ) : (
           currentOrders.map((order) => (
-            <div key={order.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div key={order.id} className="bg-background/70 rounded-xl shadow-sm border border-foreground/5 overflow-hidden hover:shadow-lg transition-all duration-300">
               {/* Order Header */}
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -482,5 +483,6 @@ export default function CustomerOrdersPage() {
         </div>
       )}
     </div>
+  </div>
   );
 }

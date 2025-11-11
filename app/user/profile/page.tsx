@@ -533,8 +533,9 @@ export default function ProfilePage() {
   // Show login prompt for guest users
   if (!user && !loading) {
     return (
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-center min-h-[400px]">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -562,19 +563,22 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+    </div>
     );
   }
 
   if (loading || isLoading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-center min-h-[400px]">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-600 dark:text-gray-400" />
             <p className="text-gray-600 dark:text-gray-400">Loading profile...</p>
           </div>
         </div>
       </div>
+    </div>
     );
   }
 
@@ -583,8 +587,9 @@ export default function ProfilePage() {
   const progressWidth = `${Math.min(Math.max(tierStatus.progress, 0), 1) * 100}%`;
 
   return (
-    <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Page Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">My Account</h1>
         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
@@ -605,7 +610,7 @@ export default function ProfilePage() {
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Personal Info Section */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-foreground/5 p-6 transition-all duration-300 hover:shadow-xl hover:border-primary/20">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Personal Info</h2>
               <button
@@ -856,7 +861,7 @@ export default function ProfilePage() {
 
 
           {/* Order History Section */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-foreground/5 p-6 transition-all duration-300 hover:shadow-xl hover:border-primary/20">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Orders</h2>
               <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
@@ -927,7 +932,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Reservations Section */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-foreground/5 p-6 transition-all duration-300 hover:shadow-xl hover:border-primary/20">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Reservations</h2>
               <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
@@ -1087,7 +1092,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Account Stats */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-foreground/5 p-4 sm:p-6 transition-all duration-300 hover:shadow-xl hover:border-primary/20">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Account Stats</h3>
               {statsLoading && (
@@ -1258,7 +1263,7 @@ export default function ProfilePage() {
           </div> */}
 
           {/* Quick Actions */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-foreground/5 p-6 transition-all duration-300 hover:shadow-xl hover:border-primary/20">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
 
             <div className="space-y-3">
@@ -1288,6 +1293,7 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
