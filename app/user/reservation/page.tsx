@@ -611,7 +611,7 @@ export default function RestaurantListingPage() {
                                     </div>
                                     <input
                                         ref={searchInputRef}
-                                        className="block w-full pl-8 sm:pl-10 pr-8 sm:pr-10 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base shadow-sm"
+                                        className="block w-full pl-8 sm:pl-10 pr-8 sm:pr-10 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-background/70 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base shadow-sm transition-all duration-300"
                                         placeholder="Search restaurants, cuisines..."
                                         type="search"
                                         value={searchQuery}
@@ -647,7 +647,7 @@ export default function RestaurantListingPage() {
                                 {showSuggestions && (
                                     <div
                                         ref={suggestionsRef}
-                                        className="absolute top-full left-0 right-0 mt-1 sm:mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 sm:py-2 z-50 max-h-60 sm:max-h-80 overflow-y-auto overflow-x-hidden"
+                                        className="absolute top-full left-0 right-0 mt-1 sm:mt-2 rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-lg transition-all duration-300 hover:shadow-xl dark:hover:border-primary/20 py-1 sm:py-2 z-50 max-h-60 sm:max-h-80 overflow-y-auto overflow-x-hidden"
                                     >
                                         {searchQuery.trim().length > 0 ? (
                                             <>
@@ -793,7 +793,7 @@ export default function RestaurantListingPage() {
                         mobile-filter-sidebar
                     `}>
                                 <div className="sticky top-2 xl:top-4 h-full xl:h-auto">
-                                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 h-full xl:h-auto overflow-y-auto">
+                                    <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 p-3 sm:p-4 h-full xl:h-auto overflow-y-auto">
                                         {/* Mobile Header */}
                                         <div className="flex items-center justify-between mb-4 lg:hidden">
                                             <div>
@@ -958,14 +958,14 @@ export default function RestaurantListingPage() {
                                         <div className="flex space-x-2 hidden lg:flex">
                                             <button
                                                 onClick={scrollLeft}
-                                                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors dark:hover:bg-gray-700"
                                                 aria-label="Scroll left"
                                             >
                                                 <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                                             </button>
                                             <button
                                                 onClick={scrollRight}
-                                                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                                className="p-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors dark:hover:bg-gray-700"
                                                 aria-label="Scroll right"
                                             >
                                                 <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -985,7 +985,7 @@ export default function RestaurantListingPage() {
                                                 className="flex-shrink-0 w-64 sm:w-72 lg:w-80 cursor-pointer group"
                                                 onClick={() => router.push(`/user/menu/${restaurant.id}`)}
                                             >
-                                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                                                <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-md transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 overflow-hidden transform hover:scale-105">
                                                     <div className="relative">
                                                         <img
                                                             alt={restaurant.name}
@@ -1012,7 +1012,7 @@ export default function RestaurantListingPage() {
                                                         </div>
                                                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 line-clamp-2">{restaurant.description || 'Best restaurant in town'}</p>
                                                         <div className="flex items-center space-x-2 text-xs mb-3 sm:mb-4">
-                                                            <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">{getCuisineType(restaurant)}</span>
+                                                            <span className="bg-gray-200 dark:bg-background/70 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full border border-gray-200 dark:border-foreground/5">{getCuisineType(restaurant)}</span>
                                                         </div>
                                                         <div className="flex flex-col sm:flex-row gap-2 justify-between items-center">
                                                             <button
@@ -1020,7 +1020,7 @@ export default function RestaurantListingPage() {
                                                                     e.stopPropagation();
                                                                     router.push(`/user/menu/${restaurant.id}`);
                                                                 }}
-                                                                className="cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex items-center space-x-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-105 touch-manipulation w-full sm:w-auto shadow-sm hover:shadow-md"
+                                                                className="cursor-pointer bg-white dark:bg-background/70 text-gray-900 dark:text-white border border-gray-300 dark:border-foreground/5 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex items-center space-x-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-105 touch-manipulation w-full sm:w-auto shadow-sm hover:shadow-md dark:hover:border-primary/20"
                                                             >
 
                                                                 <span>View Menu</span>
@@ -1057,7 +1057,7 @@ export default function RestaurantListingPage() {
                                         {allRestaurants.map((restaurant, index) => (
                                             <div
                                                 key={restaurant.id || index}
-                                                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col sm:flex-row transform hover:shadow-xl transition-all duration-300 hover:scale-[1.01] sm:hover:scale-[1.02]"
+                                                className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-md transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 overflow-hidden flex flex-col sm:flex-row transform hover:scale-[1.01] sm:hover:scale-[1.02]"
                                             >
                                                 <img
                                                     alt={restaurant.name}
@@ -1079,7 +1079,7 @@ export default function RestaurantListingPage() {
                                                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 line-clamp-2">{restaurant.description || 'Best restaurant in town'}</p>
                                                         <div className="flex items-center space-x-2 text-xs mb-2 sm:mb-3">
                                                             {restaurant.specialties?.slice(0, 2).map((specialty, idx) => (
-                                                                <span key={idx} className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">{specialty}</span>
+                                                                <span key={idx} className="bg-gray-200 dark:bg-background/70 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full border border-gray-200 dark:border-foreground/5">{specialty}</span>
                                                             ))}
                                                         </div>
                                                         <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
@@ -1104,7 +1104,7 @@ export default function RestaurantListingPage() {
                                                                 e.stopPropagation();
                                                                 router.push(`/user/menu/${restaurant.id}`);
                                                             }}
-                                                            className="cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-105 touch-manipulation shadow-sm hover:shadow-md"
+                                                            className="cursor-pointer bg-white dark:bg-background/70 text-gray-900 dark:text-white border border-gray-300 dark:border-foreground/5 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:scale-105 touch-manipulation shadow-sm hover:shadow-md dark:hover:border-primary/20"
                                                         >
                                                             View Menu
                                                         </button>

@@ -62,7 +62,7 @@ export default function MediaGallery({
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <div className="w-10 h-10 bg-white/90 dark:bg-gray-900/90 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                        <div className="w-10 h-10 bg-white/90 dark:bg-background/70 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-200 border border-gray-200 dark:border-foreground/5">
                           <svg className="w-5 h-5 text-gray-900 dark:text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                           </svg>

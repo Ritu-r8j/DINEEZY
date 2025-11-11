@@ -174,7 +174,7 @@ export default function ReviewsSection({
                     onChange={(e) => onReviewFormChange({ ...reviewForm, comment: e.target.value })}
                     placeholder="Tell others about your experience at this restaurant..."
                     rows={4}
-                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#c9cbff] focus:border-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none transition-all"
+                    className="w-full bg-gray-50 dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#c9cbff] focus:border-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none transition-all dark:hover:border-primary/20"
                   />
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-xs text-gray-400 dark:text-gray-500">
@@ -207,7 +207,7 @@ export default function ReviewsSection({
                     <div className="grid grid-cols-4 gap-3">
                       {/* Existing Photos */}
                       {reviewMedia.map((file, index) => (
-                        <div key={index} className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+                        <div key={index} className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-background/70 border border-gray-200 dark:border-foreground/5">
                           <img
                             src={URL.createObjectURL(file)}
                             alt={`Photo ${index + 1}`}
@@ -301,7 +301,7 @@ export default function ReviewsSection({
                   return (
                     <div key={review.id} className={`flex-shrink-0 w-80 rounded-2xl p-4 border ${isCurrentUser
                       ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                      : 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700'
+                      : 'bg-gray-50 dark:bg-background/70 border-gray-100 dark:border-foreground/5'
                       } ${index === 0 ? 'ml-0' : ''} ${index === reviews.length - 1 ? 'mr-4' : ''}`}>
                       {/* Review Header */}
                       <div className="flex items-start gap-3 mb-3">
@@ -463,7 +463,7 @@ export default function ReviewsSection({
         ) : (
           /* Empty State */
           <div className="text-center py-12 px-4 sm:px-6">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-background/70 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-foreground/5">
               <MessageCircle className="w-8 h-8 text-gray-400 dark:text-gray-500" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No reviews yet</h3>

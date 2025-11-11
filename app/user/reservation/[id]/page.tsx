@@ -688,7 +688,7 @@ export default function ReservationPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="max-w-md mx-auto px-4 text-center">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 p-6">
             <div className="w-12 h-12 mx-auto mb-4 text-red-400">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -723,7 +723,7 @@ export default function ReservationPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="max-w-md mx-auto px-4 text-center">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 p-6">
             <div className="w-12 h-12 mx-auto mb-4">
               <div className="w-full h-full rounded-full bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] flex items-center justify-center">
                 <AlertCircle className="w-6 h-6 text-gray-900" />
@@ -760,7 +760,7 @@ export default function ReservationPage() {
           />
 
           {/* Photos Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Photos</h2>
@@ -908,7 +908,7 @@ export default function ReservationPage() {
         {/* Media Upload Modal */}
         {showMediaUpload && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-xl transition-all duration-300 hover:shadow-2xl dark:hover:border-primary/20 max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Add Photos & Videos</h3>
@@ -1027,7 +1027,7 @@ export default function ReservationPage() {
         {/* Reservation Modal */}
         {showReservationModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-xl transition-all duration-300 hover:shadow-2xl dark:hover:border-primary/20 max-w-md w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">Make a Reservation</h3>
@@ -1275,7 +1275,7 @@ export default function ReservationPage() {
         {/* Success Notification */}
         {reservationSuccess && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-xl transition-all duration-300 hover:shadow-2xl dark:hover:border-primary/20 max-w-md w-full p-6">
               <div className="text-center">
                 <div className="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
                   <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />

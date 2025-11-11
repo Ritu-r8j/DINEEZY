@@ -533,7 +533,7 @@ export default function ProfilePage() {
   // Show login prompt for guest users
   if (!user && !loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900">
+      <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900">
         <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
@@ -569,7 +569,7 @@ export default function ProfilePage() {
 
   if (loading || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900">
+      <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
@@ -587,7 +587,7 @@ export default function ProfilePage() {
   const progressWidth = `${Math.min(Math.max(tierStatus.progress, 0), 1) * 100}%`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900">
+    <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900">
       <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Page Header */}
       <div className="mb-8">
@@ -610,7 +610,7 @@ export default function ProfilePage() {
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Personal Info Section */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-white dark:bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-foreground/5 p-6 transition-all duration-300 hover:shadow-xl dark:hover:border-primary/20">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Personal Info</h2>
               <button
@@ -861,7 +861,7 @@ export default function ProfilePage() {
 
 
           {/* Order History Section */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-white dark:bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-foreground/5 p-6 transition-all duration-300 hover:shadow-xl dark:hover:border-primary/20">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Orders</h2>
               <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
@@ -932,7 +932,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Reservations Section */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-white dark:bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-foreground/5 p-6 transition-all duration-300 hover:shadow-xl dark:hover:border-primary/20">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Reservations</h2>
               <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
@@ -1092,7 +1092,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Account Stats */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-white dark:bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-foreground/5 p-4 sm:p-6 transition-all duration-300 hover:shadow-xl dark:hover:border-primary/20">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Account Stats</h3>
               {statsLoading && (
@@ -1263,7 +1263,7 @@ export default function ProfilePage() {
           </div> */}
 
           {/* Quick Actions */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl">
+          <div className="bg-white dark:bg-background/70 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-foreground/5 p-6 transition-all duration-300 hover:shadow-xl dark:hover:border-primary/20">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
 
             <div className="space-y-3">

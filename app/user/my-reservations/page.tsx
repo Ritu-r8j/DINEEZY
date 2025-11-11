@@ -437,7 +437,7 @@ export default function MyReservationsPage() {
                         </div>
                     ) : (
                         currentReservations.map((reservation) => (
-                            <div key={reservation.id} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.01]">
+                            <div key={reservation.id} className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 overflow-hidden p-6">
                                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                                     {/* Reservation Details */}
                                     <div className="flex-1">
@@ -502,7 +502,7 @@ export default function MyReservationsPage() {
                                         </div>
 
                                         {reservation.specialRequests && (
-                                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                                            <div className="bg-gray-50 dark:bg-gray-800/70 rounded-xl p-4 border border-gray-200 dark:border-gray-700/50">
                                                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Special Requests</p>
                                                 <p className="text-sm text-gray-700 dark:text-gray-300">
                                                     {reservation.specialRequests}
@@ -517,13 +517,13 @@ export default function MyReservationsPage() {
                                             <>
                                                 <button
                                                     onClick={() => handleModifyReservation(reservation.id)}
-                                                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-105"
+                                                    className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105"
                                                 >
                                                     Modify
                                                 </button>
                                                 <button
                                                     onClick={() => handleCancelReservation(reservation.id)}
-                                                    className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-xl font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 hover:scale-105"
+                                                    className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-xl font-medium hover:bg-red-50 dark:hover:bg-red-900/30 transition-all duration-200 hover:scale-105"
                                                 >
                                                     Cancel
                                                 </button>
@@ -537,7 +537,7 @@ export default function MyReservationsPage() {
                                                 </button>
                                                 <button
                                                     onClick={() => handleCancelReservation(reservation.id)}
-                                                    className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-xl font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 hover:scale-105"
+                                                    className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-xl font-medium hover:bg-red-50 dark:hover:bg-red-900/30 transition-all duration-200 hover:scale-105"
                                                 >
                                                     Cancel
                                                 </button>
@@ -596,7 +596,7 @@ export default function MyReservationsPage() {
                 {/* Modify Reservation Modal */}
                 {showModifyModal && selectedReservation && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -618,7 +618,7 @@ export default function MyReservationsPage() {
 
                             <div className="p-6 space-y-6">
                                 {/* Current Reservation Info */}
-                                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                                <div className="bg-gray-50 dark:bg-gray-800/70 rounded-xl p-4 border border-gray-200 dark:border-gray-700/50">
                                     <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Current Reservation</h4>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
@@ -674,7 +674,7 @@ export default function MyReservationsPage() {
                                                 value={modifyForm.date}
                                                 onChange={(e) => setModifyForm({ ...modifyForm, date: e.target.value })}
                                                 min={new Date().toISOString().split('T')[0]}
-                                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all duration-200"
+                                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all duration-200"
                                             />
                                         </div>
 
@@ -685,7 +685,7 @@ export default function MyReservationsPage() {
                                             <select
                                                 value={modifyForm.time}
                                                 onChange={(e) => setModifyForm({ ...modifyForm, time: e.target.value })}
-                                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all duration-200"
+                                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all duration-200"
                                             >
                                                 {timeSlots.map((time) => (
                                                     <option key={time} value={time}>{time}</option>
@@ -733,7 +733,7 @@ export default function MyReservationsPage() {
                                             onChange={(e) => setModifyForm({ ...modifyForm, specialRequests: e.target.value })}
                                             placeholder="Any special requests or dietary requirements..."
                                             rows={4}
-                                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all duration-200 resize-none"
+                                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all duration-200 resize-none"
                                         />
                                     </div>
                                 </div>
@@ -741,7 +741,7 @@ export default function MyReservationsPage() {
                                 {/* Availability Check */}
                                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                        <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
                                             <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>

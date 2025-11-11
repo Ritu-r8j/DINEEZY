@@ -534,7 +534,7 @@ export default function Checkout() {
 
                                             {user ? (
                                                 <div className="space-y-3">
-                                                    <div className="bg-gray-50 dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg p-3 mb-3 dark:hover:border-primary/20 transition-all duration-300">
+                                                    <div className="bg-white dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg p-3 mb-3 dark:hover:border-primary/20 transition-all duration-300">
                                                         <div className="flex items-center gap-2 text-gray-800 dark:text-gray-300">
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -596,7 +596,7 @@ export default function Checkout() {
                                                 </div>
                                             ) : (
                                                 <div className="space-y-3">
-                                                    <div className="bg-gray-50 dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg p-4 mb-4 dark:hover:border-primary/20 transition-all duration-300">
+                                                    <div className="bg-white dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg p-4 mb-4 dark:hover:border-primary/20 transition-all duration-300">
                                                         <div className="flex items-center gap-2 text-gray-800 dark:text-gray-300">
                                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -786,7 +786,7 @@ export default function Checkout() {
                                                 </div>
 
                                                 {/* Dine-In Experience Info */}
-                                                <div className="mt-4 p-3 sm:p-4 bg-white/70 dark:bg-background/70 rounded-lg border border-gray-200 dark:border-foreground/5 dark:hover:border-primary/20 transition-all duration-300">
+                                                <div className="mt-4 p-3 sm:p-4 bg-white dark:bg-background/70 rounded-lg border border-gray-200 dark:border-foreground/5 dark:hover:border-primary/20 transition-all duration-300">
                                                     <div className="flex items-start gap-2 sm:gap-3">
                                                         <svg className="w-5 h-5 text-gray-700 dark:text-gray-300 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1137,7 +1137,7 @@ export default function Checkout() {
                             {/* Order Info */}
                             {/* Dine-In Info Summary */}
                             {selectedOrderType?.id === 'dine-in' && (tablePreference || Object.values(diningPreferences).some(v => v)) && (
-                                <div className="mt-4 p-3 sm:p-4 bg-gray-50 dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg dark:hover:border-primary/20 transition-all duration-300">
+                                <div className="mt-4 p-3 sm:p-4 bg-white dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg dark:hover:border-primary/20 transition-all duration-300">
                                     <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-1">
                                         <svg className="w-3 h-3 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.8" d="M4 7h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4-4v4M8 3v4" />
@@ -1164,7 +1164,7 @@ export default function Checkout() {
                                 </div>
                             )}
 
-                            <div className="bg-gray-50 dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg p-3 sm:p-4 dark:hover:border-primary/20 transition-all duration-300">
+                            <div className="bg-white dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg p-3 sm:p-4 dark:hover:border-primary/20 transition-all duration-300">
                                 <div className="text-xs sm:text-sm text-gray-800 dark:text-gray-300">
                                     <div className="flex items-center gap-1 sm:gap-2 mb-1">
                                         <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1311,7 +1311,7 @@ export default function Checkout() {
                         {/* Order Info */}
                         {/* Dine-In Info Summary (Mobile) */}
                         {selectedOrderType?.id === 'dine-in' && (tablePreference || Object.values(diningPreferences).some(v => v)) && (
-                            <div className="mt-3 p-2 sm:p-3 bg-gray-50 dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg dark:hover:border-primary/20 transition-all duration-300">
+                            <div className="mt-3 p-2 sm:p-3 bg-white dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg dark:hover:border-primary/20 transition-all duration-300">
                                 <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-1">
                                     <svg className="w-3 h-3 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.8" d="M4 7h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4-4v4M8 3v4" />
@@ -1338,7 +1338,7 @@ export default function Checkout() {
                             </div>
                         )}
 
-                        <div className="bg-gray-50 dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg p-2 sm:p-3 dark:hover:border-primary/20 transition-all duration-300">
+                        <div className="bg-white dark:bg-background/70 border border-gray-200 dark:border-foreground/5 rounded-lg p-2 sm:p-3 dark:hover:border-primary/20 transition-all duration-300">
                             <div className="text-xs text-gray-800 dark:text-gray-300">
                                 <div className="flex items-center gap-1 mb-1">
                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
