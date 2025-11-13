@@ -7,7 +7,6 @@ import Image from 'next/image';
 import {
     Search,
     Clock,
-    Star,
     MapPin,
     ShoppingCart,
     X,
@@ -17,6 +16,7 @@ import {
     CheckCircle,
     AlertCircle
 } from 'lucide-react';
+import GradientStar from '@/components/ui/GradientStar';
 
 // Add custom styles for better mobile experience
 const customStyles = `
@@ -401,16 +401,6 @@ export default function Menu() {
     return (
         <>
             <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-            {/* SVG Gradient Definition for Stars */}
-            <svg className="absolute w-0 h-0" aria-hidden="true">
-                <defs>
-                    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#b8dcff" />
-                        <stop offset="50%" stopColor="#c9cbff" />
-                        <stop offset="100%" stopColor="#e5c0ff" />
-                    </linearGradient>
-                </defs>
-            </svg>
         <div className="min-h-screen bg-gradient-to-br from-background via-muted/10 to-background">
             {/* Enhanced Hero Section with Better Responsiveness */}
             <section className="relative overflow-hidden">
@@ -792,7 +782,7 @@ export default function Menu() {
                                                     {/* Rating and Status */}
                                                     <div className="flex items-center gap-2">
                                                         <div className="flex items-center gap-1">
-                                                            <Star className="w-3 h-3" fill="url(#starGradient)" stroke="none" />
+                                                            <GradientStar size={12} />
                                                             <span className="text-sm font-semibold text-foreground">4.5</span>
                                                 </div>
                                                         {item.available ? (
@@ -929,7 +919,7 @@ export default function Menu() {
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-1.5 xs:gap-2">
                                                         <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 xs:px-3 py-1">
-                                                            <Star className="w-3 xs:w-4 h-3 xs:h-4" fill="url(#starGradient)" stroke="none" />
+                                                            <GradientStar size={12} className="xs:w-4 xs:h-4" />
                                                             <span className="text-white text-xs xs:text-sm font-semibold">4.5</span>
                                                         </div>
                                                         {item.preparationTime && (

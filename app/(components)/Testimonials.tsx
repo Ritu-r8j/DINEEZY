@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TESTIMONIALS } from '@/lib/testimonialsData';
 import { usePrefersReducedMotion } from '@/lib/usePrefersReducedMotion';
+import GradientStar from '@/components/ui/GradientStar';
 
 export function Testimonials() {
   const reduced = usePrefersReducedMotion();
@@ -100,18 +101,11 @@ export function Testimonials() {
                       </p>
                       <div className="flex justify-center lg:justify-start gap-1" aria-label={`${TESTIMONIALS[index].rating} out of 5 stars`}>
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <svg
+                          <GradientStar
                             key={i}
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill={i < TESTIMONIALS[index].rating ? 'currentColor' : 'none'}
-                            stroke="currentColor"
-                            className={`inline-block ${i < TESTIMONIALS[index].rating ? 'text-black dark:text-white' : 'text-muted-foreground'}`}
-                            aria-hidden
-                          >
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z" />
-                          </svg>
+                            size={20}
+                            className={i < TESTIMONIALS[index].rating ? 'opacity-100' : 'opacity-30'}
+                          />
                         ))}
                       </div>
                     </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { Star, MessageCircle, X, Camera, ChevronRight, Edit3, Trash2 } from 'lucide-react';
+import { MessageCircle, X, Camera, ChevronRight, Edit3, Trash2 } from 'lucide-react';
+import GradientStar from '@/components/ui/GradientStar';
 import { RestaurantReviewData } from '@/app/(utils)/firebaseOperations';
 
 interface ReviewsSectionProps {
@@ -52,9 +53,9 @@ export default function ReviewsSection({
     size?: 'small' | 'default' | 'large';
   }) => {
     const sizeClasses = {
-      small: 'w-4 h-4',
-      default: 'w-5 h-5',
-      large: 'w-6 h-6'
+      small: 16,
+      default: 20,
+      large: 24
     };
 
     return (
@@ -65,13 +66,12 @@ export default function ReviewsSection({
             type="button"
             onClick={() => !readonly && onRatingChange?.(star)}
             disabled={readonly}
-            className={`${sizeClasses[size]} ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'
+            className={`${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'
               } transition-transform duration-200`}
           >
-            <Star
-              className="w-full h-full"
-              fill={star <= rating ? "url(#starGradient)" : "none"}
-              stroke={star <= rating ? "url(#starGradient)" : "currentColor"}
+            <GradientStar
+              size={sizeClasses[size]}
+              className={star <= rating ? 'opacity-100' : 'opacity-30'}
             />
           </button>
         ))}
@@ -81,16 +81,6 @@ export default function ReviewsSection({
 
   return (
     <div>
-      {/* SVG Gradient Definition for Stars */}
-      <svg className="absolute w-0 h-0" aria-hidden="true">
-        <defs>
-          <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#b8dcff" />
-            <stop offset="50%" stopColor="#c9cbff" />
-            <stop offset="100%" stopColor="#e5c0ff" />
-          </linearGradient>
-        </defs>
-      </svg>
       <div className="bg-white dark:bg-[#0f1419] rounded-lg">
       {/* Reviews Header */}
       <div className="p-4 sm:p-6 pb-4">

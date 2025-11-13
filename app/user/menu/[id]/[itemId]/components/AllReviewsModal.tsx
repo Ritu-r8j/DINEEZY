@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Star, ThumbsUp, ThumbsDown, Play } from 'lucide-react';
+import { X, ThumbsUp, ThumbsDown, Play } from 'lucide-react';
 import { ReviewData } from '@/app/(utils)/firebaseOperations';
+import GradientStar from '@/components/ui/GradientStar';
 interface AllReviewsModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -68,16 +69,6 @@ export default function AllReviewsModal({
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-            {/* SVG Gradient Definition for Stars */}
-            <svg className="absolute w-0 h-0" aria-hidden="true">
-                <defs>
-                    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#b8dcff" />
-                        <stop offset="50%" stopColor="#c9cbff" />
-                        <stop offset="100%" stopColor="#e5c0ff" />
-                    </linearGradient>
-                </defs>
-            </svg>
             {/* Backdrop */}
             <div 
                 className="fixed inset-0 bg-black/50 transition-opacity"
@@ -133,13 +124,12 @@ export default function AllReviewsModal({
                                                     <h4 className="font-semibold text-gray-900 dark:text-white text-sm">{review.userName}</h4>
                                                     <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(review.createdAt)}</p>
                                                 </div>
-                                                <div className="flex items-center text-black dark:text-white">
+                                                <div className="flex items-center">
                                                     {[1, 2, 3, 4, 5].map((star) => (
-                                                        <Star
+                                                        <GradientStar
                                                             key={star}
-                                                            className="w-3.5 h-3.5"
-                                                            fill={star <= review.rating ? "url(#starGradient)" : "none"}
-                                                            stroke="none"
+                                                            size={14}
+                                                            className={star <= review.rating ? 'opacity-100' : 'opacity-30'}
                                                         />
                                                     ))}
                                                 </div>

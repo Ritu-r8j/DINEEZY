@@ -1,9 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Star, ThumbsUp, ThumbsDown, Play, Eye } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Play, Eye } from 'lucide-react';
 import { ReviewData } from '@/app/(utils)/firebaseOperations';
 import { useState } from 'react';
+import GradientStar from '@/components/ui/GradientStar';
 
 interface ReviewListProps {
     reviews: ReviewData[];
@@ -46,16 +47,6 @@ export default function ReviewList({
 
     return (
         <div>
-            {/* SVG Gradient Definition for Stars */}
-            <svg className="absolute w-0 h-0" aria-hidden="true">
-                <defs>
-                    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#b8dcff" />
-                        <stop offset="50%" stopColor="#c9cbff" />
-                        <stop offset="100%" stopColor="#e5c0ff" />
-                    </linearGradient>
-                </defs>
-            </svg>
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -103,13 +94,12 @@ export default function ReviewList({
                                     <h4 className="font-bold text-gray-900 dark:text-white text-sm xs:text-base truncate">{review.userName}</h4>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{formatDate(review.createdAt)}</p>
                                 </div>
-                                <div className="flex items-center text-black dark:text-white flex-shrink-0">
+                                <div className="flex items-center flex-shrink-0">
                                     {[1, 2, 3, 4, 5].map((star) => (
-                                        <Star
+                                        <GradientStar
                                             key={star}
-                                            className="w-4 h-4 xs:w-4 xs:h-4"
-                                            fill={star <= review.rating ? "url(#starGradient)" : "none"}
-                                            stroke="none"
+                                            size={16}
+                                            className={star <= review.rating ? 'opacity-100' : 'opacity-30'}
                                         />
                                     ))}
                                 </div>

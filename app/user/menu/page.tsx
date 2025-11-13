@@ -9,34 +9,7 @@ import { CartManager } from '@/app/(utils)/cartUtils';
 import { useCart } from '@/app/(contexts)/CartContext';
 import { DEFAULT_CATEGORIES } from '@/lib/categoryData';
 
-// Custom Gradient Star Component
-const GradientStar = ({ size = 16 }: { size?: number }) => {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#b8dcff" stopOpacity={0.5} />
-          <stop offset="50%" stopColor="#c9cbff" stopOpacity={0.5} />
-          <stop offset="100%" stopColor="#e5c0ff" stopOpacity={0.5} />
-        </linearGradient>
-      </defs>
-      <path
-        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-        fill="url(#starGradient)"
-        stroke="url(#starGradient)"
-        strokeWidth="1"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-};
+import GradientStar from '@/components/ui/GradientStar';
 
 // Filter Icons SVG Components
 const VegetarianIcon = ({ size = 16 }: { size?: number }) => (
@@ -1297,32 +1270,32 @@ export default function MenuPage() {
                           </div>
 
                           {/* Enhanced Dietary Info */}
-                          <div className="flex flex-wrap gap-0.5 mb-2">
+                          <div className="flex flex-wrap gap-1 mb-2">
                             {item.isVegetarian && (
-                              <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full font-medium">
-                                🌱 Veg
+                              <span className="px-2 py-0.5 text-xs font-medium border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/20 rounded">
+                                Vegetarian
                               </span>
                             )}
                             {item.isVegan && (
-                              <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs rounded-full font-medium border border-blue-200 dark:border-blue-800">
-                                🌿 Vegan
+                              <span className="px-2 py-0.5 text-xs font-medium border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/20 rounded">
+                                Vegan
                               </span>
                             )}
                             {item.isGlutenFree && (
-                              <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded-full font-medium">
-                                🚫 GF
+                              <span className="px-2 py-0.5 text-xs font-medium border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/20 rounded">
+                                Gluten Free
                               </span>
                             )}
 
                             {/* Variants & Add-ons Indicators */}
                             {item.variants && item.variants.length > 0 && (
-                              <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs rounded-full font-medium border border-blue-200 dark:border-blue-800">
+                              <span className="px-2 py-0.5 text-xs font-medium border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/20 rounded">
                                 {item.variants.length} variant{item.variants.length > 1 ? 's' : ''}
                               </span>
                             )}
                             {item.addons && item.addons.length > 0 && (
-                              <span className="px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs rounded-full font-medium">
-                                +{item.addons.length} add-on{item.addons.length > 1 ? 's' : ''}
+                              <span className="px-2 py-0.5 text-xs font-medium border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/20 rounded">
+                                {item.addons.length} add-on{item.addons.length > 1 ? 's' : ''}
                               </span>
                             )}
                           </div>

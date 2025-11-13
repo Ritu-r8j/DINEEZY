@@ -796,7 +796,7 @@ export default function Checkout() {
                                                             <p className="text-xs text-gray-600 dark:text-gray-400">
                                                                 We'll do our best to accommodate your preferences. Our staff will confirm your table selection upon arrival.
                                                                 <span className="block mt-1 font-medium text-gray-700 dark:text-gray-300">
-                                                                    🍽️ No service charge • 💫 Premium dining experience
+                                                                    No service charge • Premium dining experience
                                                                 </span>
                                                             </p>
                                                         </div>

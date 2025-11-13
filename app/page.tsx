@@ -16,7 +16,6 @@ import {
   Phone,
   QrCode,
   Sparkles,
-  Star,
   Twitter,
   Utensils,
   Wine,
@@ -24,6 +23,7 @@ import {
   CreditCard,
   BarChart3
 } from "lucide-react";
+import GradientStar from "@/components/ui/GradientStar";
 import { useTheme } from "./(contexts)/ThemeContext";
 import { useAuth } from "./(contexts)/AuthContext";
 import Link from "next/link";
@@ -679,10 +679,10 @@ export default function HomePage() {
     const roundedRating = Math.round(dishRating);
 
     return Array.from({ length: 5 }).map((_, index) => (
-      <Star
+      <GradientStar
         key={index}
-        className={`h-4 w-4 ${index < roundedRating ? "text-transparent bg-clip-text bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff]" : "text-gray-300"}`}
-        fill={index < roundedRating ? "url(#starGradient)" : "none"}
+        size={16}
+        className={index < roundedRating ? 'opacity-100' : 'opacity-30'}
       />
     ));
   };
@@ -698,17 +698,6 @@ export default function HomePage() {
         rel="stylesheet"
         href="data:text/css;base64,QG1lZGlhIG9ubHkgc2NyZWVuIHsKICBAa2V5ZnJhbWVzIGluZmluaXRlLXNjcm9sbCB7CiAgICAlICUgewogICAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoMCk7CiAgICB9CiAgICAxMDAlIHsKICAgICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVYKC01MCUpOwogICAgfQogIH0KfQouaW5maW5pdGUtc2Nyb2xsLWNvbnRhaW5lciB7CiAgZGlzcGxheTogZmxleDsKICBvdmVyZmxvdy14OiBhdXRvOwogIG92ZXJmbG93LXk6IGhpZGRlbjsKICBzY3JvbGwtYmVoYXZpb3I6IHNtb290aDsKICAtd2Via2l0LW92ZXJmbG93LXNjcm9sbGluZzogdG91Y2g7CiAgc2Nyb2xsYmFyLXdpZHRoOiBub25lOwogIC1tcy1vdmVyZmxvdy1zdHlsZTogbm9uZTsKfQouaW5maW5pdGUtc2Nyb2xsLWNvbnRhaW5lcjo6LXdlYmtpdC1zY3JvbGxiYXIgewogIGRpc3BsYXk6IG5vbmU7Cn0KLmluZmluaXRlLXNjcm9sbC13cmFwcGVyIHsKICBkaXNwbGF5OiBmbGV4OwogIHdpZHRoOiBmaXQtY29udGVudDsKfQo="
       />
-
-      {/* SVG Gradient Definition for Stars */}
-      <svg className="absolute w-0 h-0" aria-hidden="true">
-        <defs>
-          <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#b8dcff" />
-            <stop offset="50%" stopColor="#c9cbff" />
-            <stop offset="100%" stopColor="#e5c0ff" />
-          </linearGradient>
-        </defs>
-      </svg>
       <style jsx global>{`
         .dish-marquee,
         .restaurant-marquee {
@@ -1311,7 +1300,7 @@ export default function HomePage() {
                             </div>
                             {(restaurantRatings[restaurant.adminId]?.averageRating || restaurant.rating || 0) > 0 && (
                               <div className="flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-sm font-semibold text-primary flex-shrink-0">
-                                <Star className="h-3 w-3 sm:h-4 sm:w-4" fill="url(#starGradient)" />
+                                <GradientStar size={16} className="sm:w-4 sm:h-4" />
                                 <span className="text-xs sm:text-sm">
                                   {(restaurantRatings[restaurant.adminId]?.averageRating || restaurant.rating || 0).toFixed(1)}
                                 </span>
@@ -1427,11 +1416,9 @@ export default function HomePage() {
                   </div>
                   <p className="flex-1 text-sm leading-relaxed text-muted-foreground">{testimonial.quote}</p>
                   <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4" fill="url(#starGradient)" stroke="none" />
-                    <Star className="h-4 w-4" fill="url(#starGradient)" stroke="none" />
-                    <Star className="h-4 w-4" fill="url(#starGradient)" stroke="none" />
-                    <Star className="h-4 w-4" fill="url(#starGradient)" stroke="none" />
-                    <Star className="h-4 w-4" fill="url(#starGradient)" stroke="none" />
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <GradientStar key={star} size={16} />
+                    ))}
                   </div>
                 </motion.div>
               ))}

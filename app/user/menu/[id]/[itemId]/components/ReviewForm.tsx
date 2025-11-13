@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Star, Send, Loader2 } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 import MediaUpload from './MediaUpload';
 import { uploadToCloudinary } from '@/app/(utils)/cloudinary';
 import { ReviewMedia } from '@/app/(utils)/firebaseOperations';
+import GradientStar from '@/components/ui/GradientStar';
 
 interface ReviewFormProps {
     onSubmit: (reviewData: {
@@ -116,16 +117,6 @@ export default function ReviewForm({ onSubmit, onCancel, isSubmitting, error }: 
 
     return (
         <div>
-            {/* SVG Gradient Definition for Stars */}
-            <svg className="absolute w-0 h-0" aria-hidden="true">
-                <defs>
-                    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#b8dcff" />
-                        <stop offset="50%" stopColor="#c9cbff" />
-                        <stop offset="100%" stopColor="#e5c0ff" />
-                    </linearGradient>
-                </defs>
-            </svg>
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Write a Review</h3>
             
@@ -141,10 +132,9 @@ export default function ReviewForm({ onSubmit, onCancel, isSubmitting, error }: 
                             onClick={() => setRating(star)}
                             className="text-2xl transition-colors"
                         >
-                            <Star
-                                className="w-6 h-6"
-                                fill={star <= rating ? "url(#starGradient)" : "none"}
-                                stroke={star <= rating ? "url(#starGradient)" : "currentColor"}
+                            <GradientStar
+                                size={24}
+                                className={star <= rating ? 'opacity-100' : 'opacity-30'}
                             />
                         </button>
                     ))}

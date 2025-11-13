@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Search, Star, ChevronDown, MapPin, Heart, ChevronLeft, ChevronRight, Calendar, Users, UtensilsCrossed, X } from 'lucide-react';
+import { Search, ChevronDown, MapPin, Heart, ChevronLeft, ChevronRight, Calendar, Users, UtensilsCrossed, X } from 'lucide-react';
+import GradientStar from '@/components/ui/GradientStar';
 import { getAllRestaurants, getFilteredRestaurants, getRestaurantRating, RestaurantSettings } from '@/app/(utils)/firebaseOperations';
 import { useRouter } from 'next/navigation';
 
@@ -582,16 +583,6 @@ export default function RestaurantListingPage() {
 
     return (
         <>
-            {/* SVG Gradient Definition for Stars */}
-            <svg className="absolute w-0 h-0" aria-hidden="true">
-                <defs>
-                    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#b8dcff" />
-                        <stop offset="50%" stopColor="#c9cbff" />
-                        <stop offset="100%" stopColor="#e5c0ff" />
-                    </linearGradient>
-                </defs>
-            </svg>
 
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 {/* Mobile Filter Overlay */}
@@ -679,7 +670,7 @@ export default function RestaurantListingPage() {
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                                                                    <Star className="w-3 h-3" fill="url(#starGradient)" stroke="none" />
+                                                                    <GradientStar size={12} />
                                                                     <span className="font-medium">{getRating(restaurant)}</span>
                                                                 </div>
                                                             </button>
@@ -770,7 +761,7 @@ export default function RestaurantListingPage() {
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                                                            <Star className="w-3 h-3" fill="url(#starGradient)" stroke="none" />
+                                                            <GradientStar size={12} />
                                                             <span className="font-medium">{getRating(restaurant)}</span>
                                                         </div>
                                                     </button>
@@ -951,7 +942,7 @@ export default function RestaurantListingPage() {
                                 <section>
                                     <div className="flex items-center justify-between mb-3 sm:mb-4">
                                         <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                                            <Star fill="gray" stroke="none" className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 mr-2" />
+                                            <GradientStar size={20} className="sm:w-6 sm:h-6 lg:w-7 lg:h-7 mr-2 opacity-50" />
                                             <span className="hidden sm:inline">Featured Restaurants</span>
                                             <span className="sm:hidden">Featured</span>
                                         </h2>
@@ -1005,7 +996,7 @@ export default function RestaurantListingPage() {
                                                     <div className="p-3 sm:p-4">
                                                         <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">{restaurant.name}</h3>
                                                         <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                                            <Star className="h-3 w-3 sm:h-4 sm:w-4" fill="url(#starGradient)" stroke="none" />
+                                                            <GradientStar size={16} className="sm:w-4 sm:h-4" />
                                                             <span className="ml-1">{getRating(restaurant)}</span>
                                                             <span className="mx-2">•</span>
                                                             <span>{getTotalReviews(restaurant)} reviews</span>
@@ -1069,7 +1060,7 @@ export default function RestaurantListingPage() {
                                                         <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">{restaurant.name}</h3>
                                                         <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
 
-                                                            <Star className="h-3 w-3 sm:h-4 sm:w-4" fill="url(#starGradient)" stroke="none" />
+                                                            <GradientStar size={16} className="sm:w-4 sm:h-4" />
                                                             <span className="ml-1">{getRating(restaurant)}</span>
                                                             <span className="mx-2">•</span>
                                                             <span>{getTotalReviews(restaurant)} reviews</span>
