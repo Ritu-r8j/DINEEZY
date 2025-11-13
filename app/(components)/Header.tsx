@@ -118,8 +118,6 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                     {/* Actions */}
                     <div className="flex items-center gap-2 sm:gap-3 ml-auto">
 
-                        <ThemeToggle />
-
                         {/* Cart */}
                         <Link
                             href="/user/checkout"

@@ -924,13 +924,13 @@ export default function MenuPage() {
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Location Permission Request */}
         {locationPermission === 'denied' && (
-          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="mb-6 p-4 bg-gradient-to-br from-white/10 to-transparent border border-foreground/10 backdrop-blur-md rounded-xl shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <MapPin className="h-5 w-5 text-foreground/80" />
                 <div>
-                  <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200">Enable location for better experience</h3>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">Get personalized restaurant recommendations and delivery estimates</p>
+                  <h3 className="text-sm font-medium text-foreground">Enable location for better experience</h3>
+                  <p className="text-xs text-foreground/70">Get personalized restaurant recommendations and delivery estimates</p>
                 </div>
               </div>
               <button
@@ -947,7 +947,7 @@ export default function MenuPage() {
                     console.error('Location request failed:', error);
                   }
                 }}
-                className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
+                className="px-3 py-1.5 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground text-xs font-medium rounded-lg hover:shadow-lg hover:from-primary/90 hover:to-primary transition-all duration-300 hover:-translate-y-0.5"
               >
                 Enable
               </button>
@@ -1093,7 +1093,7 @@ export default function MenuPage() {
                     <span className="line-clamp-1">{restaurant.address?.city || restaurant.location}</span>
                   </div>
                   {restaurant.distance && restaurant.distance !== 'Distance unavailable' && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    <p className="text-xs text-primary dark:text-primary/90 mt-1">
                       {restaurant.distance} away
                     </p>
                   )}
@@ -1304,7 +1304,7 @@ export default function MenuPage() {
                               </span>
                             )}
                             {item.isVegan && (
-                              <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full font-medium">
+                              <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs rounded-full font-medium border border-blue-200 dark:border-blue-800">
                                 🌿 Vegan
                               </span>
                             )}
@@ -1316,7 +1316,7 @@ export default function MenuPage() {
 
                             {/* Variants & Add-ons Indicators */}
                             {item.variants && item.variants.length > 0 && (
-                              <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full font-medium">
+                              <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs rounded-full font-medium border border-blue-200 dark:border-blue-800">
                                 {item.variants.length} variant{item.variants.length > 1 ? 's' : ''}
                               </span>
                             )}
