@@ -1041,19 +1041,19 @@ export default function HomePage() {
                           key={dishIndex}
                           className="flex w-[280px] shrink-0 flex-col overflow-hidden rounded-2xl border border-foreground/5 bg-background/70 shadow-sm md:w-[320px] lg:w-[350px] animate-pulse"
                         >
-                          <div className="h-40 sm:h-44 w-full bg-gray-200 dark:bg-gray-700" />
+                          <div className="h-40 sm:h-44 w-full bg-gray-200 dark:bg-gray-800" />
                           <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
                             <div className="space-y-2">
-                              <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                              <div className="h-5 bg-gray-200 dark:bg-gray-800 rounded w-3/4" />
+                              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/2" />
                             </div>
                             <div className="space-y-2">
-                              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-                              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+                              <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-full" />
+                              <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-2/3" />
                             </div>
                             <div className="flex justify-between items-center mt-2">
-                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16" />
-                              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+                              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-16" />
+                              <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded w-20" />
                             </div>
                           </div>
                         </div>
@@ -1232,26 +1232,26 @@ export default function HomePage() {
                       key={index}
                       className="flex w-[280px] shrink-0 flex-col overflow-hidden rounded-2xl border border-foreground/5 bg-background/70 shadow-sm md:w-[320px] lg:w-[380px] xl:w-[400px] animate-pulse"
                     >
-                      <div className="h-48 sm:h-52 w-full bg-gray-200 dark:bg-gray-700" />
+                      <div className="h-48 sm:h-52 w-full bg-gray-200 dark:bg-gray-800" />
                       <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
                         <div className="flex justify-between items-start">
                           <div className="space-y-2 flex-1">
-                            <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                            <div className="h-5 bg-gray-200 dark:bg-gray-800 rounded w-3/4" />
+                            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/2" />
                           </div>
-                          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-12" />
+                          <div className="h-6 bg-gray-200 dark:bg-gray-800 rounded w-12" />
                         </div>
                         <div className="space-y-2">
-                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+                          <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-full" />
+                          <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-2/3" />
                         </div>
                         <div className="space-y-1">
-                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                          <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-full" />
+                          <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-3/4" />
                         </div>
                         <div className="flex gap-2 mt-2">
-                          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1" />
-                          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1" />
+                          <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded flex-1" />
+                          <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded flex-1" />
                         </div>
                       </div>
                     </div>

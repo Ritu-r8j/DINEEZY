@@ -863,10 +863,10 @@ export default function MenuPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900 transition-colors duration-200 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-600 dark:text-gray-400" />
-          <p className="text-gray-600 dark:text-gray-400">Loading restaurants and menu items...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading restaurants and menu items...</p>
         </div>
       </div>
     );

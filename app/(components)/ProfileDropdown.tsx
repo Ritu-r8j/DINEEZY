@@ -101,7 +101,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="absolute right-0 mt-2 w-72 z-50"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+            <div className="bg-white/95 dark:bg-background/70 rounded-xl shadow-lg border border-gray-200 dark:border-foreground/5 backdrop-blur-md py-2 dark:hover:border-primary/20 transition-all duration-300">
               {/* User Info */}
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3">
@@ -111,10 +111,10 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {getUserName()}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {userProfile?.email || user.email}
                     </p>
                   </div>
@@ -149,7 +149,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   <Link
                     href="/user/profile"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
                   >
                     <User className="w-4 h-4" />
                     Profile
@@ -163,7 +163,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   <Link
                     href="/user/orders"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
                   >
                     <ShoppingBag className="w-4 h-4" />
                     My Orders
@@ -177,7 +177,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   <Link
                     href="/user/my-reservations"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
                   >
                     <Calendar className="w-4 h-4" />
                     Reservations
@@ -188,7 +188,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   open: { opacity: 1, y: 0, scale: 1 },
                   closed: { opacity: 0, y: -10, scale: 0.95 }
                 }} transition={{ duration: 0.3, ease: "easeOut" }}>
-                  <div className="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white">
+                  <div className="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground">
                     <div className="flex items-center gap-3">
                       <Settings className="w-4 h-4" />
                       <span>Theme</span>
@@ -207,7 +207,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   <Link
                     href="/user/profile"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
                   >
                     <Settings className="w-4 h-4" />
                     Settings
@@ -224,7 +224,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                 >
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-destructive hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
                     <LogOut className="w-4 h-4" />
                     Sign Out

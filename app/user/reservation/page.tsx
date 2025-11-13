@@ -548,7 +548,7 @@ export default function RestaurantListingPage() {
 
     if (loading || !locationFetched) {
         return (
-            <div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 dark:border-slate-700 border-t-gray-900 dark:border-t-slate-300 mx-auto mb-3"></div>
                     <h3 className="text-sm font-medium text-gray-900 dark:text-white">
