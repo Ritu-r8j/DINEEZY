@@ -19,8 +19,6 @@ import {
   Star,
   Sparkles,
   MapPin,
-  Share2,
-  Navigation,
 } from 'lucide-react';
 import {
   saveRestaurantSettings,
@@ -81,13 +79,6 @@ type SettingsState = {
   description?: string;
   topPicks?: string[];
   deliveryTime?: string;
-  // Social Media & Links
-  socialMedia?: {
-    facebook?: string;
-    instagram?: string;
-    twitter?: string;
-  };
-  mapDirectionsLink?: string;
 };
 
 const DEFAULT_HOURS: Record<DayKey, DayHours> = {
@@ -152,13 +143,6 @@ export default function AdminSettingsPage() {
     description: '',
     topPicks: [],
     deliveryTime: '20-30 min',
-    // Social Media & Links
-    socialMedia: {
-      facebook: '',
-      instagram: '',
-      twitter: '',
-    },
-    mapDirectionsLink: '',
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -211,13 +195,6 @@ export default function AdminSettingsPage() {
             description: data.description || '',
             topPicks: data.topPicks || [],
             deliveryTime: data.deliveryTime || '20-30 min',
-            // Social Media & Links
-            socialMedia: {
-              facebook: data.socialMedia?.facebook || '',
-              instagram: data.socialMedia?.instagram || '',
-              twitter: data.socialMedia?.twitter || '',
-            },
-            mapDirectionsLink: data.mapDirectionsLink || '',
           });
         } else {
           // No settings found, use defaults
@@ -251,16 +228,6 @@ export default function AdminSettingsPage() {
 
   function setLocation(location: { lat: number; lng: number } | undefined) {
     setState((s) => ({ ...s, location }));
-  }
-
-  function setSocialMedia(platform: 'facebook' | 'instagram' | 'twitter', value: string) {
-    setState((s) => ({
-      ...s,
-      socialMedia: {
-        ...s.socialMedia,
-        [platform]: value,
-      },
-    }));
   }
 
   function setDayOpen(day: DayKey, open: boolean) {
@@ -362,13 +329,6 @@ export default function AdminSettingsPage() {
           description: data.description || '',
           topPicks: data.topPicks || [],
           deliveryTime: data.deliveryTime || '20-30 min',
-          // Social Media & Links
-          socialMedia: {
-            facebook: data.socialMedia?.facebook || '',
-            instagram: data.socialMedia?.instagram || '',
-            twitter: data.socialMedia?.twitter || '',
-          },
-          mapDirectionsLink: data.mapDirectionsLink || '',
         });
       } else {
         // Reset to defaults if no saved data
@@ -391,13 +351,6 @@ export default function AdminSettingsPage() {
           description: '',
           topPicks: [],
           deliveryTime: '20-30 min',
-          // Social Media & Links
-          socialMedia: {
-            facebook: '',
-            instagram: '',
-            twitter: '',
-          },
-          mapDirectionsLink: '',
         });
       }
       setIsDirty(false);
@@ -594,7 +547,7 @@ export default function AdminSettingsPage() {
                       type="tel"
                       value={state.phone}
                       onChange={(e) => setField('phone', e.target.value)}
-                      placeholder="91 6389055072"
+                      placeholder="+1 (555) 123-4567"
                       className="w-full pl-9 form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200"
                     />
                   </div>
@@ -617,25 +570,20 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
               </div>
-<div>
+
+              <div>
                 <label htmlFor="offer" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                   Special Offer
                 </label>
-                <div className="flex items-center gap-2">
-                  <input
+                <input
                   id="offer"
-                    type="number"
+                  type="text"
                   value={state.offer}
                   onChange={(e) => setField('offer', e.target.value)}
-                    placeholder="20"
-                    min="0"
-                    max="100"
-
-                    className="w-20 form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  placeholder="e.g., 20% off on first order, Free delivery above ₹500"
+                  className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200"
                 />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">% Off</span>
               </div>
-            </div>
             </div>
           </SectionCard>
 
@@ -742,8 +690,8 @@ export default function AdminSettingsPage() {
                           onChange={(e) => setDayOpen(day, e.target.checked)}
                           className="sr-only peer"
                         />
-                        <div className="relative w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:bg-black transition-colors duration-300">
-                          <div className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full transition-transform duration-300 ${d.open ? 'translate-x-5' : 'translate-x-0'}`} />
+                        <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:bg-black relative transition-all duration-300">
+                          <span className="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full transition-all peer-checked:translate-x-5" />
                         </div>
                       </label>
 
@@ -753,7 +701,7 @@ export default function AdminSettingsPage() {
                           value={d.from}
                           disabled={!d.open}
                           onChange={(e) => setDayTime(day, 'from', e.target.value)}
-                          className="form-input p-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200 w-full sm:w-auto text-gray-900 dark:text-gray-100"
+                          className="form-input p-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm disabled:opacity-50 focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200 w-full sm:w-auto"
                         />
                         <span className="text-gray-500 hidden sm:inline">–</span>
                         <input
@@ -761,7 +709,7 @@ export default function AdminSettingsPage() {
                           value={d.to}
                           disabled={!d.open}
                           onChange={(e) => setDayTime(day, 'to', e.target.value)}
-                          className="form-input p-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200 w-full sm:w-auto text-gray-900 dark:text-gray-100"
+                          className="form-input p-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm disabled:opacity-50 focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200 w-full sm:w-auto"
                         />
                       </div>
                     </div>
@@ -818,7 +766,7 @@ export default function AdminSettingsPage() {
 
 
               {/* Description */}
-<div>
+              <div>
                 <label htmlFor="description" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                   Restaurant Description
                 </label>
@@ -828,49 +776,23 @@ export default function AdminSettingsPage() {
                   onChange={(e) => setField('description', e.target.value)}
                   placeholder="Tell customers about your restaurant, what makes it special..."
                   rows={3}
-                  minLength={50}
-                  maxLength={150}
                   className="w-full form-textarea bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200 resize-none"
                 />
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 text-right">
-                  {(state.description || '').length}/150 characters
-                </div>
               </div>
+
               {/* Delivery Time */}
               <div>
                 <label htmlFor="deliveryTime" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                   Delivery Time
                 </label>
-                <div className="flex items-center gap-2">
                 <input
-                    type="number"
-                    value={state.deliveryTime?.split('-')[0] || '20'}
-                    onChange={(e) => {
-                      const minTime = e.target.value;
-                      const maxTime = state.deliveryTime?.split('-')[1] || '30';
-                      setField('deliveryTime', `${minTime}-${maxTime}`);
-                    }}
-                    placeholder="20"
-                    min="1"
-                    max="120"
-                    className="w-20 form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">-</span>
-                  <input
-                    type="number"
-                    value={state.deliveryTime?.split('-')[1] || '30'}
-                    onChange={(e) => {
-                      const minTime = state.deliveryTime?.split('-')[0] || '20';
-                      const maxTime = e.target.value;
-                      setField('deliveryTime', `${minTime}-${maxTime}`);
-                    }}
-                    placeholder="30"
-                    min="1"
-                    max="120"
-                    className="w-20 form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">min</span>
-                </div>
+                  id="deliveryTime"
+                  type="text"
+                  value={state.deliveryTime || ''}
+                  onChange={(e) => setField('deliveryTime', e.target.value)}
+                  placeholder="e.g., 20-30 min, 15-25 min"
+                  className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200"
+                />
               </div>
 
             </div>
@@ -983,116 +905,6 @@ export default function AdminSettingsPage() {
               </div>
             </div>
           </SectionCard>
-
-          {/* Social Media Links */}
-          <SectionCard title="Social Media Links" icon={<Share2 className="h-6 w-6" />}>
-            <div className="space-y-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Connect your social media profiles to help customers find and follow you online.
-              </p>
-
-              {/* Facebook */}
-              <div>
-                <label htmlFor="facebook" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    Facebook
-                  </div>
-                </label>
-                <input
-                  id="facebook"
-                  type="url"
-                  value={state.socialMedia?.facebook || ''}
-                  onChange={(e) => setSocialMedia('facebook', e.target.value)}
-                  placeholder="https://facebook.com/yourrestaurant"
-                  className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200"
-                />
-              </div>
-
-              {/* Instagram */}
-              <div>
-                <label htmlFor="instagram" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                    </svg>
-                    Instagram
-                  </div>
-                </label>
-                <input
-                  id="instagram"
-                  type="url"
-                  value={state.socialMedia?.instagram || ''}
-                  onChange={(e) => setSocialMedia('instagram', e.target.value)}
-                  placeholder="https://instagram.com/yourrestaurant"
-                  className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200"
-                />
-              </div>
-
-              {/* Twitter */}
-              <div>
-                <label htmlFor="twitter" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                    </svg>
-                    Twitter / X
-                  </div>
-                </label>
-                <input
-                  id="twitter"
-                  type="url"
-                  value={state.socialMedia?.twitter || ''}
-                  onChange={(e) => setSocialMedia('twitter', e.target.value)}
-                  placeholder="https://twitter.com/yourrestaurant"
-                  className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200"
-                />
-              </div>
-            </div>
-          </SectionCard>
-
-          {/* Map Directions Link */}
-          <SectionCard title="Map & Directions" icon={<Navigation className="h-6 w-6" />}>
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Add a Google Maps link to help customers get directions to your restaurant easily.
-              </p>
-
-              <div>
-                <label htmlFor="mapDirectionsLink" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                  Google Maps Directions Link
-                </label>
-                <input
-                  id="mapDirectionsLink"
-                  type="url"
-                  value={state.mapDirectionsLink || ''}
-                  onChange={(e) => setField('mapDirectionsLink', e.target.value)}
-                  placeholder="https://maps.google.com/?q=Your+Restaurant+Name"
-                  className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200"
-                />
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  💡 Tip: Search your restaurant on Google Maps, click "Share", and copy the link.
-                </p>
-              </div>
-
-              {/* Preview Button */}
-              {state.mapDirectionsLink && (
-                <div className="pt-2">
-                  <a
-                    href={state.mapDirectionsLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all duration-200"
-                  >
-                    <Navigation className="w-4 h-4" />
-                    Preview Directions
-                  </a>
-                </div>
-              )}
-            </div>
-          </SectionCard>
         </div>
 
         {/* Add/Edit Staff Modal */}
@@ -1157,7 +969,7 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         )}
-        <br/>
+
         {/* Staff Accounts */}
         <SectionCard title="Staff Accounts" icon={<Users className="h-6 w-6" />}>
           <div className="space-y-4">

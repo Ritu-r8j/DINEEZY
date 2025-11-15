@@ -13,10 +13,8 @@ import {
   MenuItem
 } from '@/app/(utils)/firebaseOperations';
 import CategoryManagementModal from '@/app/(components)/CategoryManagementModal';
-import ImageUpload from '@/app/(components)/ImageUpload';
 import { DEFAULT_CATEGORIES, getCategoryDisplayName } from '@/lib/categoryData';
 import { getCategoryMappings, CategoryMappings } from '@/app/(utils)/categoryOperations';
-import { deleteFromCloudinary } from '@/app/(utils)/cloudinary';
 
 
 
@@ -43,25 +41,6 @@ export default function MenuManagement() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categoryMappings, setCategoryMappings] = useState<CategoryMappings>({});
   const [customCategories, setCustomCategories] = useState<any[]>([]);
-  
-  // Image management state
-  const [imagePublicId, setImagePublicId] = useState<string>('');
-
-  // Helper function to capitalize first letter of each word
-  const capitalizeWords = (str: string): string => {
-    return str
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  };
-
-  // Helper function to process comma-separated input
-  const processCommaSeparatedInput = (value: string): string[] => {
-    return value
-      .split(',')
-      .map(item => capitalizeWords(item.trim()))
-      .filter(item => item.length > 0);
-  };
 
   // Helper functions for variants and add-ons
   const addVariant = () => {
@@ -82,12 +61,6 @@ export default function MenuManagement() {
     setVariants(newVariants);
   };
 
-  const capitalizeVariantName = (index: number) => {
-    const newVariants = [...variants];
-    newVariants[index].name = capitalizeWords(newVariants[index].name);
-    setVariants(newVariants);
-  };
-
   const addAddon = () => {
     setAddons([...addons, { name: '', price: 0 }]);
   };
@@ -103,12 +76,6 @@ export default function MenuManagement() {
     } else {
       newAddons[index].price = typeof value === 'string' ? parseFloat(value) || 0 : value;
     }
-    setAddons(newAddons);
-  };
-
-  const capitalizeAddonName = (index: number) => {
-    const newAddons = [...addons];
-    newAddons[index].name = capitalizeWords(newAddons[index].name);
     setAddons(newAddons);
   };
 
@@ -208,21 +175,8 @@ export default function MenuManagement() {
 
     setActionLoading(itemId);
     try {
-      const item = menuItems.find(i => i.id === itemId);
-      
-      // Delete from Firestore
       const result = await deleteMenuItem(itemId);
       if (result.success) {
-        // Delete image from Cloudinary if it exists and has a public_id
-        if (item?.imagePublicId) {
-          try {
-            await deleteFromCloudinary(item.imagePublicId);
-          } catch (cloudinaryError) {
-            console.error('Failed to delete image from Cloudinary:', cloudinaryError);
-            // Continue even if Cloudinary deletion fails
-          }
-        }
-        
         setMenuItems(items => items.filter(item => item.id !== itemId));
       } else {
         setError(result.error || 'Failed to delete item');
@@ -264,7 +218,6 @@ export default function MenuManagement() {
     });
     setVariants(item.variants || []);
     setAddons(item.addons || []);
-    setImagePublicId(item.imagePublicId || '');
     setShowEditModal(true);
   };
 
@@ -278,7 +231,6 @@ export default function MenuManagement() {
         ...formData,
         variants: variants.filter(v => v.name.trim() && v.price > 0) || [],
         addons: addons.filter(a => a.name.trim() && a.price > 0) || [],
-        imagePublicId: imagePublicId || undefined,
         updatedAt: new Date()
       };
 
@@ -294,7 +246,6 @@ export default function MenuManagement() {
         setFormData({});
         setVariants([]);
         setAddons([]);
-        setImagePublicId('');
       } else {
         setError(result.error || 'Failed to update item');
       }
@@ -339,7 +290,7 @@ export default function MenuManagement() {
         discountPrice: formData.discountPrice || undefined,
         currency: formData.currency || 'INR',
         isAvailable: formData.isAvailable !== undefined ? formData.isAvailable : true,
-        available: formData.isAvailable !== undefined ? formData.isAvailable : true,
+
         // Details
         spiceLevel: formData.spiceLevel || 'mild',
         preparationTime: formData.preparationTime || 15,
@@ -358,9 +309,6 @@ export default function MenuManagement() {
         // Variants & Add-ons (filter out empty entries)
         variants: variants.filter(v => v.name.trim() && v.price > 0) || [],
         addons: addons.filter(a => a.name.trim() && a.price > 0) || [],
-        
-        // Image Public ID for Cloudinary cleanup
-        imagePublicId: imagePublicId || undefined,
 
         // Meta Info
         rating: 0,
@@ -386,7 +334,6 @@ export default function MenuManagement() {
         setFormData({});
         setVariants([]);
         setAddons([]);
-        setImagePublicId('');
       } else {
         setError(result.error || 'Failed to add item');
       }
@@ -412,10 +359,10 @@ export default function MenuManagement() {
                 <p className="text-xs text-gray-500 dark:text-gray-400">{menuItems.length} items</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 ">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowCategoryModal(true)}
-                className=" cursor-pointer flex items-center px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
+                className="flex items-center px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
                 title="Manage Categories"
               >
                 <Settings className="h-4 w-4 mr-1" />
@@ -426,10 +373,9 @@ export default function MenuManagement() {
                   setFormData({ isAvailable: true }); // Default to available when adding
                   setVariants([]);
                   setAddons([]);
-                  setImagePublicId('');
                   setShowAddModal(true);
                 }}
-                className="cursor-pointer flex items-center px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
+                className="flex items-center px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Item
@@ -516,7 +462,7 @@ export default function MenuManagement() {
         {/* Perfect & Polished Menu Items Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredItems.map((item) => (
-            <div key={item.id} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-3xl shadow-xl border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 hover:border-blue-300/50 dark:hover:border-blue-600/50 relative">
+            <div key={item.id} className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20">
               <div className="relative overflow-hidden">
                 <img
                   src={item.image}
@@ -880,7 +826,6 @@ export default function MenuManagement() {
                     setFormData({});
                     setVariants([]);
                     setAddons([]);
-                    setImagePublicId('');
                     setError(null);
                   }}
                   className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-all"
@@ -901,11 +846,6 @@ export default function MenuManagement() {
                         type="text"
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        onBlur={(e) => {
-                          // Capitalize first letter of each word on blur
-                          const capitalized = capitalizeWords(e.target.value);
-                          setFormData({ ...formData, name: capitalized });
-                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         placeholder="Enter item name"
                       />
@@ -1125,18 +1065,17 @@ export default function MenuManagement() {
                     </div>
                   </div>
 
-                  {/* Image Upload */}
+                  {/* Image URL */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Item Image
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Image URL
                     </label>
-                    <ImageUpload
-                      value={formData.image}
-                      onChange={(url, publicId) => {
-                        setFormData({ ...formData, image: url });
-                        setImagePublicId(publicId);
-                      }}
-                      folder="menu-items"
+                    <input
+                      type="url"
+                      value={formData.image || ''}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      placeholder="https://example.com/image.jpg"
                     />
                   </div>
 
@@ -1147,16 +1086,8 @@ export default function MenuManagement() {
                     </label>
                     <input
                       type="text"
-                      value={Array.isArray(formData.ingredients) ? formData.ingredients.join(', ') : formData.ingredients || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setFormData({ ...formData, ingredients: value });
-                      }}
-                      onBlur={(e) => {
-                        // Capitalize on blur
-                        const processed = processCommaSeparatedInput(e.target.value);
-                        setFormData({ ...formData, ingredients: processed.join(', ') });
-                      }}
+                      value={formData.ingredients || ''}
+                      onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       placeholder="Tomato, Cheese, Basil"
                     />
@@ -1170,16 +1101,7 @@ export default function MenuManagement() {
                     <input
                       type="text"
                       value={formData.allergens?.join(', ') || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Allow typing commas freely
-                        setFormData({ ...formData, allergens: value.split(',').map(a => a.trim()).filter(a => a) });
-                      }}
-                      onBlur={(e) => {
-                        // Capitalize on blur
-                        const processed = processCommaSeparatedInput(e.target.value);
-                        setFormData({ ...formData, allergens: processed });
-                      }}
+                      onChange={(e) => setFormData({ ...formData, allergens: e.target.value.split(', ').filter(a => a.trim()) })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       placeholder="Gluten, Dairy, Nuts"
                     />
@@ -1194,16 +1116,7 @@ export default function MenuManagement() {
                     <input
                       type="text"
                       value={formData.tags?.join(', ') || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Allow typing commas freely
-                        setFormData({ ...formData, tags: value.split(',').map(t => t.trim()).filter(t => t) });
-                      }}
-                      onBlur={(e) => {
-                        // Capitalize on blur
-                        const processed = processCommaSeparatedInput(e.target.value);
-                        setFormData({ ...formData, tags: processed });
-                      }}
+                      onChange={(e) => setFormData({ ...formData, tags: e.target.value.split(', ').filter(t => t.trim()) })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       placeholder="Popular, Spicy, Healthy"
                     />
@@ -1228,7 +1141,6 @@ export default function MenuManagement() {
                               type="text"
                               value={variant.name}
                               onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                              onBlur={() => capitalizeVariantName(index)}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
                               placeholder="Variant name (e.g., Half, Full)"
                             />
@@ -1289,7 +1201,6 @@ export default function MenuManagement() {
                               type="text"
                               value={addon.name}
                               onChange={(e) => updateAddon(index, 'name', e.target.value)}
-                              onBlur={() => capitalizeAddonName(index)}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
                               placeholder="Add-on name (e.g., Extra Cheese)"
                             />
@@ -1374,7 +1285,6 @@ export default function MenuManagement() {
                         setFormData({});
                         setVariants([]);
                         setAddons([]);
-                        setImagePublicId('');
                         setError(null);
                       }}
                       className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"

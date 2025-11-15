@@ -253,6 +253,13 @@ export interface RestaurantSettings {
   description?: string;
   topPicks?: string[]; // Special dishes or features
   priceLevel?: number;
+  // Social Media & Links
+  socialMedia?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+  };
+  mapDirectionsLink?: string;
 }
 
 export const saveRestaurantSettings = async (
@@ -632,6 +639,9 @@ export interface MenuItem {
   // Variants & Add-ons
   variants?: Array<{name: string, price: number}>;
   addons?: Array<{name: string, price: number}>;
+  
+  // Image Management
+  imagePublicId?: string;
   
   // Meta Info
   rating: number;
