@@ -2,27 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Wifi, WifiOff } from 'lucide-react';
-import { checkNetworkStatus } from '../(utils)/firebase';
 
 export default function NetworkStatus() {
   const [isOnline, setIsOnline] = useState(true);
-  const [isChecking, setIsChecking] = useState(false);
 
   useEffect(() => {
-    // Check initial network status
-    const checkStatus = async () => {
-      setIsChecking(true);
-      try {
-        const status = await checkNetworkStatus();
-        setIsOnline(status.online);
-      } catch (error) {
-        setIsOnline(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    checkStatus();
+    // Set initial status
+    setIsOnline(navigator.onLine);
 
     // Listen for browser online/offline events
     const handleOnline = () => {
@@ -42,7 +28,7 @@ export default function NetworkStatus() {
     };
   }, []);
 
-  if (isOnline && !isChecking) {
+  if (isOnline) {
     return null; // Don't show anything when online
   }
 

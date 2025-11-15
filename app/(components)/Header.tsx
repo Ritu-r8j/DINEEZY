@@ -9,7 +9,7 @@ import ProfileDropdown from './ProfileDropdown';
 import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
-    currentPage?: 'home' | 'menu' | 'orders' | 'reservation';
+    currentPage?: 'home' | 'menu' | 'orders' | 'reservation' | 'profile'| '';
 }
 
 interface NavItem {

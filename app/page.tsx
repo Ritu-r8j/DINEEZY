@@ -35,6 +35,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/app/(contexts)/CartContext";
 import { sendNotification } from "./(utils)/notification";
 import { toast } from "sonner";
+import UnifiedCart from "./(components)/UnifiedCart";
 
 // Enhanced MenuItem interface
 interface EnhancedMenuItem extends MenuItem {
@@ -1544,7 +1545,8 @@ export default function HomePage() {
         </motion.div>
       )}
 
-
+      {/* Unified Cart Component - For cart modal functionality */}
+      <UnifiedCart />
     </div>
   );
 }

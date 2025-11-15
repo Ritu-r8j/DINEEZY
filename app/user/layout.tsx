@@ -28,9 +28,10 @@ export default function UserLayout({ children }: UserLayoutProps) {
     if (pathname.startsWith('/user/menu')) return 'menu';
     if (pathname.startsWith('/user/orders')) return 'orders';
     if (pathname.startsWith('/user/reservation')) return 'reservation';
-    if (pathname.startsWith('/user/profile')) return 'home'; // Map profile to home
+     if (pathname.startsWith('/user/my-reservation')) return 'reservation';
+    if (pathname.startsWith('/user/profile')) return 'profile'; // Map profile to home
     if (pathname.startsWith('/user/checkout')) return 'menu'; // Map checkout to menu
-    return 'home';
+    return '';
   };
 
   return (

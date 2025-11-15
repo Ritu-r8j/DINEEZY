@@ -99,9 +99,9 @@ import {
     MenuItem
 } from '@/app/(utils)/firebaseOperations';
 import { CartManager, CartMenuItem } from '@/app/(utils)/cartUtils';
-import EnhancedCartModal from '@/app/(components)/EnhancedCartModal';
 import { getCategoryMappings, CategoryMappings } from '@/app/(utils)/categoryOperations';
 import { getCategoryDisplayName } from '@/lib/categoryData';
+import { useCart } from '@/app/(contexts)/CartContext';
 
 // Enhanced MenuItem interface with discount and badges
 interface EnhancedMenuItem extends MenuItem {
@@ -330,28 +330,34 @@ export default function Menu() {
         }
     };
 
-    // State for cart modal
-    const [showCartModal, setShowCartModal] = useState(false);
-    const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+    const { openCustomization } = useCart();
 
     const addToCart = (item: MenuItem) => {
-        // Check if item has variants or add-ons
-        if ((item.variants && item.variants.length > 0) || 
-            (item.addons && item.addons.length > 0)) {
-            // Show modal for customization
-            setSelectedMenuItem(item);
-            setShowCartModal(true);
-        } else {
-            // Add directly to cart if no customization needed
-            setIsAnimating(true);
-            setTimeout(() => setIsAnimating(false), 500);
-            CartManager.addToCart(item, 1, restaurantId);
-        }
-    };
+        try {
+            // Check if item has variants or add-ons
+            if ((item.variants && Array.isArray(item.variants) && item.variants.length > 0) ||
+                (item.addons && Array.isArray(item.addons) && item.addons.length > 0)) {
+                // Open cart with customization
+                openCustomization(item, restaurantId);
+            } else {
+                // Add directly to cart if no customization needed
+                const result = CartManager.addToCart(item, 1, restaurantId);
 
-    const handleCartModalSuccess = () => {
-        setIsAnimating(true);
-        setTimeout(() => setIsAnimating(false), 500);
+                if (result.success) {
+                    setIsAnimating(true);
+                    setTimeout(() => setIsAnimating(false), 500);
+
+                    // Dispatch custom event to notify other components
+                    window.dispatchEvent(new CustomEvent('cartUpdated', {
+                        detail: { cartItems: result.cartItems, cartCount: result.cartCount }
+                    }));
+                } else {
+                    console.error('Failed to add item to cart');
+                }
+            }
+        } catch (error) {
+            console.error('Error adding item to cart:', error);
+        }
     };
 
 
