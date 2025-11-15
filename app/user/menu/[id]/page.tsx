@@ -14,7 +14,8 @@ import {
     Sparkles,
     Users,
     CheckCircle,
-    AlertCircle
+    AlertCircle,
+    Star
 } from 'lucide-react';
 import GradientStar from '@/components/ui/GradientStar';
 

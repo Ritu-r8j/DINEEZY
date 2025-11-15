@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageCircle, X, Camera, ChevronRight, Edit3, Trash2 } from 'lucide-react';
+import { MessageCircle, X, Camera, ChevronRight, Edit3, Trash2, Star } from 'lucide-react';
 import GradientStar from '@/components/ui/GradientStar';
 import { RestaurantReviewData } from '@/app/(utils)/firebaseOperations';
 
