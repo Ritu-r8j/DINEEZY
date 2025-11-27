@@ -260,6 +260,13 @@ export interface RestaurantSettings {
     twitter?: string;
   };
   mapDirectionsLink?: string;
+  // Table Management
+  tables?: Array<{
+    id: string;
+    number: string;
+    capacity: number;
+    status: 'active' | 'inactive';
+  }>;
 }
 
 export const saveRestaurantSettings = async (

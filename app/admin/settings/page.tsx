@@ -54,6 +54,13 @@ type Staff = {
   status: StaffStatus;
 };
 
+type Table = {
+  id: string;
+  number: string;
+  capacity: number;
+  status: 'active' | 'inactive';
+};
+
 type SettingsState = {
   name: string;
   phone: string;
@@ -72,6 +79,7 @@ type SettingsState = {
   logoDataUrl?: string | null;
   hours: Record<DayKey, DayHours>;
   staff: Staff[];
+  tables: Table[];
   // New restaurant details
   cuisine?: string;
   restaurantType?: 'Veg' | 'Non-Veg' | 'Both';
@@ -143,6 +151,7 @@ export default function AdminSettingsPage() {
     logoDataUrl: null,
     hours: DEFAULT_HOURS,
     staff: DEFAULT_STAFF,
+    tables: [],
     // New restaurant details
     cuisine: '',
     restaurantType: 'Both',
@@ -171,6 +180,11 @@ export default function AdminSettingsPage() {
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Staff | null>(null);
+
+  // Table modal state
+  const [showTableModal, setShowTableModal] = useState(false);
+  const [editingTable, setEditingTable] = useState<Table | null>(null);
+  const [deleteTableTarget, setDeleteTableTarget] = useState<Table | null>(null);
 
   // Load settings from Firebase
   useEffect(() => {
@@ -202,6 +216,10 @@ export default function AdminSettingsPage() {
             logoDataUrl: data.logoDataUrl || null,
             hours: { ...DEFAULT_HOURS, ...(data.hours || {}) },
             staff: Array.isArray(data.staff) ? data.staff : DEFAULT_STAFF,
+            tables: Array.isArray(data.tables) ? data.tables.map(t => ({
+              ...t,
+              status: t.status || 'active'
+            })) : [],
             // New restaurant details
             cuisine: data.cuisine || '',
             restaurantType: data.restaurantType || 'Both',
@@ -353,6 +371,10 @@ export default function AdminSettingsPage() {
           logoDataUrl: data.logoDataUrl || null,
           hours: { ...DEFAULT_HOURS, ...(data.hours || {}) },
           staff: Array.isArray(data.staff) ? data.staff : DEFAULT_STAFF,
+          tables: Array.isArray(data.tables) ? data.tables.map(t => ({
+            ...t,
+            status: t.status || 'active'
+          })) : [],
           // New restaurant details
           cuisine: data.cuisine || '',
           restaurantType: data.restaurantType || 'Both',
@@ -382,6 +404,7 @@ export default function AdminSettingsPage() {
           logoDataUrl: null,
           hours: DEFAULT_HOURS,
           staff: DEFAULT_STAFF,
+          tables: [],
           // New restaurant details
           cuisine: '',
           restaurantType: 'Both',
@@ -436,6 +459,49 @@ export default function AdminSettingsPage() {
     if (!deleteTarget) return;
     setState((s) => ({ ...s, staff: s.staff.filter((it) => it.id !== deleteTarget.id) }));
     setDeleteTarget(null);
+  }
+
+  // Table management
+  function openAddTable() {
+    setEditingTable(null);
+    setShowTableModal(true);
+  }
+
+  function openEditTable(t: Table) {
+    setEditingTable(t);
+    setShowTableModal(true);
+  }
+
+  function upsertTable(payload: Table | (Omit<Table, 'id'> & { id?: string })) {
+    setState((s) => {
+      if ('id' in payload && payload.id && s.tables.some(t => t.id === payload.id)) {
+        return { 
+          ...s, 
+          tables: s.tables.map((it) => (it.id === payload.id ? payload as Table : it)) 
+        };
+      }
+      const newTable: Table = {
+        id: 'id' in payload && payload.id ? payload.id : uid('tbl'),
+        number: payload.number,
+        capacity: payload.capacity,
+        status: payload.status
+      };
+      return { 
+        ...s, 
+        tables: [...s.tables, newTable] 
+      };
+    });
+    setShowTableModal(false);
+  }
+
+  function requestDeleteTable(t: Table) {
+    setDeleteTableTarget(t);
+  }
+
+  function confirmDeleteTable() {
+    if (!deleteTableTarget) return;
+    setState((s) => ({ ...s, tables: s.tables.filter((it) => it.id !== deleteTableTarget.id) }));
+    setDeleteTableTarget(null);
   }
 
   // Show loading state
@@ -1104,12 +1170,30 @@ export default function AdminSettingsPage() {
           />
         )}
 
-        {/* Confirm Delete Modal */}
+        {/* Confirm Delete Staff Modal */}
         {deleteTarget && (
           <ConfirmDeleteModal
             name={deleteTarget.name}
             onCancel={() => setDeleteTarget(null)}
             onConfirm={confirmDeleteStaff}
+          />
+        )}
+
+        {/* Add/Edit Table Modal */}
+        {showTableModal && (
+          <TableModal
+            onClose={() => setShowTableModal(false)}
+            onSave={(payload) => upsertTable(payload)}
+            table={editingTable ?? undefined}
+          />
+        )}
+
+        {/* Confirm Delete Table Modal */}
+        {deleteTableTarget && (
+          <ConfirmDeleteModal
+            name={`Table ${deleteTableTarget.number}`}
+            onCancel={() => setDeleteTableTarget(null)}
+            onConfirm={confirmDeleteTable}
           />
         )}
 
@@ -1158,6 +1242,132 @@ export default function AdminSettingsPage() {
           </div>
         )}
         <br/>
+        {/* Table Management */}
+        <SectionCard title="Table Management" icon={<MapPin className="h-6 w-6" />}>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Restaurant Tables</h4>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Configure your tables for reservation management
+                </p>
+              </div>
+              <button
+                onClick={openAddTable}
+                className="bg-black text-white text-sm font-semibold py-2 px-4 rounded-lg hover:bg-gray-800 inline-flex items-center gap-2 transition-all duration-200 w-full sm:w-auto"
+              >
+                <Plus className="h-4 w-4" /> Add Table
+              </button>
+            </div>
+
+            {state.tables.length === 0 ? (
+              <div className="text-center py-8 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">No tables configured</p>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
+                  Add tables to enable table management in reservations
+                </p>
+                <button
+                  onClick={openAddTable}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 text-sm font-medium transition-all"
+                >
+                  <Plus className="h-4 w-4" /> Add Your First Table
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs sm:text-sm text-left">
+                  <thead className="border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                    <tr>
+                      <th scope="col" className="py-3 pr-6 font-semibold">Table Number</th>
+                      <th scope="col" className="py-3 px-6 font-semibold">Capacity</th>
+                      <th scope="col" className="py-3 px-6 font-semibold">Status</th>
+                      <th scope="col" className="py-3 pl-6 text-right font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {state.tables.map((t, idx) => (
+                      <tr
+                        key={t.id}
+                        className={cx(
+                          'border-b border-gray-200 dark:border-gray-700',
+                          idx === state.tables.length - 1 && 'border-b-0'
+                        )}
+                      >
+                        <td className="py-4 pr-6 text-gray-900 dark:text-gray-100 font-medium">{t.number}</td>
+                        <td className="py-4 px-6 text-gray-600 dark:text-gray-300">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            {t.capacity} seats
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span
+                            className={cx(
+                              'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                              t.status === 'active'
+                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                : 'bg-gray-500/10 text-gray-500 dark:bg-gray-500/20 dark:text-gray-300'
+                            )}
+                          >
+                            {t.status === 'active' ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="py-4 pl-6 text-right">
+                          <div className="flex flex-col sm:flex-row items-end sm:justify-end gap-1 sm:gap-2">
+                            <button
+                              onClick={() => openEditTable(t)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs sm:text-sm"
+                            >
+                              <Edit3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </button>
+                            <button
+                              onClick={() => requestDeleteTable(t)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs sm:text-sm"
+                            >
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <span className="hidden sm:inline">Delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Quick Stats */}
+            {state.tables.length > 0 && (
+              <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{state.tables.length}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Tables</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {state.tables.filter((t) => t.status === 'active').length}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Active</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {state.tables.reduce((sum, t) => sum + t.capacity, 0)}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Capacity</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {(state.tables.reduce((sum, t) => sum + t.capacity, 0) / state.tables.length).toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Avg Capacity</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
         {/* Staff Accounts */}
         <SectionCard title="Staff Accounts" icon={<Users className="h-6 w-6" />}>
           <div className="space-y-4">
@@ -1328,6 +1538,112 @@ function StaffModal(props: {
   );
 }
 
+/* ----------------------------- Table Modal ------------------------------ */
+
+function TableModal(props: {
+  table?: Table;
+  onSave: (payload: Table | (Omit<Table, 'id'> & { id?: string })) => void;
+  onClose: () => void;
+}) {
+  const [number, setNumber] = useState(props.table?.number ?? '');
+  const [capacity, setCapacity] = useState(props.table?.capacity ?? 2);
+  const [status, setStatus] = useState<'active' | 'inactive'>(props.table?.status ?? 'active');
+
+  function save() {
+    if (!number.trim()) {
+      alert('Table number is required.');
+      return;
+    }
+    if (capacity < 1) {
+      alert('Capacity must be at least 1.');
+      return;
+    }
+    
+    const tableData: Table = {
+      id: props.table?.id || uid('tbl'),
+      number: number.trim(),
+      capacity,
+      status
+    };
+    
+    props.onSave(tableData);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={props.onClose} />
+      <div className="relative w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 animate-slide-in-from-bottom max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <MapPin className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+            </div>
+            <h4 className="text-xl font-bold text-black dark:text-white">
+              {props.table ? 'Edit Table' : 'Add Table'}
+            </h4>
+          </div>
+          <button
+            onClick={props.onClose}
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Table Number</label>
+            <input
+              value={number}
+              onChange={(e) => setNumber(e.target.value)}
+              placeholder="e.g., T1, A1, 101"
+              className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Capacity (Seats)</label>
+            <input
+              type="number"
+              value={capacity}
+              onChange={(e) => setCapacity(Math.max(1, parseInt(e.target.value) || 1))}
+              min="1"
+              max="20"
+              placeholder="2"
+              className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as 'active' | 'inactive')}
+              className="w-full form-select bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200"
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
+          <button
+            onClick={props.onClose}
+            className="px-4 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={save}
+            className="px-4 py-2 rounded-md text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-all duration-200"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------- Confirm Delete Modal ------------------------- */
 
 function ConfirmDeleteModal(props: {
@@ -1343,7 +1659,7 @@ function ConfirmDeleteModal(props: {
           <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <Trash2 className="h-6 w-6 text-gray-600 dark:text-gray-400" />
           </div>
-          <h4 className="text-lg font-semibold text-black dark:text-white">Delete Staff</h4>
+          <h4 className="text-lg font-semibold text-black dark:text-white">Confirm Delete</h4>
         </div>
         <p className="text-gray-600 dark:text-gray-300 mb-6">
           Are you sure you want to remove <span className="font-semibold text-black dark:text-white">{props.name}</span>? This action cannot be undone.

@@ -586,13 +586,13 @@ export default function MyReservationsPage() {
                             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                                 <button 
                                     onClick={() => router.push('/user/reservation')}
-                                    className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold text-sm hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-sm"
+                                    className="cursor-pointer px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold text-sm hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-sm"
                                 >
                                     Make New Reservation
                                 </button>
                                 <button 
                                     onClick={() => router.push('/user/menu')}
-                                    className="px-5 py-2.5 bg-white dark:bg-card text-foreground rounded-lg font-semibold text-sm border-2 border-border hover:border-primary transition-all duration-200 hover:scale-105 shadow-sm"
+                                    className="cursor-pointer px-5 py-2.5 bg-white dark:bg-card text-foreground rounded-lg font-semibold text-sm border-2 border-border hover:border-primary transition-all duration-200 hover:scale-105 shadow-sm"
                                 >
                                     View Menu
                                 </button>

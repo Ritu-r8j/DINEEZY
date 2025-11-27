@@ -535,18 +535,18 @@ export default function ReservationPage() {
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
-    // Generate 30-minute slots
+    // Generate 1-hour slots
     let slotHour = openHour;
     let slotMin = openMin;
 
     while (slotHour < closeHour || (slotHour === closeHour && slotMin < closeMin)) {
       // Skip past times if it's today
-      if (!isToday || slotHour > currentHour || (slotHour === currentHour && slotMin > currentMinute + 30)) {
+      if (!isToday || slotHour > currentHour || (slotHour === currentHour && slotMin > currentMinute + 60)) {
         const timeStr = `${slotHour.toString().padStart(2, '0')}:${slotMin.toString().padStart(2, '0')}`;
         slots.push(timeStr);
       }
 
-      slotMin += 30;
+      slotMin += 60;
       if (slotMin >= 60) {
         slotMin = 0;
         slotHour++;
