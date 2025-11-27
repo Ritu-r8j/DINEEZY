@@ -8,7 +8,7 @@ import { useAuth } from '@/app/(contexts)/AuthContext';
 import ThemeToggle from './ThemeToggle';
 
 interface AdminHeaderProps {
-  currentPage?: 'dashboard' | 'menu' | 'orders' | 'payments' | 'reservations' | 'reviews' | 'settings';
+  currentPage?: 'dashboard' | 'menu' | 'orders' | 'customers' | 'payments' | 'reservations' | 'reviews' | 'settings';
 }
 
 export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderProps) {
@@ -43,6 +43,7 @@ export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderPr
     { name: 'Dashboard', href: '/admin', key: 'dashboard' },
     { name: 'Menu', href: '/admin/menu', key: 'menu' },
     { name: 'Orders', href: '/admin/orders', key: 'orders' },
+    { name: 'Customers', href: '/admin/customers', key: 'customers' },
     { name: 'Payments', href: '/admin/payments', key: 'payments' },
     { name: 'Reservations', href: '/admin/reservations', key: 'reservations' },
     { name: 'Reviews', href: '/admin/reviews', key: 'reviews' },

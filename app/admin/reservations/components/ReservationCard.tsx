@@ -1,3 +1,4 @@
+import React from 'react';
 import { Clock, Users, MapPin, Eye, MoreHorizontal, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { ReservationData } from '@/app/(utils)/firebaseOperations';
 
@@ -5,7 +6,7 @@ interface ReservationCardProps {
     reservation: ReservationData;
     formatTime: (time: string) => string;
     getStatusBadge: (status: string) => string;
-    getStatusIcon: (status: string) => JSX.Element;
+    getStatusIcon: (status: string) => React.ReactElement;
     onConfirm: (id: string) => void;
     onDecline: (id: string) => void;
     onAssignTable: (reservation: ReservationData) => void;

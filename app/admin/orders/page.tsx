@@ -29,6 +29,7 @@ interface Order extends Omit<OrderData, 'estimatedTime'> {
   paymentMethod: string;
   orderType: string;
   specialNotes?: string;
+  reservationId?: string; // Link to reservation for pre-orders
 }
 
 export default function OrderManagement() {
@@ -75,11 +76,13 @@ export default function OrderManagement() {
               adminEstimatedTime: order.adminEstimatedTime,
               paymentMethod: order.paymentMethod,
               orderType: order.orderType,
-              specialNotes: order.specialInstructions
+              specialNotes: order.specialInstructions,
+              reservationId: order.reservationId
             }));
 
-            // No need for client-side date filtering anymore - Firebase handles it
-            setOrders(transformedOrders);
+            // Filter out orders linked to reservations (pre-orders)
+            const standaloneOrders = transformedOrders.filter(order => !order.reservationId);
+            setOrders(standaloneOrders);
           } else {
             setOrders([]);
           }

@@ -91,6 +91,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     if (pathname === '/admin') return 'dashboard';
     if (pathname.startsWith('/admin/menu')) return 'menu';
     if (pathname.startsWith('/admin/orders')) return 'orders';
+    if (pathname.startsWith('/admin/customers')) return 'customers';
     if (pathname.startsWith('/admin/payments')) return 'payments';
     if (pathname.startsWith('/admin/reservations')) return 'reservations';
     if (pathname.startsWith('/admin/reviews')) return 'reviews';

@@ -791,7 +791,7 @@ export interface OrderData {
   customerInfo: {
     firstName: string;
     lastName: string;
-    email: string;
+    email?: string;
     phone: string;
     address?: string;
   };
@@ -801,6 +801,15 @@ export interface OrderData {
     quantity: number;
     price: number;
     image: string;
+    selectedVariant?: {
+      name: string;
+      price: number;
+    } | null;
+    selectedAddons?: Array<{
+      name: string;
+      price: number;
+    }>;
+    customPrice?: number;
   }[];
   orderType: string;
   deliveryOption?: any;
@@ -819,6 +828,7 @@ export interface OrderData {
   userId?: string; // Optional for guest users
   guestSessionId?: string; // Optional for guest users to track their session
   isGuest: boolean;
+  reservationId?: string; // Optional - links order to a reservation for pre-orders
 }
 
 // Create a new order in the database
@@ -1088,6 +1098,30 @@ export const subscribeToGuestOrders = (
   } catch (error: any) {
     console.error('Error setting up guest orders listener:', error);
     return () => { }; // Return empty function as fallback
+  }
+};
+
+// Get orders linked to a specific reservation
+export const getOrdersByReservation = async (reservationId: string) => {
+  try {
+    const ordersRef = collection(db, 'orders');
+    const q = query(
+      ordersRef,
+      where('reservationId', '==', reservationId),
+      orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    const orders: OrderData[] = [];
+
+    querySnapshot.forEach((doc) => {
+      orders.push(doc.data() as OrderData);
+    });
+
+    return { success: true, data: orders };
+  } catch (error: any) {
+    console.error('Error fetching orders by reservation:', error);
+    return { success: false, error: error.message };
   }
 };
 

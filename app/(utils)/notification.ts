@@ -12,7 +12,8 @@ type NotificationType =
   | "PHONE_VERIFICATION_OTP"
   | "RESERVATION_CONFIRMED"
   | "RESERVATION_ACCEPTED"
-  | "RESERVATION_REJECTED";
+  | "RESERVATION_REJECTED"
+  | "WAITER_CALL_REQUEST";
 
 interface TemplateConfig {
   template: string;
@@ -90,6 +91,12 @@ const TEMPLATES: Record<NotificationType, TemplateConfig> = {
     message: (data) =>
       `❌ *Reservation Update*\n\nHi ${data.name}, unfortunately your table reservation at *${data.restaurant}* could not be confirmed.\n\n📅 Date: ${data.date}\n🕐 Time: ${data.time}\n👥 Guests: ${data.guests}\n🆔 Reservation ID: *${data.reservationId}*\n\n${data.reason ? `📝 Reason: ${data.reason}\n\n` : ""}We apologize for the inconvenience. Please try booking for a different time or contact the restaurant directly.\n\nThank you for understanding! 💚`,
   },
+
+  WAITER_CALL_REQUEST: {
+    template: "waiter_call_request",
+    message: (data) =>
+      `🔔 *Waiter Call Request*\n\n👤 Customer: *${data.customerName}*\n📞 Phone: ${data.customerPhone}\n🆔 Order ID: *${data.orderId}*\n🕐 Time: ${data.time}\n\n${data.tableNumber ? `🪑 Table: ${data.tableNumber}\n\n` : ""}Customer needs assistance. Please attend to them promptly.\n\n— *Dineezy* 💚`,
+  },
 };
 
 // Helper function
@@ -157,4 +164,29 @@ export async function sendReservationStatusUpdate(
   };
 
   return await sendNotification(notificationType, customerPhone, notificationData);
+}
+
+// Helper for waiter call request
+export async function sendWaiterCallRequest(
+  restaurantOwnerPhone: string,
+  orderId: string,
+  customerName: string,
+  customerPhone: string,
+  tableNumber?: string
+): Promise<any> {
+  const currentTime = new Date().toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+
+  const notificationData = {
+    orderId,
+    customerName,
+    customerPhone,
+    time: currentTime,
+    tableNumber,
+  };
+
+  return await sendNotification("WAITER_CALL_REQUEST", restaurantOwnerPhone, notificationData);
 }

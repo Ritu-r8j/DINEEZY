@@ -853,8 +853,12 @@ export default function AdminSettingsPage() {
                   value={state.cuisine || ''}
                   onChange={(e) => setField('cuisine', e.target.value)}
                   placeholder="e.g., Italian, Indian, Chinese, Mexican"
+                  maxLength={50}
                   className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200"
                 />
+                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 text-right">
+                  {(state.cuisine || '').length}/50 characters
+              </div>
               </div>
 
               {/* Restaurant Type */}

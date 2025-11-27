@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
-import { getRestaurantSettings, getUserOrders, getRestaurantOrders, subscribeToUserOrders, subscribeToGuestOrders } from '@/app/(utils)/firebaseOperations';
+import { Loader2, X, MapPin, Clock, CreditCard, FileText, Package } from 'lucide-react';
+import { getRestaurantSettings, subscribeToUserOrders, subscribeToGuestOrders } from '@/app/(utils)/firebaseOperations';
 import { useAuth } from '@/app/(contexts)/AuthContext';
+import { sendWaiterCallRequest } from '@/app/(utils)/notification';
 
 interface OrderItem {
   id: string;
@@ -21,7 +22,7 @@ interface Order {
   customerInfo: {
     firstName: string;
     lastName: string;
-    email: string;
+    email?: string;
     phone: string;
     address?: string;
   };
@@ -40,6 +41,7 @@ interface Order {
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   createdAt: any; // Firebase timestamp or string
   restaurantId: string;
+  reservationId?: string; // Link to reservation for pre-orders
   restaurant?: {
     name: string;
     address?: {
@@ -106,11 +108,13 @@ const formatFirebaseTimestamp = (timestamp: any): Date => {
 };
 
 export default function CustomerOrdersPage() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Load orders with real-time listeners
   useEffect(() => {
@@ -221,11 +225,14 @@ export default function CustomerOrdersPage() {
     };
   }, [user]);
 
-  const activeOrders = orders.filter(order =>
+  // Filter out orders that are linked to reservations (pre-orders)
+  const standaloneOrders = orders.filter(order => !order.reservationId);
+
+  const activeOrders = standaloneOrders.filter(order =>
     ['pending', 'confirmed', 'preparing', 'ready'].includes(order.status)
   );
 
-  const completedOrders = orders.filter(order =>
+  const completedOrders = standaloneOrders.filter(order =>
     ['delivered', 'cancelled'].includes(order.status)
   );
 
@@ -443,11 +450,51 @@ export default function CustomerOrdersPage() {
                       Reorder
                     </button>
                   )}
-                  <button className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors">
+                  {activeTab === 'active' && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          // Get restaurant owner phone number
+                          const restaurantResult = await getRestaurantSettings(order.restaurantId);
+                          
+                          if (restaurantResult.success && restaurantResult.data?.phone) {
+                            // Send notification to restaurant owner
+                            await sendWaiterCallRequest(
+                              restaurantResult.data.phone,
+                              order.id,
+                              `${order.customerInfo.firstName} ${order.customerInfo.lastName}`,
+                              order.customerInfo.phone,
+                              undefined // tableNumber - can be added if available
+                            );
+                            
+                            alert(`Waiter called successfully! The restaurant has been notified.`);
+                          } else {
+                            alert('Unable to contact restaurant. Please try again or call directly.');
+                          }
+                        } catch (error) {
+                          console.error('Error calling waiter:', error);
+                          alert('Failed to call waiter. Please try again.');
+                        }
+                      }}
+                      className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L6.16 11.37a11.045 11.045 0 005.516 5.516l1.983-4.064a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      Call Waiter
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setShowModal(true);
+                    }}
+                    className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors"
+                  >
                     View Details
                   </button>
                   {(order.status === 'delivered' || order.status === 'cancelled') && (
-                    <button className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors">
+                    <button className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors">
                       Leave Review
                     </button>
                   )}
@@ -483,6 +530,262 @@ export default function CustomerOrdersPage() {
         </div>
       )}
     </div>
+
+      {/* Order Details Modal */}
+      {showModal && selectedOrder && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowModal(false)}
+          />
+          
+          {/* Modal */}
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative w-full max-w-4xl bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-zinc-900 dark:to-slate-900 rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
+              {/* Header */}
+              <div className="sticky top-0 z-10 bg-white dark:bg-slate-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Order Details</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Order ID: {selectedOrder.id}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-4 py-2 rounded-full text-sm font-medium ${statusColors[selectedOrder.status]}`}>
+                      {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                    </span>
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Main Content - Left Side */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Progress Bar */}
+                    {selectedOrder.status !== 'cancelled' && (
+                      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-5">
+                        <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                          <Package className="w-5 h-5" />
+                          Order Status
+                        </h3>
+                        <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          <span>Pending</span>
+                          <span>Confirmed</span>
+                          <span>Preparing</span>
+                          <span>Ready</span>
+                          <span>Delivered</span>
+                        </div>
+                        <div className="relative">
+                          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                          <div className={`absolute top-0 left-0 h-2 bg-gradient-to-r from-blue-500 to-green-500 rounded-full transition-all duration-500 ${getProgressWidth(selectedOrder.status)}`}></div>
+                        </div>
+                        {selectedOrder.status !== 'delivered' && (
+                          <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mt-4 flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            Estimated time: {selectedOrder.adminEstimatedTime || 20} minutes
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Order Items */}
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-5">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">Order Items</h3>
+                      <div className="space-y-4">
+                        {selectedOrder.items.map((item) => (
+                          <div key={item.id} className="flex items-start gap-4 pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
+                            <img
+                              src={item.image || '/placeholder-food.jpg'}
+                              alt={item.name}
+                              className="w-20 h-20 rounded-lg object-cover shadow-md"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-gray-900 dark:text-white mb-1 truncate">
+                                {item.name}
+                              </h4>
+                              {item.selectedVariant && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                  <span className="font-medium">Variant:</span> {item.selectedVariant.name}
+                                </p>
+                              )}
+                              {item.selectedAddons && item.selectedAddons.length > 0 && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                  <span className="font-medium">Add-ons:</span> {item.selectedAddons.map(addon => addon.name).join(', ')}
+                                </p>
+                              )}
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                ₹{(item.customPrice || item.price).toFixed(2)} × {item.quantity}
+                              </p>
+                            </div>
+                            <p className="font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                              ₹{((item.customPrice || item.price) * item.quantity).toFixed(2)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Special Instructions */}
+                    {selectedOrder.specialInstructions && (
+                      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-5">
+                        <h3 className="text-base font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                          <FileText className="w-5 h-5" />
+                          Special Instructions
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{selectedOrder.specialInstructions}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sidebar - Right Side */}
+                  <div className="space-y-6">
+                    {/* Restaurant Info */}
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-3">Restaurant</h3>
+                      <p className="font-medium text-gray-900 dark:text-white mb-2">{selectedOrder.restaurant?.name || 'Restaurant'}</p>
+                      {selectedOrder.restaurant?.address && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {selectedOrder.restaurant.address.city}, {selectedOrder.restaurant.address.state}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Customer Info */}
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-5">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">Customer Information</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Name</p>
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            {selectedOrder.customerInfo.firstName} {selectedOrder.customerInfo.lastName}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Email</p>
+                          <p className="font-medium text-gray-900 dark:text-white text-sm break-all">{selectedOrder.customerInfo.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Phone</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{selectedOrder.customerInfo.phone}</p>
+                        </div>
+                        {selectedOrder.customerInfo.address && (
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              Delivery Address
+                            </p>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">{selectedOrder.customerInfo.address}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Order Info */}
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-5">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">Order Information</h3>
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-4 h-4 text-gray-600 dark:text-gray-400 mt-0.5" />
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Order Time</p>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">
+                              {formatFirebaseTimestamp(selectedOrder.createdAt).toLocaleDateString()} at {formatFirebaseTimestamp(selectedOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <CreditCard className="w-4 h-4 text-gray-600 dark:text-gray-400 mt-0.5" />
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Payment Method</p>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">
+                              {selectedOrder.paymentMethod.charAt(0).toUpperCase() + selectedOrder.paymentMethod.slice(1)}
+                            </p>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Order Type</p>
+                          <p className="font-medium text-gray-900 dark:text-white text-sm">
+                            {selectedOrder.orderType.charAt(0).toUpperCase() + selectedOrder.orderType.slice(1)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Price Breakdown */}
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-5">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">Price Breakdown</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                          <span>Subtotal</span>
+                          <span>₹{selectedOrder.subtotal.toFixed(2)}</span>
+                        </div>
+                        {selectedOrder.deliveryFee > 0 && (
+                          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                            <span>Delivery Fee</span>
+                            <span>₹{selectedOrder.deliveryFee.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {selectedOrder.tax > 0 && (
+                          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                            <span>Tax</span>
+                            <span>₹{selectedOrder.tax.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {selectedOrder.discount > 0 && (
+                          <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
+                            <span>Discount</span>
+                            <span>-₹{selectedOrder.discount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="pt-3 border-t border-gray-300 dark:border-gray-600">
+                          <div className="flex justify-between">
+                            <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
+                            <span className="text-lg font-bold text-gray-900 dark:text-white">₹{selectedOrder.total.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="space-y-3">
+                      {selectedOrder.status === 'delivered' && (
+                        <button
+                          onClick={() => {
+                            const reorderItems = selectedOrder.items.map(item => ({
+                              ...item,
+                              quantity: item.quantity
+                            }));
+                            localStorage.setItem('cartItems', JSON.stringify(reorderItems));
+                            localStorage.setItem('cartCount', selectedOrder.items.reduce((sum, item) => sum + item.quantity, 0).toString());
+                            localStorage.setItem('restaurantId', selectedOrder.restaurantId);
+                            window.location.href = `/user/menu/${selectedOrder.restaurantId}`;
+                          }}
+                          className="w-full px-6 py-3 bg-gray-900 dark:bg-white dark:text-gray-900 text-white hover:bg-gray-800 dark:hover:bg-gray-100 rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl"
+                        >
+                          Reorder
+                        </button>
+                      )}
+                      {(selectedOrder.status === 'delivered' || selectedOrder.status === 'cancelled') && (
+                        <button className="w-full px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors">
+                          Leave Review
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
   </div>
   );
 }

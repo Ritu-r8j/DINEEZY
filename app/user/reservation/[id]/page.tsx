@@ -14,13 +14,14 @@ import {
   getRestaurantMedia,
   fixUnresolvedTimestamps,
   createReservation,
+  getRestaurantMenuItems,
   RestaurantReviewData,
   RestaurantMediaData,
   ReservationData
 } from '@/app/(utils)/firebaseOperations';
 import { uploadToCloudinary } from '@/app/(utils)/cloudinary';
 import { sendNotification } from '@/app/(utils)/notification';
-import { AlertCircle, Calendar, Clock, Users, Phone, Mail, User, CheckCircle, XCircle, Camera } from 'lucide-react';
+import { AlertCircle, Calendar, Clock, Users, Phone, Mail, User, CheckCircle, XCircle, Camera, ShoppingBag, Plus, Minus } from 'lucide-react';
 
 // Import components
 import RestaurantHero from './components/RestaurantHero';
@@ -32,7 +33,7 @@ import MediaUploadModal from './components/MediaUploadModal';
 export default function ReservationPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, userProfile, loading: authLoading } = useAuth();
   const restaurantId = params.id as string;
 
   // Basic states
@@ -65,18 +66,24 @@ export default function ReservationPage() {
   const [isSubmittingReservation, setIsSubmittingReservation] = useState(false);
   const [reservationSuccess, setReservationSuccess] = useState<string | null>(null);
   const [reservationForm, setReservationForm] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: '',
     time: '',
     guests: 2,
-    name: user?.displayName ||  '',
-    email: user?.email || '',
-    phone: user?.phoneNumber || '',
+    name: '',
+    email: '',
+    phone: '',
     specialRequests: ''
   });
   // Media gallery states
   const [showFullGallery, setShowFullGallery] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [mediaFilter, setMediaFilter] = useState<'all' | 'images' | 'videos'>('all');
+
+  // Pre-order states
+  const [showPreOrderModal, setShowPreOrderModal] = useState(false);
+  const [restaurantMenuItems, setRestaurantMenuItems] = useState<any[]>([]);
+  const [loadingMenu, setLoadingMenu] = useState(false);
+  const [selectedMenuCategory, setSelectedMenuCategory] = useState('all');
 
   // Media helper functions
   const getAllMedia = () => {
@@ -374,14 +381,29 @@ export default function ReservationPage() {
 
   // Update form with user data when user is available
   useEffect(() => {
-    if (user) {
+    if (user && userProfile) {
+      // Get full name from userProfile or user
+      const fullName = userProfile.displayName || user.displayName || '';
+      
+      // Get phone from userProfile
+      const phone = userProfile.phoneNumber || '';
+      
       setReservationForm(prev => ({
         ...prev,
-        name: user.displayName || prev.name,
-        email: user.email || prev.email
+        name: fullName,
+        email: user.email || '',
+        phone: phone
+      }));
+    } else if (user && !userProfile) {
+      // Fallback if userProfile is not loaded yet
+      setReservationForm(prev => ({
+        ...prev,
+        name: user.displayName || '',
+        email: user.email || '',
+        phone: user.phoneNumber || ''
       }));
     }
-  }, [user]);
+  }, [user, userProfile]);
 
 
   // Review handling functions (simplified versions)

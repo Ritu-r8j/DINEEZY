@@ -10,7 +10,9 @@ import {
     subscribeToUserReservations,
     getRestaurantSettings,
     formatFirebaseTimestamp,
-    ReservationData
+    ReservationData,
+    getOrdersByReservation,
+    OrderData
 } from '@/app/(utils)/firebaseOperations';
 
 interface Reservation {
@@ -25,6 +27,7 @@ interface Reservation {
     tableNumber?: string;
     createdAt?: any;
     restaurantInfo?: any;
+    orders?: OrderData[]; // Pre-orders linked to this reservation
 }
 
 export default function MyReservationsPage() {
@@ -42,6 +45,9 @@ export default function MyReservationsPage() {
     const [reservations, setReservations] = useState<Reservation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [expandedReservation, setExpandedReservation] = useState<string | null>(null);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedReservationForDetails, setSelectedReservationForDetails] = useState<Reservation | null>(null);
 
     // Check authentication
     useEffect(() => {
@@ -64,11 +70,15 @@ export default function MyReservationsPage() {
                 
                 const result = await getUserReservations(user.uid);
                 if (result.success && result.data) {
-                    // Fetch restaurant information for each reservation
+                    // Fetch restaurant information and orders for each reservation
                     const reservationsWithRestaurantInfo = await Promise.all(
                         result.data.map(async (reservation: ReservationData) => {
                             try {
-                                const restaurantResult = await getRestaurantSettings(reservation.restaurantId);
+                                const [restaurantResult, ordersResult] = await Promise.all([
+                                    getRestaurantSettings(reservation.restaurantId),
+                                    getOrdersByReservation(reservation.id)
+                                ]);
+                                
                                 return {
                                     id: reservation.id,
                                     date: reservation.reservationDetails.date,
@@ -80,7 +90,8 @@ export default function MyReservationsPage() {
                                     reservationId: reservation.reservationId,
                                     tableNumber: reservation.reservationDetails.tableNumber,
                                     createdAt: reservation.createdAt,
-                                    restaurantInfo: restaurantResult.success ? restaurantResult.data : null
+                                    restaurantInfo: restaurantResult.success ? { ...restaurantResult.data, id: reservation.restaurantId } : { id: reservation.restaurantId },
+                                    orders: ordersResult.success ? ordersResult.data : []
                                 };
                             } catch (err) {
                                 console.error('Error fetching restaurant info:', err);
@@ -95,7 +106,8 @@ export default function MyReservationsPage() {
                                     reservationId: reservation.reservationId,
                                     tableNumber: reservation.reservationDetails.tableNumber,
                                     createdAt: reservation.createdAt,
-                                    restaurantInfo: null
+                                    restaurantInfo: { id: reservation.restaurantId },
+                                    orders: []
                                 };
                             }
                         })
@@ -118,11 +130,15 @@ export default function MyReservationsPage() {
         // Set up real-time listener
         const unsubscribe = subscribeToUserReservations(user.uid, async (reservations) => {
             if (reservations.length > 0) {
-                // Fetch restaurant information for each reservation
+                // Fetch restaurant information and orders for each reservation
                 const reservationsWithRestaurantInfo = await Promise.all(
                     reservations.map(async (reservation: ReservationData) => {
                         try {
-                            const restaurantResult = await getRestaurantSettings(reservation.restaurantId);
+                            const [restaurantResult, ordersResult] = await Promise.all([
+                                getRestaurantSettings(reservation.restaurantId),
+                                getOrdersByReservation(reservation.id)
+                            ]);
+                            
                             return {
                                 id: reservation.id,
                                 date: reservation.reservationDetails.date,
@@ -134,7 +150,8 @@ export default function MyReservationsPage() {
                                 reservationId: reservation.reservationId,
                                 tableNumber: reservation.reservationDetails.tableNumber,
                                 createdAt: reservation.createdAt,
-                                restaurantInfo: restaurantResult.success ? restaurantResult.data : null
+                                restaurantInfo: restaurantResult.success ? { ...restaurantResult.data, id: reservation.restaurantId } : { id: reservation.restaurantId },
+                                orders: ordersResult.success ? ordersResult.data : []
                             };
                         } catch (err) {
                             console.error('Error fetching restaurant info:', err);
@@ -149,7 +166,8 @@ export default function MyReservationsPage() {
                                 reservationId: reservation.reservationId,
                                 tableNumber: reservation.reservationDetails.tableNumber,
                                 createdAt: reservation.createdAt,
-                                restaurantInfo: null
+                                restaurantInfo: { id: reservation.restaurantId },
+                                orders: []
                             };
                         }
                     })
@@ -430,7 +448,7 @@ export default function MyReservationsPage() {
                                 }
                             </p>
                             {activeTab === 'upcoming' && (
-                                <button className="px-6 py-3 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-200 hover:scale-105">
+                                <button onClick={()=> router.push("/user/reservation")} className="px-6 py-3 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-200 hover:scale-105">
                                     Make a Reservation
                                 </button>
                             )}
@@ -509,12 +527,106 @@ export default function MyReservationsPage() {
                                                 </p>
                                             </div>
                                         )}
+
+                                        {/* Pre-Orders Section */}
+                                        {reservation.orders && reservation.orders.length > 0 && (
+                                            <div className="mt-4">
+                                                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <p className="text-sm font-bold text-green-800 dark:text-green-300">
+                                                            Pre-Order Placed ({reservation.orders.length})
+                                                        </p>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        {reservation.orders.map((order) => (
+                                                            <div key={order.id} className="bg-white dark:bg-gray-800/50 rounded-lg p-3 border border-green-100 dark:border-green-800/50">
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <p className="text-xs font-mono text-gray-600 dark:text-gray-400">
+                                                                        {order.orderId}
+                                                                    </p>
+                                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                                        order.status === 'confirmed' || order.status === 'preparing' || order.status === 'ready'
+                                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                                                            : order.status === 'pending'
+                                                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                                                                            : order.status === 'delivered'
+                                                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                                                                            : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                                                    }`}>
+                                                                        {order.status}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    {order.items.slice(0, 3).map((item, idx) => (
+                                                                        <div key={idx} className="text-xs">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <span className="text-gray-700 dark:text-gray-300">
+                                                                                    {item.quantity}x {item.name}
+                                                                                    {item.selectedVariant && (
+                                                                                        <span className="text-gray-500 ml-1">({item.selectedVariant.name})</span>
+                                                                                    )}
+                                                                                </span>
+                                                                                <span className="text-gray-600 dark:text-gray-400">
+                                                                                    ₹{((item.customPrice || item.price) * item.quantity).toFixed(0)}
+                                                                                </span>
+                                                                            </div>
+                                                                            {item.selectedAddons && item.selectedAddons.length > 0 && (
+                                                                                <div className="text-gray-500 ml-4 mt-0.5">
+                                                                                    + {item.selectedAddons.map(addon => addon.name).join(', ')}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                    {order.items.length > 3 && (
+                                                                        <p className="text-xs text-gray-500 dark:text-gray-500 italic">
+                                                                            +{order.items.length - 3} more items
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                                <div className="mt-2 pt-2 border-t border-green-100 dark:border-green-800/50 flex items-center justify-between">
+                                                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Total</span>
+                                                                    <span className="text-sm font-bold text-green-700 dark:text-green-400">
+                                                                        ₹{order.total.toFixed(0)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setExpandedReservation(expandedReservation === reservation.id ? null : reservation.id)}
+                                                        className="mt-3 w-full text-xs text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 font-medium transition-colors"
+                                                    >
+                                                        {expandedReservation === reservation.id ? 'Show Less' : 'View All Orders'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Action Buttons */}
                                     <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-48">
                                         {reservation.status === 'confirmed' && (
                                             <>
+                                                {/* Only show Pre-Order button if no orders have been placed */}
+                                                {(!reservation.orders || reservation.orders.length === 0) && (
+                                                    <button
+                                                        onClick={() => {
+                                                            // Store reservation ID in localStorage for pre-order context
+                                                            localStorage.setItem('preOrderReservationId', reservation.id);
+                                                            localStorage.setItem('preOrderRestaurantId', reservation.restaurantInfo?.id || '');
+                                                            router.push(`/user/menu/${reservation.restaurantInfo?.id || ''}`);
+                                                        }}
+                                                        className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-xl font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                        </svg>
+                                                        Pre-Order
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => handleModifyReservation(reservation.id)}
                                                     className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105"
@@ -532,6 +644,22 @@ export default function MyReservationsPage() {
 
                                         {reservation.status === 'pending' && (
                                             <>
+                                                {/* Only show Pre-Order button if no orders have been placed */}
+                                                {(!reservation.orders || reservation.orders.length === 0) && (
+                                                    <button
+                                                        onClick={() => {
+                                                            localStorage.setItem('preOrderReservationId', reservation.id);
+                                                            localStorage.setItem('preOrderRestaurantId', reservation.restaurantInfo?.id || '');
+                                                            router.push(`/user/menu/${reservation.restaurantInfo?.id || ''}`);
+                                                        }}
+                                                        className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-xl font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                        </svg>
+                                                        Pre-Order
+                                                    </button>
+                                                )}
                                                 <button className="px-4 py-2 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 rounded-xl font-medium cursor-not-allowed">
                                                     Awaiting Confirmation
                                                 </button>
@@ -561,7 +689,13 @@ export default function MyReservationsPage() {
                                             </button>
                                         )}
 
-                                        <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105">
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedReservationForDetails(reservation);
+                                                setShowDetailsModal(true);
+                                            }}
+                                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105"
+                                        >
                                             View Details
                                         </button>
                                     </div>
@@ -798,6 +932,292 @@ export default function MyReservationsPage() {
                     </div>
                 )}
         </div>
+
+            {/* Reservation Details Modal */}
+            {showDetailsModal && selectedReservationForDetails && (
+                <div className="fixed inset-0 z-50 overflow-y-auto">
+                    {/* Backdrop */}
+                    <div 
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                        onClick={() => setShowDetailsModal(false)}
+                    />
+                    
+                    {/* Modal */}
+                    <div className="flex min-h-full items-center justify-center p-4">
+                        <div className="relative w-full max-w-4xl bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-zinc-900 dark:to-slate-900 rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
+                            {/* Header */}
+                            <div className="sticky top-0 z-10 bg-white dark:bg-slate-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Reservation Details</h2>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">ID: {selectedReservationForDetails.reservationId}</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(selectedReservationForDetails.status)}`}>
+                                            {getStatusIcon(selectedReservationForDetails.status)}
+                                            {selectedReservationForDetails.status.charAt(0).toUpperCase() + selectedReservationForDetails.status.slice(1)}
+                                        </span>
+                                        <button
+                                            onClick={() => setShowDetailsModal(false)}
+                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                        >
+                                            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {/* Main Content - Left Side */}
+                                    <div className="lg:col-span-2 space-y-6">
+                                        {/* Reservation Information */}
+                                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5">
+                                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                Reservation Information
+                                            </h3>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Date</p>
+                                                    <p className="font-semibold text-gray-900 dark:text-white">
+                                                        {formatDate(selectedReservationForDetails.date)}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Time</p>
+                                                    <p className="font-semibold text-gray-900 dark:text-white">
+                                                        {selectedReservationForDetails.time}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Number of Guests</p>
+                                                    <p className="font-semibold text-gray-900 dark:text-white">
+                                                        {selectedReservationForDetails.guests} {selectedReservationForDetails.guests === 1 ? 'guest' : 'guests'}
+                                                    </p>
+                                                </div>
+                                                {selectedReservationForDetails.tableNumber && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Table Number</p>
+                                                        <p className="font-semibold text-purple-600 dark:text-purple-400">
+                                                            Table {selectedReservationForDetails.tableNumber}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {selectedReservationForDetails.createdAt && (
+                                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                        Booked on {formatCreatedDate(selectedReservationForDetails.createdAt)}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Restaurant Information */}
+                                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-5">
+                                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                </svg>
+                                                Restaurant Details
+                                            </h3>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Restaurant Name</p>
+                                                    <p className="font-semibold text-gray-900 dark:text-white text-lg">
+                                                        {selectedReservationForDetails.restaurantName}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Special Requests */}
+                                        {selectedReservationForDetails.specialRequests && (
+                                            <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-yellow-50 dark:bg-yellow-900/20 p-5">
+                                                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                                    </svg>
+                                                    Special Requests
+                                                </h3>
+                                                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                                    {selectedReservationForDetails.specialRequests}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Pre-Orders */}
+                                        {selectedReservationForDetails.orders && selectedReservationForDetails.orders.length > 0 && (
+                                            <div className="rounded-xl border border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-5">
+                                                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Pre-Orders ({selectedReservationForDetails.orders.length})
+                                                </h3>
+                                                <div className="space-y-4">
+                                                    {selectedReservationForDetails.orders.map((order) => (
+                                                        <div key={order.id} className="bg-white dark:bg-gray-800/50 rounded-lg p-4 border border-green-100 dark:border-green-800/50">
+                                                            <div className="flex items-center justify-between mb-3">
+                                                                <p className="text-sm font-mono text-gray-600 dark:text-gray-400">
+                                                                    {order.orderId}
+                                                                </p>
+                                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                                                                    order.status === 'confirmed' || order.status === 'preparing' || order.status === 'ready'
+                                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                                                        : order.status === 'pending'
+                                                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                                                                        : order.status === 'delivered'
+                                                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                                                                        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                                                }`}>
+                                                                    {order.status}
+                                                                </span>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                {order.items.map((item, idx) => (
+                                                                    <div key={idx} className="flex items-start gap-3">
+                                                                        <img
+                                                                            src={item.image || '/placeholder-food.jpg'}
+                                                                            alt={item.name}
+                                                                            className="w-12 h-12 rounded-lg object-cover"
+                                                                        />
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                                                                    {item.quantity}x {item.name}
+                                                                                    {item.selectedVariant && (
+                                                                                        <span className="text-xs text-gray-500 ml-1">({item.selectedVariant.name})</span>
+                                                                                    )}
+                                                                                </p>
+                                                                                <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                                                                                    ₹{((item.customPrice || item.price) * item.quantity).toFixed(0)}
+                                                                                </p>
+                                                                            </div>
+                                                                            {item.selectedAddons && item.selectedAddons.length > 0 && (
+                                                                                <p className="text-xs text-gray-500 mt-0.5">
+                                                                                    + {item.selectedAddons.map(addon => addon.name).join(', ')}
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <div className="mt-3 pt-3 border-t border-green-100 dark:border-green-800/50 flex items-center justify-between">
+                                                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Order Total</span>
+                                                                <span className="text-lg font-bold text-green-700 dark:text-green-400">
+                                                                    ₹{order.total.toFixed(0)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Sidebar - Right Side */}
+                                    <div className="space-y-6">
+                                        {/* Quick Info Card */}
+                                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 p-5">
+                                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">Quick Info</h3>
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                                                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">Date & Time</p>
+                                                        <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                                            {new Date(selectedReservationForDetails.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at {selectedReservationForDetails.time}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                                                        <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">Party Size</p>
+                                                        <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                                            {selectedReservationForDetails.guests} {selectedReservationForDetails.guests === 1 ? 'guest' : 'guests'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {selectedReservationForDetails.tableNumber && (
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                                                            <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400">Table</p>
+                                                            <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                                                Table {selectedReservationForDetails.tableNumber}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        {selectedReservationForDetails.status === 'confirmed' && (
+                                            <div className="space-y-3">
+                                                {(!selectedReservationForDetails.orders || selectedReservationForDetails.orders.length === 0) && (
+                                                    <button
+                                                        onClick={() => {
+                                                            localStorage.setItem('preOrderReservationId', selectedReservationForDetails.id);
+                                                            localStorage.setItem('preOrderRestaurantId', selectedReservationForDetails.restaurantInfo?.id || '');
+                                                            router.push(`/user/menu/${selectedReservationForDetails.restaurantInfo?.id || ''}`);
+                                                        }}
+                                                        className="w-full px-4 py-3 bg-green-600 dark:bg-green-700 text-white rounded-xl font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                        </svg>
+                                                        Pre-Order Food
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => {
+                                                        setShowDetailsModal(false);
+                                                        handleModifyReservation(selectedReservationForDetails.id);
+                                                    }}
+                                                    className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105"
+                                                >
+                                                    Modify Reservation
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowDetailsModal(false);
+                                                        handleCancelReservation(selectedReservationForDetails.id);
+                                                    }}
+                                                    className="w-full px-4 py-3 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-xl font-medium hover:bg-red-50 dark:hover:bg-red-900/30 transition-all duration-200 hover:scale-105"
+                                                >
+                                                    Cancel Reservation
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
     </div>
     );
 }
