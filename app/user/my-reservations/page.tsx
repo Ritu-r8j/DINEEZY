@@ -573,19 +573,27 @@ export default function MyReservationsPage() {
 
                 {/* Quick Actions */}
                 {currentReservations.length > 0 && (
-                    <div className="mt-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-xl p-8 text-white">
+                    <div className="mt-12 bg-card border border-border rounded-2xl shadow-lg p-6 sm:p-8">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                            <div>
-                                <h3 className="text-2xl font-bold mb-2">Ready for your next dining experience?</h3>
-                                <p className="text-blue-100">
+                            <div className="text-center md:text-left">
+                                <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
+                                    Ready for your next dining experience?
+                                </h3>
+                                <p className="text-sm sm:text-base text-muted-foreground">
                                     Book your table now and enjoy our exceptional cuisine and service.
                                 </p>
                             </div>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <button className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-semibold transition-all duration-200 hover:scale-105">
+                            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                                <button 
+                                    onClick={() => router.push('/user/reservation')}
+                                    className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold text-sm hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-sm"
+                                >
                                     Make New Reservation
                                 </button>
-                                <button className="px-6 py-3 bg-white text-blue-600 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-200 hover:scale-105">
+                                <button 
+                                    onClick={() => router.push('/user/menu')}
+                                    className="px-5 py-2.5 bg-white dark:bg-card text-foreground rounded-lg font-semibold text-sm border-2 border-border hover:border-primary transition-all duration-200 hover:scale-105 shadow-sm"
+                                >
                                     View Menu
                                 </button>
                             </div>

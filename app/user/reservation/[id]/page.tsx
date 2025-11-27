@@ -674,7 +674,7 @@ export default function ReservationPage() {
   // Show loading state while checking authentication
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-3"></div>
           <p className="text-sm text-gray-600 dark:text-gray-400">Checking authentication...</p>
@@ -686,7 +686,7 @@ export default function ReservationPage() {
   // Redirect to login if not authenticated
   if (!user) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900 flex items-center justify-center">
         <div className="max-w-md mx-auto px-4 text-center">
           <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 p-6">
             <div className="w-12 h-12 mx-auto mb-4 text-red-400">
@@ -698,7 +698,7 @@ export default function ReservationPage() {
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">You must be logged in to view restaurant details.</p>
             <button
               onClick={() => router.push('/user/login')}
-              className="w-full px-4 py-2.5 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-200"
+              className="w-full px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
             >
               Go to Login
             </button>
@@ -710,7 +710,7 @@ export default function ReservationPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-3"></div>
           <p className="text-sm text-gray-600 dark:text-gray-400">Loading restaurant information...</p>
@@ -721,7 +721,7 @@ export default function ReservationPage() {
 
   if (error && !restaurantInfo) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900 flex items-center justify-center">
         <div className="max-w-md mx-auto px-4 text-center">
           <div className="rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 p-6">
             <div className="w-12 h-12 mx-auto mb-4">
@@ -733,7 +733,7 @@ export default function ReservationPage() {
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error}</p>
             <button
               onClick={() => router.back()}
-              className="w-full px-4 py-2.5 bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-gray-900 dark:text-white rounded-lg font-medium hover:shadow-md transition-all duration-200"
+              className="w-full px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
             >
               Go Back
             </button>
@@ -744,7 +744,7 @@ export default function ReservationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-[#0a0e1a] dark:to-[#0f1419] pb-20 lg:pb-0">
+    <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900 pb-20 lg:pb-0">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 lg:space-y-10">
           {/* Restaurant Hero Section */}
@@ -766,7 +766,7 @@ export default function ReservationPage() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Photos</h2>
                 <button
                   onClick={() => setShowMediaUpload(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] hover:shadow-md rounded-lg transition-all duration-200"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   <Camera className="w-4 h-4" />
                   Add Media
@@ -786,7 +786,7 @@ export default function ReservationPage() {
                   <p className="text-gray-600 dark:text-gray-400 mb-6">Be the first to share photos and videos of this restaurant!</p>
                   <button
                     onClick={() => setShowMediaUpload(true)}
-                    className="px-6 py-3 bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] hover:shadow-md rounded-xl font-medium transition-all duration-200"
+                    className="px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     Add photo
                   </button>
@@ -861,7 +861,7 @@ export default function ReservationPage() {
                     </div>
                     <button
                       onClick={() => setShowFullGallery(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] hover:shadow-md rounded-lg transition-all duration-200"
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white dark:bg-card text-foreground border-2 border-border hover:border-primary rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -927,7 +927,7 @@ export default function ReservationPage() {
 
                 <div className="space-y-6">
                   {/* Upload Area */}
-                  <div className="border-2 border-dashed border-[#b8dcff80] dark:border-[#c9cbff80] rounded-2xl p-8 text-center hover:border-[#c9cbff] dark:hover:border-[#e5c0ff] transition-colors bg-gradient-to-br from-[#b8dcff20] via-[#c9cbff20] to-[#e5c0ff20]">
+                  <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary transition-colors bg-muted/30">
                     <input
                       type="file"
                       multiple
@@ -941,18 +941,18 @@ export default function ReservationPage() {
                       htmlFor="media-upload"
                       className={`cursor-pointer ${isUploadingMedia ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <div className="w-16 h-16 mx-auto mb-4 bg-[#b8dcff40] dark:bg-[#c9cbff40] rounded-2xl flex items-center justify-center">
-                        <svg className="w-8 h-8 text-[#7c3aed]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-2xl flex items-center justify-center">
+                        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
                       </div>
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      <h4 className="text-lg font-medium text-foreground mb-2">
                         {isUploadingMedia ? 'Uploading...' : 'Choose files to upload'}
                       </h4>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      <p className="text-muted-foreground mb-4">
                         Select photos and videos from your device
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         JPG, PNG, GIF, MP4, MOV • Max 50MB each
                       </p>
                     </label>
@@ -987,9 +987,9 @@ export default function ReservationPage() {
                               </div>
                               <span className="text-sm font-medium text-[#7c3aed]">{progress}%</span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                            <div className="w-full bg-muted rounded-full h-2">
                               <div
-                                className="bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] h-2 rounded-full transition-all duration-300"
+                                className="bg-primary h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${progress}%` }}
                               />
                             </div>
@@ -1064,8 +1064,8 @@ export default function ReservationPage() {
                       Time *
                     </label>
                     {reservationForm.date && !isRestaurantOpenOnDate(reservationForm.date) ? (
-                      <div className="w-full px-4 py-3 border border-[#b8dcff80] dark:border-[#c9cbff80] rounded-xl bg-gradient-to-br from-[#b8dcff20] via-[#c9cbff20] to-[#e5c0ff20]">
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <div className="w-full px-4 py-3 border border-yellow-200 dark:border-yellow-800 rounded-xl bg-yellow-50 dark:bg-yellow-900/20">
+                        <p className="text-sm text-yellow-800 dark:text-yellow-300">
                           Restaurant is closed on this date. Please select another date.
                         </p>
                       </div>
@@ -1092,7 +1092,7 @@ export default function ReservationPage() {
                       </select>
                     )}
                     {reservationForm.date && isRestaurantOpenOnDate(reservationForm.date) && getAvailableTimeSlots().length === 0 && (
-                      <p className="text-sm text-[#7c3aed] mt-1">
+                      <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
                         No available time slots for this date. Please select another date.
                       </p>
                     )}
@@ -1110,9 +1110,9 @@ export default function ReservationPage() {
                           key={num}
                           type="button"
                           onClick={() => setReservationForm(prev => ({ ...prev, guests: num }))}
-                          className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all duration-200 ${reservationForm.guests === num
-                            ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                            : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                          className={`px-3 py-2 rounded-lg border-2 text-sm font-semibold transition-all duration-200 ${reservationForm.guests === num
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-white dark:bg-card text-foreground border-border hover:border-primary'
                             }`}
                         >
                           {num}
@@ -1254,11 +1254,11 @@ export default function ReservationPage() {
                     <button
                       type="submit"
                       disabled={isSubmittingReservation}
-                      className="flex-1 px-4 py-3 bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-gray-900 dark:text-white rounded-xl font-medium hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                     >
                       {isSubmittingReservation ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 dark:border-white"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                           Booking...
                         </>
                       ) : (
@@ -1291,7 +1291,7 @@ export default function ReservationPage() {
                 </div>
                 <button
                   onClick={() => setReservationSuccess(null)}
-                  className="w-full px-4 py-3 bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-gray-900 dark:text-white rounded-xl font-medium hover:shadow-md transition-all duration-200"
+                  className="w-full px-4 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   Close
                 </button>
@@ -1436,7 +1436,7 @@ export default function ReservationPage() {
         <div className="fixed bottom-4 right-4 lg:hidden z-40">
           <button
             onClick={() => setShowReservationModal(true)}
-            className="bg-gradient-to-br from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-gray-900 dark:text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 font-medium"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 font-semibold"
           >
             <Calendar className="w-5 h-5" />
             Book Table

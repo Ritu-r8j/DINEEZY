@@ -118,22 +118,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                     {/* Actions */}
                     <div className="flex items-center gap-2 sm:gap-3 ml-auto">
 
-                        {/* Cart */}
-                        <Link
-                            href="/user/checkout"
-                            className="relative p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-110"
-                            aria-label={`Cart with ${cartCount} items`}
-                        >
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h8m-8 0a2 2 0 100 4 2 2 0 000-4zm8 0a2 2 0 100 4 2 2 0 000-4z" />
-                            </svg>
-                            {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-medium animate-pulse">
-                                    {cartCount}
-                                </span>
-                            )}
-                        </Link>
-
+                    
 
 
                         {/* Notifications - Hidden on small screens */}

@@ -584,7 +584,7 @@ export default function RestaurantListingPage() {
     return (
         <>
 
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900">
                 {/* Mobile Filter Overlay */}
                 {isMobileFilterOpen && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-40 lg:hidden" />
@@ -592,7 +592,7 @@ export default function RestaurantListingPage() {
 
                 {/* Main Content */}
                 <main className="flex-1">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+                    <div className="container  px-4 sm:px-6 py-4 sm:py-6 ">
                         {/* Search Bar */}
                         <div className="mb-6 sm:mb-8">
                             <div className="max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto relative  sm:px-0">
@@ -638,7 +638,7 @@ export default function RestaurantListingPage() {
                                 {showSuggestions && (
                                     <div
                                         ref={suggestionsRef}
-                                        className="absolute top-full left-0 right-0 mt-1 sm:mt-2 rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-lg transition-all duration-300 hover:shadow-xl dark:hover:border-primary/20 py-1 sm:py-2 z-50 max-h-60 sm:max-h-80 overflow-y-auto overflow-x-hidden"
+                                        className="absolute top-full left-0 right-0 mt-1 sm:mt-2 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 shadow-lg transition-all duration-300 hover:shadow-xl dark:hover:border-primary/20 py-1 sm:py-2 z-50 max-h-60 sm:max-h-80 overflow-y-auto overflow-x-hidden"
                                     >
                                         {searchQuery.trim().length > 0 ? (
                                             <>
@@ -926,17 +926,6 @@ export default function RestaurantListingPage() {
                                     </button>
                                 </div>
 
-                                {/* Filter Controls */}
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
-                                    <button
-                                        onClick={() => setShowAllRestaurants(!showAllRestaurants)}
-                                        className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-indigo-600 text-indigo-600 rounded-full text-xs sm:text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-300 hover:scale-105 touch-manipulation"
-                                    >
-                                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
-                                        <span className="hidden sm:inline">Show Nearby Only</span>
-                                        <span className="sm:hidden">Nearby</span>
-                                    </button>
-                                </div>
 
                                 {/* Featured Restaurants */}
                                 <section>

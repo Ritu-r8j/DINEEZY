@@ -15,7 +15,11 @@ import {
     Users,
     CheckCircle,
     AlertCircle,
-    Star
+    Star,
+    ExternalLink,
+    Facebook,
+    Instagram,
+    Twitter
 } from 'lucide-react';
 import GradientStar from '@/components/ui/GradientStar';
 
@@ -134,6 +138,74 @@ export default function Menu() {
     const [categoryMappings, setCategoryMappings] = useState<CategoryMappings>({});
     const [customCategories, setCustomCategories] = useState<any[]>([]);
 
+    // Helper function to check if restaurant is currently open
+    const isRestaurantOpen = () => {
+        if (!restaurantInfo?.hours) return false;
+        
+        const now = new Date();
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const currentDay = days[now.getDay()];
+        const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
+        
+        const dayHours = restaurantInfo.hours[currentDay];
+        if (!dayHours || !dayHours.open) return false;
+        
+        // Parse time strings (format: "HH:MM")
+        const [fromHour, fromMin] = dayHours.from.split(':').map(Number);
+        const [toHour, toMin] = dayHours.to.split(':').map(Number);
+        
+        const fromTime = fromHour * 60 + fromMin;
+        const toTime = toHour * 60 + toMin;
+        
+        // Handle 24-hour operation (00:00 to 00:00)
+        if (fromTime === 0 && toTime === 0) return true;
+        
+        // Handle overnight hours (e.g., 22:00 to 02:00)
+        if (toTime < fromTime) {
+            return currentTime >= fromTime || currentTime <= toTime;
+        }
+        
+        return currentTime >= fromTime && currentTime <= toTime;
+    };
+
+    // Calculate average rating from menu items
+    const getAverageRating = (): string => {
+        if (!menuItems || menuItems.length === 0) return '0.0';
+        
+        const itemsWithRatings = menuItems.filter(item => item.rating && item.rating > 0);
+        if (itemsWithRatings.length === 0) return '4.5'; // Default fallback
+        
+        const sum = itemsWithRatings.reduce((acc, item) => acc + (item.rating || 0), 0);
+        return (sum / itemsWithRatings.length).toFixed(1);
+    };
+
+    // Calculate total reviews from menu items
+    const getTotalReviews = () => {
+        if (!menuItems || menuItems.length === 0) return 0;
+        
+        return menuItems.reduce((acc, item) => acc + (item.totalRatings || 0), 0);
+    };
+
+    // Get minimum order value from restaurant settings
+    const getMinOrderValue = () => {
+        // You can add a minOrder field to restaurant settings
+        // For now, we'll parse it from priceRange or use a default
+        return restaurantInfo?.priceRange ? `₹${restaurantInfo.priceRange}` : '₹299';
+    };
+
+    // Get free delivery threshold
+    const getFreeDeliveryThreshold = () => {
+        // Parse from offer field or use default
+        if (restaurantInfo?.offer) {
+            // If offer is a percentage, calculate threshold
+            const offerValue = parseInt(restaurantInfo.offer);
+            if (offerValue > 0) {
+                return `₹${offerValue * 50}`; // Simple calculation
+            }
+        }
+        return '₹499';
+    };
+
     // Helper functions for enhanced display
     const hasDiscount = (item: EnhancedMenuItem) => {
         return !!(item.discountPrice && item.discountPrice < item.price);
@@ -243,21 +315,21 @@ export default function Menu() {
     // Generate autocomplete suggestions from menu items
     const generateSuggestions = (term: string) => {
         if (!term || term.length < 2) return [];
-        
+
         const suggestions = new Set<string>();
-        
+
         menuItems.forEach(item => {
             // Add item names that contain the search term
             if (item.name.toLowerCase().includes(term.toLowerCase())) {
                 suggestions.add(item.name);
             }
-            
+
             // Add custom category names that contain the search term
             const categoryDisplayName = getCategoryDisplayName(item.category, categoryMappings, customCategories);
             if (categoryDisplayName.toLowerCase().includes(term.toLowerCase())) {
                 suggestions.add(categoryDisplayName);
             }
-            
+
             // Add words from description that contain the search term
             const descriptionWords = item.description.toLowerCase().split(' ');
             descriptionWords.forEach(word => {
@@ -266,7 +338,7 @@ export default function Menu() {
                 }
             });
         });
-        
+
         return Array.from(suggestions).slice(0, 5); // Limit to 5 suggestions
     };
 
@@ -306,13 +378,13 @@ export default function Menu() {
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                setSelectedSuggestionIndex(prev => 
+                setSelectedSuggestionIndex(prev =>
                     prev < suggestions.length - 1 ? prev + 1 : 0
                 );
                 break;
             case 'ArrowUp':
                 e.preventDefault();
-                setSelectedSuggestionIndex(prev => 
+                setSelectedSuggestionIndex(prev =>
                     prev > 0 ? prev - 1 : suggestions.length - 1
                 );
                 break;
@@ -370,7 +442,7 @@ export default function Menu() {
                         <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
                         <div className="absolute inset-0 flex items-center justify-center">
                             <Utensils className="w-8 h-8 text-primary" />
-                    </div>
+                        </div>
                     </div>
                     <p className="text-muted-foreground font-medium animate-fade-in">
                         Preparing delicious menu...
@@ -408,80 +480,150 @@ export default function Menu() {
     return (
         <>
             <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-        <div className="min-h-screen bg-gradient-to-br from-background via-muted/10 to-background">
-            {/* Enhanced Hero Section with Better Responsiveness */}
-            <section className="relative overflow-hidden">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/3" />
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute top-20 left-4 sm:left-10 w-24 sm:w-32 h-24 sm:h-32 bg-primary/10 rounded-full blur-3xl animate-float" />
-                    <div className="absolute bottom-20 right-4 sm:right-10 w-32 sm:w-40 h-32 sm:h-40 bg-primary/8 rounded-full blur-3xl animate-float-reverse" />
-                </div>
-
-                {/* Mobile Hero Section - More compact sizing */}
-                <div className="lg:hidden relative w-full h-64 xs:h-72 sm:h-80">
-                    <div className="relative w-full h-full animate-fade-in">
-                        <Image
-                            src={restaurantInfo?.logoDataUrl || '/placeholder-restaurant.jpg'}
-                            alt={restaurantInfo?.name || 'Restaurant'}
-                            fill
-                            className="object-cover"
-                            sizes="100vw"
-                            priority
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/80" />
-
-                        {/* Compact Mobile Overlay Content */}
-                        <div className="absolute bottom-0 left-0 right-0 p-3 xs:p-4 sm:p-6">
-                            <div className="text-white space-y-1.5 xs:space-y-2 sm:space-y-3 animate-slide-up">
-                                <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold leading-tight">
-                                    {restaurantInfo?.name || 'Restaurant'}
-                                </h1>
-                                <p className="text-sm xs:text-base sm:text-lg opacity-90">Best restaurant in kanpur</p>
-                                <div className="flex flex-wrap items-center gap-1.5 xs:gap-2 text-xs opacity-80">
-                                    <span className="flex items-center gap-1 xs:gap-2">
-                                        <MapPin className="w-3 h-3 xs:w-4 xs:h-4" />
-                                        {restaurantInfo?.address?.city && restaurantInfo?.address?.state
-                                            ? `${restaurantInfo.address.city}, ${restaurantInfo.address.state}`
-                                            : 'Location'}
-                                    </span>
-                                    <span className="hidden xs:inline">•</span>
-                                    <span className="hidden xs:inline">{restaurantInfo?.cuisine || 'International Cuisine'}</span>
-                                    <span className="hidden xs:inline">•</span>
-                                    <span className="flex items-center gap-1 text-green-400">
-                                        <div className="w-1.5 h-1.5 xs:w-2 xs:h-2 bg-green-400 rounded-full animate-pulse" />
-                                        Open Now
-                                    </span>
-                                </div>
-                        </div>
-                        </div>
+            <div className="min-h-screen bg-gradient-to-br from-background via-muted/10 to-background">
+                {/* Enhanced Hero Section with Better Responsiveness */}
+                <section className="relative overflow-hidden">
+                    {/* Background Pattern */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/3" />
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute top-20 left-4 sm:left-10 w-24 sm:w-32 h-24 sm:h-32 bg-primary/10 rounded-full blur-3xl animate-float" />
+                        <div className="absolute bottom-20 right-4 sm:right-10 w-32 sm:w-40 h-32 sm:h-40 bg-primary/8 rounded-full blur-3xl animate-float-reverse" />
                     </div>
-                </div>
 
-                <div className="relative container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-2 xs:py-3 sm:py-6 lg:py-8">
-                    <div className="grid lg:grid-cols-[1fr_auto] gap-6 lg:gap-12 items-start animate-fade-in">
-                        {/* Restaurant Info - Compact Desktop Layout */}
-                        <div className="hidden lg:flex lg:flex-row gap-4 xl:gap-6">
-                            <div className="relative group animate-fade-in">
-                                <div className="relative w-48 xl:w-56 h-48 xl:h-56">
-                                    <Image
-                                        src={restaurantInfo?.logoDataUrl || '/placeholder-restaurant.jpg'}
-                                        alt={restaurantInfo?.name || 'Restaurant'}
-                                        fill
-                                        className="object-cover rounded-3xl shadow-2xl group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl" />
-                                </div>
-                            </div>
+                    {/* Mobile Hero Section - More compact sizing */}
+                    <div className="lg:hidden relative w-full h-64 xs:h-72 sm:h-80">
+                        <div className="relative w-full h-full animate-fade-in">
+                            <Image
+                                src={restaurantInfo?.logoDataUrl || '/placeholder-restaurant.jpg'}
+                                alt={restaurantInfo?.name || 'Restaurant'}
+                                fill
+                                className="object-cover"
+                                sizes="100vw"
+                                priority
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/80" />
 
-                            <div className="flex-1 space-y-4 animate-fade-in">
-                                <div>
-                                    <h1 className="text-2xl xl:text-3xl font-bold text-foreground mb-2">
+                            {/* Compact Mobile Overlay Content */}
+                            <div className="absolute bottom-0 left-0 right-0 p-3 xs:p-4 sm:p-6">
+                                <div className="text-white space-y-1.5 xs:space-y-2 sm:space-y-3 animate-slide-up">
+                                    <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold leading-tight">
                                         {restaurantInfo?.name || 'Restaurant'}
                                     </h1>
-                                    <p className="text-base xl:text-lg text-muted-foreground mb-2">Best restaurant in kanpur</p>
-                                    <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
-                                        <span className="flex items-center gap-2">
+                                    {restaurantInfo?.description && (
+                                        <p className="text-sm xs:text-base sm:text-lg opacity-90 line-clamp-2">
+                                            {restaurantInfo.description}
+                                        </p>
+                                    )}
+                                    <div className="flex flex-wrap items-center gap-1.5 xs:gap-2 text-xs opacity-80">
+                                        <span className="flex items-center gap-1 xs:gap-2">
+                                            <MapPin className="w-3 h-3 xs:w-4 xs:h-4" />
+                                            {restaurantInfo?.address?.city && restaurantInfo?.address?.state
+                                                ? `${restaurantInfo.address.city}, ${restaurantInfo.address.state}`
+                                                : 'Location'}
+                                        </span>
+                                        <span className="hidden xs:inline">•</span>
+                                        <span className="hidden xs:inline">{restaurantInfo?.cuisine || 'International Cuisine'}</span>
+                                        <span className="hidden xs:inline">•</span>
+                                        {isRestaurantOpen() ? (
+                                            <span className="flex items-center gap-1 text-green-400">
+                                                <div className="w-1.5 h-1.5 xs:w-2 xs:h-2 bg-green-400 rounded-full animate-pulse" />
+                                                Open Now
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-red-400">
+                                                <div className="w-1.5 h-1.5 xs:w-2 xs:h-2 bg-red-400 rounded-full" />
+                                                Closed
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="relative container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-2 xs:py-3 sm:py-6 lg:py-8">
+                        <div className="grid lg:grid-cols-[1fr_auto] gap-6 lg:gap-12 items-start animate-fade-in">
+                            {/* Restaurant Info - Redesigned Horizontal Layout */}
+                            <div className="hidden lg:flex lg:flex-row gap-6 xl:gap-8">
+                                {/* Restaurant Image */}
+                                <div className="relative group animate-fade-in flex-shrink-0">
+                                    <div className="relative w-56 xl:w-64 h-56 xl:h-64">
+                                        <Image
+                                            src={restaurantInfo?.logoDataUrl || '/placeholder-restaurant.jpg'}
+                                            alt={restaurantInfo?.name || 'Restaurant'}
+                                            fill
+                                            className="object-cover rounded-2xl shadow-2xl group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl" />
+                                    </div>
+                                    
+                                    {/* Social Media Icons Below Image */}
+                                    <div className="mt-4">
+                                        <p className="text-xs text-muted-foreground mb-2 font-medium">Follow Us:</p>
+                                        <div className="flex items-center gap-2">
+                                            {restaurantInfo?.socialMedia?.facebook && (
+                                                <a
+                                                    href={restaurantInfo.socialMedia.facebook}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-700 rounded-full transition-all hover:scale-110"
+                                                    title="Facebook"
+                                                >
+                                                    <Facebook className="w-5 h-5 text-white" />
+                                                </a>
+                                            )}
+                                            
+                                            {restaurantInfo?.socialMedia?.instagram && (
+                                                <a
+                                                    href={restaurantInfo.socialMedia.instagram}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full transition-all hover:scale-110"
+                                                    title="Instagram"
+                                                >
+                                                    <Instagram className="w-5 h-5 text-white" />
+                                                </a>
+                                            )}
+                                            
+                                            {restaurantInfo?.socialMedia?.twitter && (
+                                                <a
+                                                    href={restaurantInfo.socialMedia.twitter}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-10 h-10 flex items-center justify-center bg-sky-500 hover:bg-sky-600 rounded-full transition-all hover:scale-110"
+                                                    title="Twitter"
+                                                >
+                                                    <Twitter className="w-5 h-5 text-white" />
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Restaurant Details */}
+                                <div className="flex-1 space-y-3 animate-fade-in">
+                                    {/* Title and Badge */}
+                                    <div className="flex items-start gap-3">
+                                        <h1 className="text-3xl xl:text-4xl font-bold text-foreground">
+                                            {restaurantInfo?.name || 'Restaurant'}
+                                        </h1>
+                                        {restaurantInfo?.restaurantType && (
+                                            <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-semibold border border-green-300 dark:border-green-700">
+                                                Pure {restaurantInfo.restaurantType}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Description */}
+                                    {restaurantInfo?.description && (
+                                        <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+                                            {restaurantInfo.description}
+                                        </p>
+                                    )}
+
+                                    {/* Location, Cuisine, Price, Status */}
+                                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                                        <span className="flex items-center gap-1">
                                             <MapPin className="w-4 h-4" />
                                             {restaurantInfo?.address?.city && restaurantInfo?.address?.state
                                                 ? `${restaurantInfo.address.city}, ${restaurantInfo.address.state}`
@@ -490,375 +632,757 @@ export default function Menu() {
                                         <span>•</span>
                                         <span>{restaurantInfo?.cuisine || 'International Cuisine'}</span>
                                         <span>•</span>
-                                        <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                            Open Now
-                                        </span>
+                                        <span className="font-semibold">{restaurantInfo?.priceRange ? `₹${restaurantInfo.priceRange} for two` : '₹700 for two'}</span>
+                                        <span>•</span>
+                                        {isRestaurantOpen() ? (
+                                            <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
+                                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                                Open Now
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-red-600 dark:text-red-400 font-medium">
+                                                <div className="w-2 h-2 bg-red-500 rounded-full" />
+                                                Closed
+                                            </span>
+                                        )}
                                     </div>
-                                </div>
 
-                                <div className="flex flex-wrap items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex items-center">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star key={i} className="w-3 h-3 text-black fill-current dark:text-white" />
+                                    {/* Specialties */}
+                                    {restaurantInfo?.specialties && restaurantInfo.specialties.length > 0 && (
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="text-xs font-semibold text-muted-foreground">Specialties:</span>
+                                            {restaurantInfo.specialties.slice(0, 3).map((specialty: string, index: number) => (
+                                                <span 
+                                                    key={index}
+                                                    className="px-2.5 py-1 bg-muted/50 text-foreground rounded-md text-xs font-medium border border-border"
+                                                >
+                                                    {specialty}
+                                                </span>
                                             ))}
                                         </div>
-                                        <span className="font-semibold text-foreground text-sm">4.6</span>
-                                        <span className="text-muted-foreground text-sm">(324 reviews)</span>
+                                    )}
+
+                                    {/* Dietary Options */}
+                                    {restaurantInfo?.dietaryOptions && restaurantInfo.dietaryOptions.length > 0 && (
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {restaurantInfo.dietaryOptions.slice(0, 3).map((option: string, index: number) => (
+                                                <span 
+                                                    key={index}
+                                                    className="flex items-center gap-1 text-xs text-muted-foreground"
+                                                >
+                                                    <CheckCircle className="w-3 h-3 text-green-600" />
+                                                    {option}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Rating */}
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center">
+                                            {[...Array(5)].map((_, i) => {
+                                                const rating = parseFloat(getAverageRating());
+                                                return (
+                                                    <Star 
+                                                        key={i} 
+                                                        className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`} 
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                        <span className="font-bold text-foreground">{getAverageRating()}</span>
+                                        <span className="text-sm text-muted-foreground">
+                                            ({getTotalReviews()} {getTotalReviews() === 1 ? 'review' : 'reviews'})
+                                        </span>
                                     </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-wrap items-center gap-3 pt-2">
+                                        <button
+                                            onClick={() => router.push(`/user/reservation/${restaurantId}`)}
+                                            className="group inline-flex items-center gap-2 bg-white dark:bg-card text-foreground px-5 py-2.5 rounded-lg font-semibold text-sm border-2 border-border hover:border-primary shadow-sm hover:shadow-md transition-all hover:scale-105"
+                                        >
+                                            <Utensils className="w-4 h-4" />
+                                            Reserve Table
+                                            <span className="transition-transform group-hover:translate-x-1">→</span>
+                                        </button>
+
+                                        {restaurantInfo?.mapDirectionsLink && (
+                                            <a
+                                                href={restaurantInfo.mapDirectionsLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-card text-foreground rounded-lg text-sm font-semibold border-2 border-border hover:border-primary shadow-sm hover:shadow-md transition-all hover:scale-105"
+                                            >
+                                                <ExternalLink className="w-4 h-4" />
+                                                Direction
+                                            </a>
+                                        )}
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            {/* Compact Mobile/Tablet Content */}
+                            <div className="lg:hidden space-y-4 mt-4 px-3 xs:px-4">
+                                {/* Restaurant Type Badge */}
+                                {restaurantInfo?.restaurantType && (
+                                    <div className="flex justify-center">
+                                        <span className="px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-semibold border border-green-300 dark:border-green-700">
+                                            Pure {restaurantInfo.restaurantType}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Mobile Restaurant Description */}
+                                {restaurantInfo?.description && (
+                                    <div className="text-center animate-fade-in">
+                                        <p className="text-muted-foreground leading-relaxed text-sm">
+                                            {restaurantInfo.description}
+                                        </p>
+                                    </div>
+                                )}
+
+                              
+                                {/* Specialties */}
+                                {restaurantInfo?.specialties && restaurantInfo.specialties.length > 0 && (
+                                    <div className="flex flex-wrap items-center justify-center gap-2">
+                                        <span className="text-xs font-semibold text-muted-foreground">Specialties:</span>
+                                        {restaurantInfo.specialties.slice(0, 2).map((specialty: string, index: number) => (
+                                            <span 
+                                                key={index}
+                                                className="px-2.5 py-1 bg-muted/50 text-foreground rounded-md text-xs font-medium border border-border"
+                                            >
+                                                {specialty}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Dietary Options */}
+                                {restaurantInfo?.dietaryOptions && restaurantInfo.dietaryOptions.length > 0 && (
+                                    <div className="flex flex-wrap items-center justify-center gap-2">
+                                        {restaurantInfo.dietaryOptions.slice(0, 2).map((option: string, index: number) => (
+                                            <span 
+                                                key={index}
+                                                className="flex items-center gap-1 text-xs text-muted-foreground"
+                                            >
+                                                <CheckCircle className="w-3 h-3 text-green-600" />
+                                                {option}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Mobile Ratings Section */}
+                                <div className="flex items-center justify-center gap-2">
+                                    <div className="flex items-center">
+                                        {[...Array(5)].map((_, i) => {
+                                            const rating = parseFloat(getAverageRating());
+                                            return (
+                                                <Star 
+                                                    key={i} 
+                                                    className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`} 
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                    <span className="font-bold text-foreground text-sm">{getAverageRating()}</span>
+                                    <span className="text-muted-foreground text-xs">
+                                        ({getTotalReviews()} {getTotalReviews() === 1 ? 'review' : 'reviews'})
+                                    </span>
                                 </div>
 
-                                {/* Reserve Table Button */}
-                                <div className="pt-4 animate-fade-in">
+                                {/* Action Buttons */}
+                                <div className="flex flex-wrap items-center justify-center gap-3">
                                     <button
                                         onClick={() => router.push(`/user/reservation/${restaurantId}`)}
-                                        className="group inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 xl:px-6 py-2 xl:py-3 rounded-xl font-semibold text-sm xl:text-base shadow-lg hover:shadow-xl transition-all hover:scale-105 hover:bg-primary/90"
+                                        className="group inline-flex items-center gap-2 bg-white dark:bg-card text-foreground px-5 py-2.5 rounded-lg font-semibold text-sm border-2 border-border hover:border-primary shadow-sm transition-all"
                                     >
-                                        <Utensils className="w-3 xl:w-4 h-3 xl:h-4" />
+                                        <Utensils className="w-4 h-4" />
                                         Reserve Table
                                         <span className="transition-transform group-hover:translate-x-1">→</span>
                                     </button>
+
+                                    {restaurantInfo?.mapDirectionsLink && (
+                                        <a
+                                            href={restaurantInfo.mapDirectionsLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-card text-foreground rounded-lg text-sm font-semibold border-2 border-border hover:border-primary shadow-sm transition-all"
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                            Direction
+                                        </a>
+                                    )}
                                 </div>
 
-                               
-                            </div>
-                        </div>
-
-                        {/* Compact Mobile/Tablet Content */}
-                        <div className="lg:hidden space-y-3 xs:space-y-4 mt-3 xs:mt-4">
-                            {/* Mobile Ratings Section */}
-                            <div className="flex items-center justify-center gap-4 text-center">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex items-center">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className="w-3 h-3 xs:w-4 xs:h-4 text-black fill-current dark:text-white" />
-                                        ))}
+                                {/* Social Media */}
+                                {(restaurantInfo?.socialMedia?.facebook || restaurantInfo?.socialMedia?.instagram || restaurantInfo?.socialMedia?.twitter) && (
+                                    <div className="text-center">
+                                        <p className="text-xs text-muted-foreground mb-2 font-medium">Follow Us:</p>
+                                        <div className="flex items-center justify-center gap-2">
+                                            {restaurantInfo?.socialMedia?.facebook && (
+                                                <a
+                                                    href={restaurantInfo.socialMedia.facebook}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-700 rounded-full transition-all"
+                                                >
+                                                    <Facebook className="w-5 h-5 text-white" />
+                                                </a>
+                                            )}
+                                            
+                                            {restaurantInfo?.socialMedia?.instagram && (
+                                                <a
+                                                    href={restaurantInfo.socialMedia.instagram}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600 rounded-full transition-all"
+                                                >
+                                                    <Instagram className="w-5 h-5 text-white" />
+                                                </a>
+                                            )}
+                                            
+                                            {restaurantInfo?.socialMedia?.twitter && (
+                                                <a
+                                                    href={restaurantInfo.socialMedia.twitter}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-10 h-10 flex items-center justify-center bg-sky-500 hover:bg-sky-600 rounded-full transition-all"
+                                                >
+                                                    <Twitter className="w-5 h-5 text-white" />
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
-                                    <span className="font-semibold text-foreground text-xs xs:text-sm">4.6</span>
-                                    <span className="text-muted-foreground text-xs">(324 reviews)</span>
-                                </div>
+                                )}
+
+                                {/* Offer Badge
+                                {restaurantInfo?.offer && parseInt(restaurantInfo.offer) > 0 && (
+                                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl text-center shadow-lg mx-auto max-w-xs">
+                                        <p className="text-2xl font-bold">{restaurantInfo.offer}% OFF</p>
+                                        <p className="text-xs mt-1 opacity-90">on your order</p>
+                                    </div>
+                                )} */}
                             </div>
 
-                            {/* Mobile Reserve Table Button */}
-                            <div className="flex justify-center">
-                                <button
-                                    onClick={() => router.push(`/user/reservation/${restaurantId}`)}
-                                    className="group inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 xs:px-6 py-2 xs:py-3 rounded-xl font-semibold text-sm xs:text-base shadow-lg hover:shadow-xl transition-all hover:scale-105 hover:bg-primary/90 animate-fade-in"
-                                >
-                                    <Utensils className="w-4 h-4" />
-                                    Reserve Table
-                                    <span className="transition-transform group-hover:translate-x-1">→</span>
-                                </button>
-                            </div>
-
-                            {/* Mobile Restaurant Description */}
-                            {restaurantInfo?.description && (
-                                <div className="text-center px-3 xs:px-4 animate-fade-in">
-                                    <p className="text-muted-foreground leading-relaxed text-sm xs:text-base">
-                                        {restaurantInfo.description}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Enhanced Timing Card - Better responsive positioning */}
-                        <div className="relative hidden lg:block animate-fade-in">
-                            <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-3 xl:p-4 shadow-lg w-48 xl:w-52 h-52 xl:h-56 flex flex-col justify-center space-y-2 xl:space-y-3 sticky top-20">
-                                <div className="text-center space-y-2 xl:space-y-3">
+                            {/* Enhanced Info Card - Right Side */}
+                            <div className="relative hidden lg:block animate-fade-in">
+                                <div className="bg-card border border-border rounded-2xl p-5 shadow-lg w-64 space-y-4 sticky top-20">
                                     {/* Open/Closed Status */}
-                                    <div className="flex items-center justify-center gap-2">
-                                        <div className="w-2.5 xl:w-3 h-2.5 xl:h-3 bg-green-500 rounded-full animate-pulse" />
-                                        <span className="text-green-600 dark:text-green-400 font-semibold text-sm xl:text-base">Open Now</span>
-                                    </div>
+                                    {isRestaurantOpen() ? (
+                                        <div className="flex items-center justify-center gap-2 bg-green-50 dark:bg-green-900/20 py-2 rounded-lg">
+                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                            <span className="text-green-600 dark:text-green-400 font-bold text-sm">Open Now</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/20 py-2 rounded-lg">
+                                            <div className="w-2 h-2 bg-red-500 rounded-full" />
+                                            <span className="text-red-600 dark:text-red-400 font-bold text-sm">Closed</span>
+                                        </div>
+                                    )}
 
-                                    {/* Timing */}
-                                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                                        <Clock className="w-4 xl:w-5 h-4 xl:h-5" />
-                                        <span className="font-medium text-sm xl:text-base">25-35 min</span>
-                                    </div>
+                                    {/* Delivery Time */}
+                                    {restaurantInfo?.deliveryTime && (
+                                        <div className="flex items-center gap-3 text-foreground">
+                                            <Clock className="w-5 h-5 text-muted-foreground" />
+                                            <div>
+                                                <p className="text-sm font-semibold">{restaurantInfo.deliveryTime} min</p>
+                                                <p className="text-xs text-muted-foreground">Delivery time</p>
+                                            </div>
+                                        </div>
+                                    )}
 
-                                    {/* Min Order */}
-                                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                                        <Users className="w-4 xl:w-5 h-4 xl:h-5" />
-                                        <span className="font-medium text-sm xl:text-base">Min order ₹299</span>
-                                    </div>
+                          
+
+                                    {/* Offer Badge */}
+                                    {restaurantInfo?.offer && parseInt(restaurantInfo.offer) > 0 && (
+                                        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-2 rounded-lg text-center shadow-md">
+                                            <p className="text-lg font-bold">{restaurantInfo.offer}% OFF</p>
+                                            <p className="text-xs opacity-90">on your order</p>
+                                        </div>
+                                    )}
 
                                     {/* Divider */}
-                                    <div className="w-full h-px bg-border/50" />
+                                    <div className="w-full h-px bg-border" />
 
-                                    {/* Additional Info */}
-                                    <div className="space-y-1.5 xl:space-y-2">
-                                        <div className="text-xs xl:text-sm text-muted-foreground">
-                                            <span className="font-medium">Delivery:</span> Free above ₹499
-                                        </div>
-                                        <div className="text-xs xl:text-sm text-muted-foreground">
-                                            <span className="font-medium">Payment:</span> Online & COD
+                                    {/* Payment Info */}
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Payment:</span>
+                                            <span className="font-medium text-foreground">Online & COD</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
                         </div>
-
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* Compact Search and Filter Section */}
-            <section className="sticky top-0 z-40 backdrop-blur">
-                <div className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-3 xs:py-4">
-                    <div className="space-y-3 xs:space-y-4">
-                        {/* Enhanced Search Bar */}
-                        <div className="max-w-2xl mx-auto">
-                            <div className="relative group search-container">
-                                <div className="flex items-center border border-border/50 rounded-2xl bg-background/50 backdrop-blur-sm px-4 py-3 shadow-sm hover:shadow-md transition-all duration-300 hover:border-primary/50 focus-within:border-primary focus-within:shadow-lg focus-within:shadow-primary/10">
-                                    <Search className="w-5 h-5 text-muted-foreground mr-3 transition-colors group-focus-within:text-primary" />
+                {/* Compact Search and Filter Section */}
+                <section className="sticky top-0 z-40 backdrop-blur">
+                    <div className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-3 xs:py-4">
+                        <div className="space-y-3 xs:space-y-4">
+                            {/* Enhanced Search Bar */}
+                            <div className="max-w-2xl mx-auto">
+                                <div className="relative group search-container">
+                                    <div className="flex items-center border border-border/50 rounded-2xl bg-background/50 backdrop-blur-sm px-4 py-3 shadow-sm hover:shadow-md transition-all duration-300 hover:border-primary/50 focus-within:border-primary focus-within:shadow-lg focus-within:shadow-primary/10">
+                                        <Search className="w-5 h-5 text-muted-foreground mr-3 transition-colors group-focus-within:text-primary" />
                                         <input
                                             type="text"
                                             placeholder="Search for dishes, ingredients..."
                                             value={searchTerm}
-                                        onChange={(e) => {
-                                            setSearchTerm(e.target.value);
-                                            setSelectedSuggestionIndex(-1);
-                                        }}
-                                        onKeyDown={handleKeyDown}
-                                        className="w-full bg-transparent outline-none text-base text-foreground placeholder:text-muted-foreground placeholder:font-normal"
-                                    />
-                                    {searchTerm && (
-                                        <button
-                                            onClick={() => setSearchTerm('')}
-                                            className="ml-2 p-1 rounded-full hover:bg-muted/50 transition-colors"
-                                        >
-                                            <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-                                        </button>
-                                    )}
-                                </div>
-                                {/* Smart Autocomplete Suggestions */}
-                                {showSuggestions && suggestions.length > 0 && (
-                                    <div className="search-suggestions absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto">
-                                        <div className="p-2">
-                                            <div className="text-xs text-muted-foreground px-3 py-2 border-b border-border/50 flex items-center gap-2">
-                                                <Search className="w-3 h-3" />
-                                                Smart suggestions
-                                            </div>
-                                            <div className="py-2">
-                                                {suggestions.map((suggestion, index) => (
-                                                    <button
-                                                        key={index}
-                                                        onClick={() => {
-                                                            setSearchTerm(suggestion);
-                                                            setShowSuggestions(false);
-                                                            setSelectedSuggestionIndex(-1);
-                                                        }}
-                                                        className={`w-full text-left px-3 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-2 ${
-                                                            index === selectedSuggestionIndex 
-                                                                ? 'bg-primary/10 text-primary border border-primary/20' 
+                                            onChange={(e) => {
+                                                setSearchTerm(e.target.value);
+                                                setSelectedSuggestionIndex(-1);
+                                            }}
+                                            onKeyDown={handleKeyDown}
+                                            className="w-full bg-transparent outline-none text-base text-foreground placeholder:text-muted-foreground placeholder:font-normal"
+                                        />
+                                        {searchTerm && (
+                                            <button
+                                                onClick={() => setSearchTerm('')}
+                                                className="ml-2 p-1 rounded-full hover:bg-muted/50 transition-colors"
+                                            >
+                                                <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                                            </button>
+                                        )}
+                                    </div>
+                                    {/* Smart Autocomplete Suggestions */}
+                                    {showSuggestions && suggestions.length > 0 && (
+                                        <div className="search-suggestions absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                                            <div className="p-2">
+                                                <div className="text-xs text-muted-foreground px-3 py-2 border-b border-border/50 flex items-center gap-2">
+                                                    <Search className="w-3 h-3" />
+                                                    Smart suggestions
+                                                </div>
+                                                <div className="py-2">
+                                                    {suggestions.map((suggestion, index) => (
+                                                        <button
+                                                            key={index}
+                                                            onClick={() => {
+                                                                setSearchTerm(suggestion);
+                                                                setShowSuggestions(false);
+                                                                setSelectedSuggestionIndex(-1);
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-2 ${index === selectedSuggestionIndex
+                                                                ? 'bg-primary/10 text-primary border border-primary/20'
                                                                 : 'hover:bg-muted/50'
-                                                        }`}
-                                                    >
-                                                        <Search className="w-3 h-3 text-muted-foreground" />
-                                                        <span className="text-sm text-foreground">{suggestion}</span>
-                                                    </button>
-                                                ))}
+                                                                }`}
+                                                        >
+                                                            <Search className="w-3 h-3 text-muted-foreground" />
+                                                            <span className="text-sm text-foreground">{suggestion}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    </div>
-                            )}
-                            </div>
-                        </div>
-
-                        {/* Enhanced Category Pills - Better mobile scrolling */}
-                        <div className="category-pills-container flex flex-nowrap justify-start gap-2 xs:gap-3 pb-2">
-                            {categories.map((category, index) => (
-                                <button
-                                    key={category.id}
-                                    onClick={() => setActiveCategory(category.id)}
-                                    className={`relative px-4 xs:px-5 py-2.5 text-xs xs:text-sm font-semibold rounded-full transition-all duration-300 hover:scale-105 whitespace-nowrap animate-fade-in flex-shrink-0 border ${activeCategory === category.id
-                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 border-primary'
-                                        : 'bg-background/50 text-muted-foreground hover:bg-muted/80 hover:text-foreground border-border/50 hover:border-primary/50'
-                                        }`}
-                                >
-                                    {activeCategory === category.id && (
-                                        <div className="absolute inset-0 bg-primary rounded-full transition-all duration-300" />
                                     )}
-                                    <span className="relative z-10">{category.displayName}</span>
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Enhanced Search Results Info */}
-                            {searchTerm && (
-                            <div className="text-center animate-fade-in">
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-full border border-border/50">
-                                    <Search className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm text-muted-foreground">
-                                        Found <span className="font-semibold text-foreground">{filteredItems.length}</span> item{filteredItems.length !== 1 ? 's' : ''} for 
-                                        <span className="font-medium text-primary ml-1">"{searchTerm}"</span>
-                                    </span>
                                 </div>
                             </div>
-                        )}
-                    </div>
-                </div>
-            </section>
 
-            {/* Compact Menu Items Grid */}
-            <section className="container mx-auto p-1 xs:p-5 sm:p-6 lg:p-8 py-4 xs:py-5 sm:py-6">
-                <div className="max-w-6xl mx-auto">
-
-                    {/* Enhanced Menu Items Grid - Mobile horizontal, Desktop grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5  xs:gap-5 sm:gap-6 pb-10">
-                        {filteredItems.length === 0 ? (
-                            <div className="col-span-full text-center py-12 xs:py-16 animate-fade-in">
-                                <div className="w-20 xs:w-24 h-20 xs:h-24 mx-auto mb-4 xs:mb-6 bg-muted/30 rounded-full flex items-center justify-center">
-                                    <Search className="w-10 xs:w-12 h-10 xs:h-12 text-muted-foreground" />
-                                </div>
-                                <h3 className="text-lg xs:text-xl font-semibold text-foreground mb-2">No items found</h3>
-                                <p className="text-muted-foreground text-sm xs:text-base px-4">
-                                    Try adjusting your search or browse different categories
-                                </p>
-                            </div>
-                        ) : (
-                            filteredItems.map((item, index) => (
-                                <div
-                                    key={item.id}
-                                    className="group animate-fade-in hover:card-hover transition-all duration-500 "
-                                >
-                                    {/* Mobile: Clean Horizontal Layout */}
-                                    <div
-                                        onClick={() => router.push(`/user/menu/${restaurantId}/${item.id}`)}
-                                        className="sm:hidden border border-border/70 rounded-2xl overflow-hidden dark:shadow-2xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:border-primary/30 mb-4 "
+                            {/* Enhanced Category Pills - Better mobile scrolling */}
+                            <div className="category-pills-container flex flex-nowrap justify-start gap-2 xs:gap-3 pb-2">
+                                {categories.map((category, index) => (
+                                    <button
+                                        key={category.id}
+                                        onClick={() => setActiveCategory(category.id)}
+                                        className={`relative px-4 xs:px-5 py-2.5 text-xs xs:text-sm font-semibold rounded-full transition-all duration-300 hover:scale-105 whitespace-nowrap animate-fade-in flex-shrink-0 border ${activeCategory === category.id
+                                            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 border-primary'
+                                            : 'bg-background/50 text-muted-foreground hover:bg-muted/80 hover:text-foreground border-border/50 hover:border-primary/50'
+                                            }`}
                                     >
-                                        <div className="flex items-center ml-5"> {/* <-- add items-center here */}
-                                            {/* Mobile Image - Left Side */}
-                                            <div className="relative w-24 h-24 flex-shrink-0 flex items-center">
-                                            <Image
-                                                src={item.image}
-                                                alt={item.name}
-                                                fill
-                                                    sizes="96px"
-                                                    className="object-cover rounded-md"
+                                        {activeCategory === category.id && (
+                                            <div className="absolute inset-0 bg-primary rounded-full transition-all duration-300" />
+                                        )}
+                                        <span className="relative z-10">{category.displayName}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Enhanced Search Results Info */}
+                            {searchTerm && (
+                                <div className="text-center animate-fade-in">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-full border border-border/50">
+                                        <Search className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-sm text-muted-foreground">
+                                            Found <span className="font-semibold text-foreground">{filteredItems.length}</span> item{filteredItems.length !== 1 ? 's' : ''} for
+                                            <span className="font-medium text-primary ml-1">"{searchTerm}"</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Compact Menu Items Grid */}
+                <section className="container mx-auto p-1 xs:p-5 sm:p-6 lg:p-8 py-4 xs:py-5 sm:py-6">
+                    <div className="max-w-6xl mx-auto">
+
+                        {/* Enhanced Menu Items Grid - Mobile horizontal, Desktop grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5  xs:gap-5 sm:gap-6 pb-10">
+                            {filteredItems.length === 0 ? (
+                                <div className="col-span-full text-center py-12 xs:py-16 animate-fade-in">
+                                    <div className="w-20 xs:w-24 h-20 xs:h-24 mx-auto mb-4 xs:mb-6 bg-muted/30 rounded-full flex items-center justify-center">
+                                        <Search className="w-10 xs:w-12 h-10 xs:h-12 text-muted-foreground" />
+                                    </div>
+                                    <h3 className="text-lg xs:text-xl font-semibold text-foreground mb-2">No items found</h3>
+                                    <p className="text-muted-foreground text-sm xs:text-base px-4">
+                                        Try adjusting your search or browse different categories
+                                    </p>
+                                </div>
+                            ) : (
+                                filteredItems.map((item, index) => (
+                                    <div
+                                        key={item.id}
+                                        className="group animate-fade-in hover:card-hover transition-all duration-500 "
+                                    >
+                                        {/* Mobile: Clean Horizontal Layout */}
+                                        <div
+                                            onClick={() => router.push(`/user/menu/${restaurantId}/${item.id}`)}
+                                            className="sm:hidden border border-border/70 rounded-2xl overflow-hidden dark:shadow-2xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:border-primary/30 mb-4 "
+                                        >
+                                            <div className="flex items-center ml-5"> {/* <-- add items-center here */}
+                                                {/* Mobile Image - Left Side */}
+                                                <div className="relative w-24 h-24 flex-shrink-0 flex items-center">
+                                                    <Image
+                                                        src={item.image}
+                                                        alt={item.name}
+                                                        fill
+                                                        sizes="96px"
+                                                        className="object-cover rounded-md"
+                                                        priority={index < 4}
+                                                    />
+                                                    {/* Enhanced Mobile Badges */}
+                                                    <div className="absolute -top-1 -right-1 flex flex-col gap-1">
+                                                        {/* Discount Badge */}
+                                                        {hasDiscount(item) && (
+                                                            <div className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                                                                {getDiscountPercentage(item)}% OFF
+                                                            </div>
+                                                        )}
+
+                                                        {/* Best Seller Badge */}
+                                                        {item.isBestSeller && (
+                                                            <div className="bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                                                                ⭐
+                                                            </div>
+                                                        )}
+
+                                                        {/* Recommended Badge */}
+                                                        {item.isRecommended && (
+                                                            <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                                                                ❤️
+                                                            </div>
+                                                        )}
+
+                                                        {/* Popular Badge (fallback) */}
+                                                        {!item.isBestSeller && !item.isRecommended && item.tags?.includes('Popular') && (
+                                                            <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                                                                <Sparkles className="w-2 h-2 inline mr-1" />
+                                                                Popular
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {!item.available && (
+                                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                            <AlertCircle className="w-5 h-5 text-white" />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Mobile Content - Right Side */}
+                                                <div className="flex-1 p-4 flex flex-col justify-center">
+                                                    <div className="space-y-2">
+                                                        <h3 className="text-lg font-bold text-foreground line-clamp-1">
+                                                            {item.name}
+                                                        </h3>
+
+                                                        {/* Rating and Status */}
+                                                        <div className="flex items-center gap-2">
+                                                            {item.rating && item.rating > 0 && (
+                                                                <div className="flex items-center gap-1">
+                                                                    <GradientStar size={12} />
+                                                                    <span className="text-sm font-semibold text-foreground">{item.rating.toFixed(1)}</span>
+                                                                </div>
+                                                            )}
+                                                            {item.available ? (
+                                                                <div className="flex items-center gap-1 text-green-600">
+                                                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                                                    <span className="text-xs font-medium">Available</span>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-1 text-red-500">
+                                                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                                                                    <span className="text-xs font-medium">Unavailable</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Details */}
+                                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                            <span>{item.calories} cal</span>
+                                                            {item.preparationTime && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <Clock className="w-2.5 h-2.5" />
+                                                                    {item.preparationTime}m
+                                                                </span>
+                                                            )}
+
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Enhanced Price and Button */}
+                                                    <div className="flex items-center justify-between mt-3">
+                                                        <div className="flex flex-col">
+                                                            {hasDiscount(item) ? (
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                                                                        {formatCurrency(item.discountPrice!, item.currency)}
+                                                                    </span>
+                                                                    <span className="text-sm text-gray-400 line-through">
+                                                                        {formatCurrency(item.price, item.currency)}
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-lg font-bold text-foreground">
+                                                                    {formatCurrency(item.price, item.currency)}
+                                                                </p>
+                                                            )}
+
+                                                            {/* Total Orders */}
+                                                            {(item.totalOrders || 0) > 0 && (
+                                                                <span className="text-xs text-gray-500">
+                                                                    {item.totalOrders} orders
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                addToCart(item);
+                                                            }}
+                                                            disabled={!item.available}
+                                                            className={`px-3 py-2 rounded-lg font-semibold transition-all text-xs hover:scale-105 active:scale-95 ${item.available
+                                                                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md'
+                                                                : 'bg-muted/50 text-muted-foreground cursor-not-allowed'
+                                                                } ${isAnimating ? 'animate-pulse' : ''}`}
+                                                        >
+                                                            {item.available ? (
+                                                                <div className="flex items-center gap-1">
+                                                                    <ShoppingCart className="w-4 h-4" />
+                                                                    <span>Add</span>
+                                                                </div>
+                                                            ) : (
+                                                                <span>Unavailable</span>
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Desktop: Vertical Layout (unchanged) */}
+                                        <div
+                                            onClick={() => router.push(`/user/menu/${restaurantId}/${item.id}`)}
+                                            className="hidden sm:block h-full bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer hover:border-primary/50"
+                                        >
+                                            {/* Enhanced Item Image with Better Layout */}
+                                            <div className="relative h-44 overflow-hidden rounded-t-xl">
+                                                <Image
+                                                    src={item.image}
+                                                    alt={item.name}
+                                                    fill
+                                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                                    className="object-cover transition-all duration-700 group-hover:image-zoom"
                                                     priority={index < 4}
-                                            />
-                                                {/* Enhanced Mobile Badges */}
-                                                <div className="absolute -top-1 -right-1 flex flex-col gap-1">
+                                                />
+
+                                                {/* Enhanced Gradient Overlay */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
+
+                                                {/* Enhanced Top Right Badges Container */}
+                                                <div className="absolute top-2 xs:top-3 right-2 xs:right-3 flex flex-col gap-1.5 xs:gap-2">
                                                     {/* Discount Badge */}
                                                     {hasDiscount(item) && (
-                                                        <div className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                                                        <div className="bg-red-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">
                                                             {getDiscountPercentage(item)}% OFF
                                                         </div>
                                                     )}
-                                                    
+
                                                     {/* Best Seller Badge */}
                                                     {item.isBestSeller && (
-                                                        <div className="bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                                                            ⭐
+                                                        <div className="bg-yellow-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20 group-hover:badge-glow transition-all duration-300">
+                                                            <Sparkles className="w-2.5 xs:w-3 h-2.5 xs:h-3 inline mr-1" />
+                                                            BESTSELLER
                                                         </div>
                                                     )}
-                                                    
+
                                                     {/* Recommended Badge */}
                                                     {item.isRecommended && (
-                                                        <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                                                            ❤️
+                                                        <div className="bg-green-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">
+                                                            ❤️ Recommended
                                                         </div>
                                                     )}
-                                                    
+
                                                     {/* Popular Badge (fallback) */}
                                                     {!item.isBestSeller && !item.isRecommended && item.tags?.includes('Popular') && (
-                                                        <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-                                                            <Sparkles className="w-2 h-2 inline mr-1" />
+                                                        <div className="bg-gradient-to-r from-primary to-primary/80 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-semibold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20 group-hover:badge-glow transition-all duration-300">
+                                                            <Sparkles className="w-2.5 xs:w-3 h-2.5 xs:h-3 inline mr-1" />
                                                             Popular
                                                         </div>
                                                     )}
                                                 </div>
-                                                
-                                            {!item.available && (
-                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                                        <AlertCircle className="w-5 h-5 text-white" />
-                                                </div>
-                                            )}
-                                        </div>
 
-                                            {/* Mobile Content - Right Side */}
-                                            <div className="flex-1 p-4 flex flex-col justify-center">
-                                                <div className="space-y-2">
-                                                    <h3 className="text-lg font-bold text-foreground line-clamp-1">
-                                                    {item.name}
-                                                </h3>
-                                                    
-                                                    {/* Rating and Status */}
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex items-center gap-1">
-                                                            <GradientStar size={12} />
-                                                            <span className="text-sm font-semibold text-foreground">4.5</span>
+                                                {/* Bottom Left Info */}
+                                                <div className="absolute bottom-2 xs:bottom-3 left-2 xs:left-3 right-2 xs:right-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-1.5 xs:gap-2">
+                                                            {item.rating && item.rating > 0 && (
+                                                                <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 xs:px-3 py-1">
+                                                                    <GradientStar size={12} className="xs:w-4 xs:h-4" />
+                                                                    <span className="text-white text-xs xs:text-sm font-semibold">{item.rating.toFixed(1)}</span>
+                                                                </div>
+                                                            )}
+                                                            {item.preparationTime && (
+                                                                <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 xs:px-3 py-1">
+                                                                    <Clock className="w-3 xs:w-4 h-3 xs:h-4 text-white" />
+                                                                    <span className="text-white text-xs xs:text-sm font-semibold">{item.preparationTime}m</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Enhanced Price Badge */}
+                                                        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs xs:text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20 group-hover:price-glow transition-all duration-300">
+                                                            {hasDiscount(item) ? (
+                                                                <div className="flex items-center gap-1">
+                                                                    <span>{formatCurrency(item.discountPrice!, item.currency)}</span>
+                                                                    <span className="text-xs line-through opacity-70">{formatCurrency(item.price, item.currency)}</span>
+                                                                </div>
+                                                            ) : (
+                                                                <span>{formatCurrency(item.price, item.currency)}</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                        {item.available ? (
-                                                            <div className="flex items-center gap-1 text-green-600">
-                                                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                                                <span className="text-xs font-medium">Available</span>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center gap-1 text-red-500">
-                                                                <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                                                                <span className="text-xs font-medium">Unavailable</span>
-                                                            </div>
-                                                        )}
+
+                                                {/* Availability Overlay */}
+                                                {!item.available && (
+                                                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+                                                        <div className="text-white text-center px-4">
+                                                            <AlertCircle className="w-8 xs:w-10 h-8 xs:h-10 mx-auto mb-2 animate-pulse" />
+                                                            <p className="font-bold text-sm xs:text-base">Currently Unavailable</p>
+                                                            <p className="text-xs xs:text-sm opacity-80 mt-1">Check back later</p>
+                                                        </div>
                                                     </div>
-                                                    
-                                                    {/* Details */}
-                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                        <span>{item.calories} cal</span>
-                                                {item.preparationTime && (
-                                                            <span className="flex items-center gap-1">
-                                                                <Clock className="w-2.5 h-2.5" />
-                                                            {item.preparationTime}m
-                                                        </span>
-                                                        )}
-                                                      
-                                                    </div>
+                                                )}
                                             </div>
 
-                                                {/* Enhanced Price and Button */}
-                                                <div className="flex items-center justify-between mt-3">
-                                                    <div className="flex flex-col">
-                                                        {hasDiscount(item) ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                                                                    {formatCurrency(item.discountPrice!, item.currency)}
-                                                                </span>
-                                                                <span className="text-sm text-gray-400 line-through">
+                                            {/* Enhanced Item Details */}
+                                            <div className="p-3 xs:p-4 sm:p-5 space-y-3 xs:space-y-4">
+                                                {/* Title and Description */}
+                                                <div className="space-y-2">
+                                                    <h3 className="text-lg xs:text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                                                        {item.name}
+                                                    </h3>
+                                                    <p className="text-muted-foreground text-sm xs:text-base leading-relaxed line-clamp-2">
+                                                        {item.description}
+                                                    </p>
+                                                </div>
+
+                                                {/* Enhanced Info Pills */}
+                                                <div className="flex flex-wrap items-center gap-2 xs:gap-3">
+                                                    {/* Calories */}
+                                                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
+                                                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                                        <span className="text-xs xs:text-sm font-medium text-foreground">{item.calories} cal</span>
+                                                    </div>
+
+                                                    {/* Category */}
+                                                    <div className="flex items-center gap-1.5 bg-primary/10 rounded-full px-3 py-1.5">
+                                                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                                                        <span className="text-xs xs:text-sm font-medium text-primary">{getCategoryDisplayName(item.category, categoryMappings, customCategories)}</span>
+                                                    </div>
+
+                                                    {/* Vegetarian/Non-Veg */}
+                                                    {item.tags?.includes('Vegetarian') && (
+                                                        <div className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/20 rounded-full px-3 py-1.5">
+                                                            <span className="text-green-600 dark:text-green-400 text-xs">🟢</span>
+                                                            <span className="text-xs xs:text-sm font-medium text-green-600 dark:text-green-400">Veg</span>
+                                                        </div>
+                                                    )}
+
+                                                    {item.tags?.includes('Non-Vegetarian') && (
+                                                        <div className="flex items-center gap-1.5 bg-red-100 dark:bg-red-900/20 rounded-full px-3 py-1.5">
+                                                            <span className="text-red-600 dark:text-red-400 text-xs">🔴</span>
+                                                            <span className="text-xs xs:text-sm font-medium text-red-600 dark:text-red-400">Non-Veg</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Enhanced Price and Add to Cart */}
+                                                <div className="flex items-center justify-between pt-3 xs:pt-4 border-t border-border/50">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-baseline gap-2">
+                                                            {hasDiscount(item) ? (
+                                                                <div className="flex flex-col">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="text-xl xs:text-2xl font-bold text-green-600 dark:text-green-400">
+                                                                            {formatCurrency(item.discountPrice!, item.currency)}
+                                                                        </p>
+                                                                        <p className="text-sm xs:text-base text-gray-400 line-through">
+                                                                            {formatCurrency(item.price, item.currency)}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-xl xs:text-2xl font-bold text-foreground">
                                                                     {formatCurrency(item.price, item.currency)}
-                                                                </span>
-                                                            </div>
-                                                        ) : (
-                                                            <p className="text-lg font-bold text-foreground">
-                                                                {formatCurrency(item.price, item.currency)}
-                                                            </p>
-                                                        )}
-                                                        
+                                                                </p>
+                                                            )}
+                                                        </div>
+
                                                         {/* Total Orders */}
                                                         {(item.totalOrders || 0) > 0 && (
-                                                            <span className="text-xs text-gray-500">
+                                                            <div className="text-xs text-gray-500">
                                                                 {item.totalOrders} orders
-                                                            </span>
+                                                            </div>
+                                                        )}
+
+                                                        {item.available ? (
+                                                            <div className="flex items-center gap-1.5 text-xs xs:text-sm text-green-600 dark:text-green-400 animate-fade-in">
+                                                                <CheckCircle className="w-3 xs:w-4 h-3 xs:h-4" />
+                                                                <span className="font-medium">Available</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-1.5 text-xs xs:text-sm text-red-500">
+                                                                <AlertCircle className="w-3 xs:w-4 h-3 xs:h-4" />
+                                                                <span className="font-medium">Unavailable</span>
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    
+
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             addToCart(item);
                                                         }}
                                                         disabled={!item.available}
-                                                        className={`px-3 py-2 rounded-lg font-semibold transition-all text-xs hover:scale-105 active:scale-95 ${item.available
-                                                            ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md'
+                                                        className={`px-4 xs:px-6 py-2 xs:py-3 rounded-xl font-bold transition-all text-sm xs:text-base hover:scale-105 active:scale-95 shadow-lg ${item.available
+                                                            ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:shadow-xl hover:from-primary/90 hover:to-primary'
                                                             : 'bg-muted/50 text-muted-foreground cursor-not-allowed'
                                                             } ${isAnimating ? 'animate-pulse' : ''}`}
                                                     >
                                                         {item.available ? (
-                                                            <div className="flex items-center gap-1">
-                                                                <ShoppingCart className="w-4 h-4" />
-                                                                <span>Add</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <ShoppingCart className="w-5 h-5" />
+                                                                <span className="hidden xs:inline">Add to Cart</span>
+                                                                <span className="xs:hidden">Add</span>
                                                             </div>
                                                         ) : (
                                                             <span>Unavailable</span>
@@ -867,218 +1391,14 @@ export default function Menu() {
                                                 </div>
                                             </div>
                                         </div>
-                                                </div>
-
-                                    {/* Desktop: Vertical Layout (unchanged) */}
-                                    <div
-                                        onClick={() => router.push(`/user/menu/${restaurantId}/${item.id}`)}
-                                        className="hidden sm:block h-full bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer hover:border-primary/50"
-                                    >
-                                        {/* Enhanced Item Image with Better Layout */}
-                                        <div className="relative h-44 overflow-hidden rounded-t-xl">
-                                            <Image
-                                                src={item.image}
-                                                alt={item.name}
-                                                fill
-                                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                                                className="object-cover transition-all duration-700 group-hover:image-zoom"
-                                                priority={index < 4}
-                                            />
-                                            
-                                            {/* Enhanced Gradient Overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
-                                            
-                                            {/* Enhanced Top Right Badges Container */}
-                                            <div className="absolute top-2 xs:top-3 right-2 xs:right-3 flex flex-col gap-1.5 xs:gap-2">
-                                                {/* Discount Badge */}
-                                                {hasDiscount(item) && (
-                                                    <div className="bg-red-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">
-                                                        {getDiscountPercentage(item)}% OFF
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Best Seller Badge */}
-                                                {item.isBestSeller && (
-                                                    <div className="bg-yellow-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20 group-hover:badge-glow transition-all duration-300">
-                                                        <Sparkles className="w-2.5 xs:w-3 h-2.5 xs:h-3 inline mr-1" />
-                                                        BESTSELLER
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Recommended Badge */}
-                                                {item.isRecommended && (
-                                                    <div className="bg-green-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">
-                                                        ❤️ Recommended
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Popular Badge (fallback) */}
-                                                {!item.isBestSeller && !item.isRecommended && item.tags?.includes('Popular') && (
-                                                    <div className="bg-gradient-to-r from-primary to-primary/80 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-semibold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20 group-hover:badge-glow transition-all duration-300">
-                                                        <Sparkles className="w-2.5 xs:w-3 h-2.5 xs:h-3 inline mr-1" />
-                                                        Popular
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Bottom Left Info */}
-                                            <div className="absolute bottom-2 xs:bottom-3 left-2 xs:left-3 right-2 xs:right-3">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-1.5 xs:gap-2">
-                                                        <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 xs:px-3 py-1">
-                                                            <GradientStar size={12} className="xs:w-4 xs:h-4" />
-                                                            <span className="text-white text-xs xs:text-sm font-semibold">4.5</span>
-                                                        </div>
-                                                        {item.preparationTime && (
-                                                            <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 xs:px-3 py-1">
-                                                                <Clock className="w-3 xs:w-4 h-3 xs:h-4 text-white" />
-                                                                <span className="text-white text-xs xs:text-sm font-semibold">{item.preparationTime}m</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    
-                                                    {/* Enhanced Price Badge */}
-                                                    <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs xs:text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20 group-hover:price-glow transition-all duration-300">
-                                                        {hasDiscount(item) ? (
-                                                            <div className="flex items-center gap-1">
-                                                                <span>{formatCurrency(item.discountPrice!, item.currency)}</span>
-                                                                <span className="text-xs line-through opacity-70">{formatCurrency(item.price, item.currency)}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span>{formatCurrency(item.price, item.currency)}</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Availability Overlay */}
-                                            {!item.available && (
-                                                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-                                                    <div className="text-white text-center px-4">
-                                                        <AlertCircle className="w-8 xs:w-10 h-8 xs:h-10 mx-auto mb-2 animate-pulse" />
-                                                        <p className="font-bold text-sm xs:text-base">Currently Unavailable</p>
-                                                        <p className="text-xs xs:text-sm opacity-80 mt-1">Check back later</p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Enhanced Item Details */}
-                                        <div className="p-3 xs:p-4 sm:p-5 space-y-3 xs:space-y-4">
-                                            {/* Title and Description */}
-                                            <div className="space-y-2">
-                                                <h3 className="text-lg xs:text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                                                    {item.name}
-                                                </h3>
-                                                <p className="text-muted-foreground text-sm xs:text-base leading-relaxed line-clamp-2">
-                                                    {item.description}
-                                                </p>
-                                            </div>
-
-                                            {/* Enhanced Info Pills */}
-                                            <div className="flex flex-wrap items-center gap-2 xs:gap-3">
-                                                {/* Calories */}
-                                                <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
-                                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                                    <span className="text-xs xs:text-sm font-medium text-foreground">{item.calories} cal</span>
-                                                </div>
-                                                
-                                                {/* Category */}
-                                                <div className="flex items-center gap-1.5 bg-primary/10 rounded-full px-3 py-1.5">
-                                                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                                                    <span className="text-xs xs:text-sm font-medium text-primary">{getCategoryDisplayName(item.category, categoryMappings, customCategories)}</span>
-                                                </div>
-                                                
-                                                {/* Vegetarian/Non-Veg */}
-                                                {item.tags?.includes('Vegetarian') && (
-                                                    <div className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/20 rounded-full px-3 py-1.5">
-                                                        <span className="text-green-600 dark:text-green-400 text-xs">🟢</span>
-                                                        <span className="text-xs xs:text-sm font-medium text-green-600 dark:text-green-400">Veg</span>
-                                                    </div>
-                                                )}
-                                                
-                                                {item.tags?.includes('Non-Vegetarian') && (
-                                                    <div className="flex items-center gap-1.5 bg-red-100 dark:bg-red-900/20 rounded-full px-3 py-1.5">
-                                                        <span className="text-red-600 dark:text-red-400 text-xs">🔴</span>
-                                                        <span className="text-xs xs:text-sm font-medium text-red-600 dark:text-red-400">Non-Veg</span>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Enhanced Price and Add to Cart */}
-                                            <div className="flex items-center justify-between pt-3 xs:pt-4 border-t border-border/50">
-                                                <div className="space-y-1">
-                                                    <div className="flex items-baseline gap-2">
-                                                        {hasDiscount(item) ? (
-                                                            <div className="flex flex-col">
-                                                                <div className="flex items-center gap-2">
-                                                                    <p className="text-xl xs:text-2xl font-bold text-green-600 dark:text-green-400">
-                                                                        {formatCurrency(item.discountPrice!, item.currency)}
-                                                                    </p>
-                                                                    <p className="text-sm xs:text-base text-gray-400 line-through">
-                                                                        {formatCurrency(item.price, item.currency)}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <p className="text-xl xs:text-2xl font-bold text-foreground">
-                                                                {formatCurrency(item.price, item.currency)}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                    
-                                                    {/* Total Orders */}
-                                                    {(item.totalOrders || 0) > 0 && (
-                                                        <div className="text-xs text-gray-500">
-                                                            {item.totalOrders} orders
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {item.available ? (
-                                                        <div className="flex items-center gap-1.5 text-xs xs:text-sm text-green-600 dark:text-green-400 animate-fade-in">
-                                                            <CheckCircle className="w-3 xs:w-4 h-3 xs:h-4" />
-                                                            <span className="font-medium">Available</span>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex items-center gap-1.5 text-xs xs:text-sm text-red-500">
-                                                            <AlertCircle className="w-3 xs:w-4 h-3 xs:h-4" />
-                                                            <span className="font-medium">Unavailable</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        addToCart(item);
-                                                    }}
-                                                    disabled={!item.available}
-                                                    className={`px-4 xs:px-6 py-2 xs:py-3 rounded-xl font-bold transition-all text-sm xs:text-base hover:scale-105 active:scale-95 shadow-lg ${item.available
-                                                        ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:shadow-xl hover:from-primary/90 hover:to-primary'
-                                                        : 'bg-muted/50 text-muted-foreground cursor-not-allowed'
-                                                        } ${isAnimating ? 'animate-pulse' : ''}`}
-                                                >
-                                                    {item.available ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <ShoppingCart className="w-5 h-5" />
-                                                            <span className="hidden xs:inline">Add to Cart</span>
-                                                            <span className="xs:hidden">Add</span>
-                                                        </div>
-                                                    ) : (
-                                                        <span>Unavailable</span>
-                                                    )}
-                                                </button>
-                                            </div>
-                                        </div>
                                     </div>
-                                </div>
-                            ))
-                        )}
+                                ))
+                            )}
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-        </div>
+            </div>
         </>
     );
 }
