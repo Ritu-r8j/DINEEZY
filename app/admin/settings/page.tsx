@@ -77,6 +77,7 @@ type SettingsState = {
     lng: number;
   };
   logoDataUrl?: string | null;
+  image?: string | null;
   hours: Record<DayKey, DayHours>;
   staff: Staff[];
   tables: Table[];
@@ -139,6 +140,7 @@ function SectionCard(props: { title: string; children: React.ReactNode; classNam
 export default function AdminSettingsPage() {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const restaurantImageInputRef = useRef<HTMLInputElement | null>(null);
   const days: DayKey[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const [state, setState] = useState<SettingsState>({
@@ -149,6 +151,7 @@ export default function AdminSettingsPage() {
     address: { street: '', city: '', postalCode: '', state: '' },
     location: undefined,
     logoDataUrl: null,
+    image: null,
     hours: DEFAULT_HOURS,
     staff: DEFAULT_STAFF,
     tables: [],
@@ -214,6 +217,7 @@ export default function AdminSettingsPage() {
             },
             location: data.location || undefined,
             logoDataUrl: data.logoDataUrl || null,
+            image: data.image || null,
             hours: { ...DEFAULT_HOURS, ...(data.hours || {}) },
             staff: Array.isArray(data.staff) ? data.staff : DEFAULT_STAFF,
             tables: Array.isArray(data.tables) ? data.tables.map(t => ({
@@ -296,11 +300,25 @@ export default function AdminSettingsPage() {
     reader.readAsDataURL(file);
   }
 
+  async function onRestaurantImageFile(file: File) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => setField('image', String(reader.result));
+    reader.readAsDataURL(file);
+  }
+
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
     const f = e.dataTransfer.files?.[0];
     if (f) onLogoFile(f);
+  }
+
+  function onRestaurantImageDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const f = e.dataTransfer.files?.[0];
+    if (f) onRestaurantImageFile(f);
   }
 
   function validate(): string[] {
@@ -327,7 +345,14 @@ export default function AdminSettingsPage() {
     setError(null);
 
     try {
-      const result = await saveRestaurantSettings(user.uid, state);
+      // Convert null to undefined for Firebase compatibility
+      const settingsToSave = {
+        ...state,
+        logoDataUrl: state.logoDataUrl || undefined,
+        image: state.image || undefined,
+      };
+      
+      const result = await saveRestaurantSettings(user.uid, settingsToSave);
 
       if (result.success) {
         setSavedAt(new Date().toLocaleString());
@@ -369,6 +394,7 @@ export default function AdminSettingsPage() {
           },
           location: data.location || undefined,
           logoDataUrl: data.logoDataUrl || null,
+          image: data.image || null,
           hours: { ...DEFAULT_HOURS, ...(data.hours || {}) },
           staff: Array.isArray(data.staff) ? data.staff : DEFAULT_STAFF,
           tables: Array.isArray(data.tables) ? data.tables.map(t => ({
@@ -402,6 +428,7 @@ export default function AdminSettingsPage() {
           address: { street: '', city: '', postalCode: '', state: '' },
           location: undefined,
           logoDataUrl: null,
+          image: null,
           hours: DEFAULT_HOURS,
           staff: DEFAULT_STAFF,
           tables: [],
@@ -641,6 +668,73 @@ export default function AdminSettingsPage() {
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) onLogoFile(f);
+              }}
+            />
+          </SectionCard>
+
+          {/* Restaurant Image */}
+          <SectionCard title="Restaurant Image" icon={<Utensils className="h-6 w-6" />}>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Upload a high-quality image of your restaurant. This will be displayed on the homepage and restaurant listings.
+            </p>
+            {state.image ? (
+              <div className="flex flex-col sm:flex-row items-start gap-6">
+                <div className="relative group w-full sm:w-auto">
+                  <img
+                    src={state.image}
+                    alt="Restaurant"
+                    className="w-full sm:w-64 h-48 rounded-lg object-cover border border-gray-200 dark:border-gray-700 shadow-lg group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-all duration-300" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => restaurantImageInputRef.current?.click()}
+                    className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                  >
+                    <Upload className="h-4 w-4" /> Replace
+                  </button>
+                  <button
+                    onClick={() => setField('image', null)}
+                    className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                  >
+                    <Trash2 className="h-4 w-4" /> Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                onDrop={onRestaurantImageDrop}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
+              >
+                <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
+                  <Upload className="h-10 w-10 text-gray-400" />
+                </div>
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+                  Drag and drop or browse to upload your restaurant image.
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Recommended size: 1200x800px (16:9 ratio)</p>
+                <button
+                  onClick={() => restaurantImageInputRef.current?.click()}
+                  className="bg-black text-white text-sm font-semibold py-2 px-4 rounded-lg hover:bg-gray-800 transition-all duration-200"
+                >
+                  Browse Files
+                </button>
+              </div>
+            )}
+
+            <input
+              ref={restaurantImageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onRestaurantImageFile(f);
               }}
             />
           </SectionCard>

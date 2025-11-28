@@ -13,7 +13,8 @@ import {
     Download,
     Clock,
     Eye,
-    LayoutGrid
+    LayoutGrid,
+    ShoppingCart
 } from 'lucide-react';
 import {
     getRestaurantReservations,
@@ -23,7 +24,9 @@ import {
     subscribeToRestaurantReservations,
     getRestaurantSettings,
     ReservationData,
-    RestaurantSettings
+    RestaurantSettings,
+    getOrdersByReservation,
+    OrderData
 } from '@/app/(utils)/firebaseOperations';
 
 // Import components
@@ -50,6 +53,7 @@ export default function ReservationsPage() {
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [restaurantSettings, setRestaurantSettings] = useState<RestaurantSettings | null>(null);
+    const [reservationOrders, setReservationOrders] = useState<Record<string, OrderData[]>>({});
 
     // Load reservations and restaurant settings
     useEffect(() => {
@@ -63,7 +67,20 @@ export default function ReservationsPage() {
                 // Load reservations
                 const reservationsResult = await getRestaurantReservations(user.uid);
                 if (reservationsResult.success) {
-                    setReservations(reservationsResult.data || []);
+                    const reservationsData = reservationsResult.data || [];
+                    setReservations(reservationsData);
+                    
+                    // Load orders for each reservation
+                    const ordersMap: Record<string, OrderData[]> = {};
+                    await Promise.all(
+                        reservationsData.map(async (reservation) => {
+                            const ordersResult = await getOrdersByReservation(reservation.id);
+                            if (ordersResult.success && ordersResult.data) {
+                                ordersMap[reservation.id] = ordersResult.data;
+                            }
+                        })
+                    );
+                    setReservationOrders(ordersMap);
                 } else {
                     setError(reservationsResult.error || 'Failed to load reservations');
                 }
@@ -83,8 +100,20 @@ export default function ReservationsPage() {
 
         loadData();
 
-        const unsubscribe = subscribeToRestaurantReservations(user.uid, (reservations) => {
+        const unsubscribe = subscribeToRestaurantReservations(user.uid, async (reservations) => {
             setReservations(reservations);
+            
+            // Load orders for updated reservations
+            const ordersMap: Record<string, OrderData[]> = {};
+            await Promise.all(
+                reservations.map(async (reservation) => {
+                    const ordersResult = await getOrdersByReservation(reservation.id);
+                    if (ordersResult.success && ordersResult.data) {
+                        ordersMap[reservation.id] = ordersResult.data;
+                    }
+                })
+            );
+            setReservationOrders(ordersMap);
         });
 
         return () => {
@@ -374,6 +403,7 @@ export default function ReservationsPage() {
                             <ReservationCard
                                 key={reservation.id}
                                 reservation={reservation}
+                                orders={reservationOrders[reservation.id] || []}
                                 formatTime={formatTime}
                                 getStatusBadge={getStatusBadge}
                                 getStatusIcon={getStatusIcon}
@@ -433,6 +463,12 @@ export default function ReservationsPage() {
                                         <div className="flex items-center gap-2 text-xs sm:text-sm text-purple-400">
                                             <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                                             <span>Table {reservation.reservationDetails.tableNumber}</span>
+                                        </div>
+                                    )}
+                                    {reservationOrders[reservation.id] && reservationOrders[reservation.id].length > 0 && (
+                                        <div className="flex items-center gap-2 text-xs sm:text-sm text-emerald-400 font-medium">
+                                            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                                            <span>{reservationOrders[reservation.id].length} Pre-order{reservationOrders[reservation.id].length !== 1 ? 's' : ''}</span>
                                         </div>
                                     )}
                                 </div>
@@ -563,6 +599,12 @@ export default function ReservationsPage() {
                                                                                 {reservation.reservationDetails.tableNumber}
                                                                             </span>
                                                                         )}
+                                                                        {reservationOrders[reservation.id] && reservationOrders[reservation.id].length > 0 && (
+                                                                            <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                                                                                <ShoppingCart className="h-3 w-3" />
+                                                                                {reservationOrders[reservation.id].length}
+                                                                            </span>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -634,6 +676,7 @@ export default function ReservationsPage() {
             {showDetailsModal && selectedReservation && (
                 <DetailsModal
                     reservation={selectedReservation}
+                    orders={reservationOrders[selectedReservation.id] || []}
                     onClose={() => {
                         setShowDetailsModal(false);
                         setSelectedReservation(null);

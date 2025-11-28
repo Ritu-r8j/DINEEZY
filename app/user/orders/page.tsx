@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Loader2, X, MapPin, Clock, CreditCard, FileText, Package } from 'lucide-react';
-import { getRestaurantSettings, subscribeToUserOrders, subscribeToGuestOrders } from '@/app/(utils)/firebaseOperations';
+import { getRestaurantSettings, subscribeToUserOrders, subscribeToGuestOrders, updateOrderStatus } from '@/app/(utils)/firebaseOperations';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { sendWaiterCallRequest } from '@/app/(utils)/notification';
+import { toast, Toaster } from 'sonner';
 
 interface OrderItem {
   id: string;
@@ -115,6 +116,136 @@ export default function CustomerOrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute for live countdown
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Memoized helper function to calculate remaining time
+  const calculateRemainingTime = useCallback((order: Order): string => {
+    try {
+      // If order is still pending, show waiting message
+      if (order.status === 'pending') {
+        return 'Waiting for confirmation';
+      }
+      
+      // If order is ready or delivered, show status
+      if (order.status === 'ready') {
+        return 'Ready now';
+      }
+      
+      if (order.status === 'delivered') {
+        return 'Completed';
+      }
+      
+      // For confirmed/preparing orders, calculate time from order creation
+      // In a real app, you'd want to track when the order was confirmed (confirmedAt timestamp)
+      // For now, we'll use createdAt but the timer effectively starts when status changes from pending
+      const orderDate = formatFirebaseTimestamp(order.createdAt);
+      const estimatedMinutes = order.adminEstimatedTime || 20;
+      const elapsedMinutes = Math.floor((currentTime.getTime() - orderDate.getTime()) / (60 * 1000));
+      
+      // Calculate remaining time based on elapsed time
+      const remainingMinutes = estimatedMinutes - elapsedMinutes;
+      
+      // If time has passed but order is still in progress
+      if (remainingMinutes <= 0) {
+        return 'Ready soon';
+      }
+      
+      // Show remaining time
+      if (remainingMinutes < 1) {
+        return 'Less than 1 min';
+      } else if (remainingMinutes === 1) {
+        return '1 min';
+      } else {
+        return `${remainingMinutes} min`;
+      }
+    } catch (error) {
+      console.error('Error calculating remaining time:', error);
+      return `${order.adminEstimatedTime || 20} min`;
+    }
+  }, [currentTime]); // Only recreate when currentTime changes
+
+  // Auto-update order status based on time progression
+  useEffect(() => {
+    const autoProgressOrders = async () => {
+      const now = new Date();
+
+      for (const order of orders) {
+        const orderDate = formatFirebaseTimestamp(order.createdAt);
+        const minutesSinceOrder = Math.floor((now.getTime() - orderDate.getTime()) / (60 * 1000));
+        const estimatedTime = order.adminEstimatedTime || 20;
+
+        try {
+          // Auto-cancel pending orders older than 30 minutes
+          if (order.status === 'pending' && minutesSinceOrder >= 30) {
+            console.log(`Auto-cancelling expired order: ${order.id}`);
+            const result = await updateOrderStatus(order.id, 'cancelled');
+            
+            if (result.success) {
+              toast.error('Order automatically cancelled', {
+                description: `Order ${order.id} was cancelled due to no restaurant confirmation within 30 minutes.`,
+              });
+            }
+            continue;
+          }
+
+          // Auto-progress confirmed orders to preparing after 2 minutes
+          if (order.status === 'confirmed' && minutesSinceOrder >= 2) {
+            console.log(`Auto-progressing order ${order.id} to preparing`);
+            await updateOrderStatus(order.id, 'preparing');
+            toast.success('Order is now being prepared!', {
+              description: 'Your food is being cooked.',
+            });
+            continue;
+          }
+
+          // Auto-progress preparing orders to ready based on estimated time (75% of estimated time)
+          const preparingThreshold = Math.floor(estimatedTime * 0.75);
+          if (order.status === 'preparing' && minutesSinceOrder >= preparingThreshold) {
+            console.log(`Auto-progressing order ${order.id} to ready`);
+            await updateOrderStatus(order.id, 'ready');
+            toast.success('Order is ready!', {
+              description: order.orderType === 'dine-in' 
+                ? 'Your food is ready to be served.' 
+                : 'Your order is ready for pickup.',
+            });
+            continue;
+          }
+
+          // Auto-progress ready orders to delivered after estimated time + 5 minutes
+          if (order.status === 'ready' && minutesSinceOrder >= (estimatedTime + 5)) {
+            console.log(`Auto-progressing order ${order.id} to delivered`);
+            await updateOrderStatus(order.id, 'delivered');
+            toast.success('Order completed!', {
+              description: 'Thank you for your order.',
+            });
+            continue;
+          }
+        } catch (error) {
+          console.error(`Error auto-progressing order ${order.id}:`, error);
+        }
+      }
+    };
+
+    // Check immediately and then every minute
+    if (orders.length > 0) {
+      autoProgressOrders();
+      
+      const interval = setInterval(autoProgressOrders, 60000); // Check every minute
+      return () => clearInterval(interval);
+    }
+  }, [orders]);
 
   // Load orders with real-time listeners
   useEffect(() => {
@@ -225,18 +356,111 @@ export default function CustomerOrdersPage() {
     };
   }, [user]);
 
-  // Filter out orders that are linked to reservations (pre-orders)
-  const standaloneOrders = orders.filter(order => !order.reservationId);
+  // Memoize filtered orders to avoid recalculation on every render
+  const { standaloneOrders, activeOrders, completedOrders } = useMemo(() => {
+    // Filter out orders that are linked to reservations (pre-orders)
+    const standalone = orders.filter(order => !order.reservationId);
 
-  const activeOrders = standaloneOrders.filter(order =>
-    ['pending', 'confirmed', 'preparing', 'ready'].includes(order.status)
-  );
+    const active = standalone.filter(order =>
+      ['pending', 'confirmed', 'preparing', 'ready'].includes(order.status)
+    );
 
-  const completedOrders = standaloneOrders.filter(order =>
-    ['delivered', 'cancelled'].includes(order.status)
-  );
+    const completed = standalone.filter(order =>
+      ['delivered', 'cancelled'].includes(order.status)
+    );
+
+    return { standaloneOrders: standalone, activeOrders: active, completedOrders: completed };
+  }, [orders]);
 
   const currentOrders = activeTab === 'active' ? activeOrders : completedOrders;
+
+  // Handle order cancellation - memoized to prevent recreation
+  const handleCancelOrder = useCallback((order: Order) => {
+    setOrderToCancel(order);
+    setShowCancelConfirm(true);
+  }, []);
+
+  const confirmCancelOrder = useCallback(async () => {
+    if (!orderToCancel) return;
+
+    try {
+      setCancellingOrderId(orderToCancel.id);
+      const result = await updateOrderStatus(orderToCancel.id, 'cancelled');
+      
+      if (result.success) {
+        setShowCancelConfirm(false);
+        setOrderToCancel(null);
+        toast.success('Order cancelled successfully', {
+          description: 'Your order has been cancelled and will be processed accordingly.',
+        });
+      } else {
+        toast.error('Failed to cancel order', {
+          description: result.error || 'Please try again or contact support.',
+        });
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      toast.error('Failed to cancel order', {
+        description: 'An unexpected error occurred. Please try again.',
+      });
+    } finally {
+      setCancellingOrderId(null);
+    }
+  }, [orderToCancel]);
+
+  // Handle mark as received - memoized
+  const handleMarkAsReceived = useCallback(async (orderId: string) => {
+    try {
+      const result = await updateOrderStatus(orderId, 'delivered');
+      
+      if (result.success) {
+        toast.success('Order marked as received!', {
+          description: 'Thank you for confirming your order delivery.',
+        });
+      } else {
+        toast.error('Failed to update order status', {
+          description: result.error || 'Please try again.',
+        });
+      }
+    } catch (error) {
+      console.error('Error marking order as received:', error);
+      toast.error('Failed to update order status', {
+        description: 'An unexpected error occurred. Please try again.',
+      });
+    }
+  }, []);
+
+  // Handle request bill - memoized
+  const handleRequestBill = useCallback(async (order: Order) => {
+    try {
+      // Get restaurant owner phone number
+      const restaurantResult = await getRestaurantSettings(order.restaurantId);
+      
+      if (restaurantResult.success && restaurantResult.data?.phone) {
+        // Send notification to restaurant owner for bill request
+        await sendWaiterCallRequest(
+          restaurantResult.data.phone,
+          `BILL-${order.id}`, // Prefix with BILL to indicate bill request
+          `${order.customerInfo.firstName} ${order.customerInfo.lastName}`,
+          order.customerInfo.phone,
+          undefined // tableNumber - can be added if available
+        );
+        
+        toast.success('Bill requested successfully!', {
+          description: 'The restaurant has been notified and will bring your bill shortly.',
+        });
+      } else {
+        toast.error('Unable to contact restaurant', {
+          description: 'Please try again or ask the waiter directly.',
+        });
+      }
+    } catch (error) {
+      console.error('Error requesting bill:', error);
+      toast.error('Failed to request bill', {
+        description: 'An unexpected error occurred. Please try again.',
+      });
+    }
+  }, []);
 
   // Show loading state
   if (isLoading) {
@@ -271,6 +495,7 @@ export default function CustomerOrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-zinc-950 dark:to-slate-900">
+      <Toaster position="bottom-right" closeButton />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
         <h2 className="text-4xl font-bold text-gray-900 dark:text-white">My Orders</h2>
@@ -358,9 +583,10 @@ export default function CustomerOrdersPage() {
                         Waiting for restaurant confirmation
                       </p>
                     )}
-                    {order.status !== 'delivered' && order.status !== 'cancelled' && (
-                      <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
-                        Est. {order.adminEstimatedTime || 20} min
+                    {(order.status === 'confirmed' || order.status === 'preparing' || order.status === 'ready') && (
+                      <p className="text-sm text-orange-600 dark:text-orange-400 font-medium flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        Est. {calculateRemainingTime(order)}
                       </p>
                     )}
                   </div>
@@ -411,12 +637,22 @@ export default function CustomerOrdersPage() {
                 {/* Progress Bar for Active Orders */}
                 {activeTab === 'active' && order.status !== 'cancelled' && (
                   <div className="mb-6">
-                    <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      <span>Pending</span>
-                      <span>Confirmed</span>
-                      <span>Preparing</span>
-                      <span>Ready</span>
-                      <span>Delivered</span>
+                    <div className="flex items-center justify-between text-xs font-medium mb-2">
+                      <span className={order.status === 'pending' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                        Pending
+                      </span>
+                      <span className={order.status === 'confirmed' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                        Confirmed
+                      </span>
+                      <span className={order.status === 'preparing' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                        Preparing
+                      </span>
+                      <span className={order.status === 'ready' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                        Ready
+                      </span>
+                      <span className={order.status === 'delivered' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                        Delivered
+                      </span>
                     </div>
                     <div className="relative">
                       <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
@@ -428,7 +664,13 @@ export default function CustomerOrdersPage() {
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   {order.status === 'ready' && (
-                    <button className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
+                    <button 
+                      onClick={() => handleMarkAsReceived(order.id)}
+                      className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
                       Mark as Received
                     </button>
                   )}
@@ -450,6 +692,36 @@ export default function CustomerOrdersPage() {
                       Reorder
                     </button>
                   )}
+                  {activeTab === 'active' && order.status === 'pending' && (
+                    <button
+                      onClick={() => handleCancelOrder(order)}
+                      disabled={cancellingOrderId === order.id}
+                      className="cursor-pointer px-6 py-2 border border-red-300 dark:border-red-700/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {cancellingOrderId === order.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Cancelling...
+                        </>
+                      ) : (
+                        <>
+                          <X className="w-4 h-4" />
+                          Cancel Order
+                        </>
+                      )}
+                    </button>
+                  )}
+                  {activeTab === 'active' && order.orderType === 'dine-in' && (order.status === 'ready' || order.status === 'confirmed' || order.status === 'preparing') && (
+                    <button
+                      onClick={() => handleRequestBill(order)}
+                      className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Request Bill
+                    </button>
+                  )}
                   {activeTab === 'active' && (
                     <button
                       onClick={async () => {
@@ -467,13 +739,19 @@ export default function CustomerOrdersPage() {
                               undefined // tableNumber - can be added if available
                             );
                             
-                            alert(`Waiter called successfully! The restaurant has been notified.`);
+                            toast.success('Waiter called successfully!', {
+                              description: 'The restaurant has been notified and will assist you shortly.',
+                            });
                           } else {
-                            alert('Unable to contact restaurant. Please try again or call directly.');
+                            toast.error('Unable to contact restaurant', {
+                              description: 'Please try again or call the restaurant directly.',
+                            });
                           }
                         } catch (error) {
                           console.error('Error calling waiter:', error);
-                          alert('Failed to call waiter. Please try again.');
+                          toast.error('Failed to call waiter', {
+                            description: 'An unexpected error occurred. Please try again.',
+                          });
                         }
                       }}
                       className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
@@ -576,12 +854,22 @@ export default function CustomerOrdersPage() {
                           <Package className="w-5 h-5" />
                           Order Status
                         </h3>
-                        <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                          <span>Pending</span>
-                          <span>Confirmed</span>
-                          <span>Preparing</span>
-                          <span>Ready</span>
-                          <span>Delivered</span>
+                        <div className="flex items-center justify-between text-xs font-medium mb-2">
+                          <span className={selectedOrder.status === 'pending' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                            Pending
+                          </span>
+                          <span className={selectedOrder.status === 'confirmed' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                            Confirmed
+                          </span>
+                          <span className={selectedOrder.status === 'preparing' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                            Preparing
+                          </span>
+                          <span className={selectedOrder.status === 'ready' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                            Ready
+                          </span>
+                          <span className={selectedOrder.status === 'delivered' ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                            Delivered
+                          </span>
                         </div>
                         <div className="relative">
                           <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
@@ -590,7 +878,7 @@ export default function CustomerOrdersPage() {
                         {selectedOrder.status !== 'delivered' && (
                           <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mt-4 flex items-center gap-2">
                             <Clock className="w-4 h-4" />
-                            Estimated time: {selectedOrder.adminEstimatedTime || 20} minutes
+                            Estimated time: {calculateRemainingTime(selectedOrder)}
                           </p>
                         )}
                       </div>
@@ -756,6 +1044,28 @@ export default function CustomerOrdersPage() {
 
                     {/* Actions */}
                     <div className="space-y-3">
+                      {selectedOrder.status === 'pending' && (
+                        <button
+                          onClick={() => {
+                            setShowModal(false);
+                            handleCancelOrder(selectedOrder);
+                          }}
+                          disabled={cancellingOrderId === selectedOrder.id}
+                          className="w-full px-6 py-3 border-2 border-red-300 dark:border-red-700/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {cancellingOrderId === selectedOrder.id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Cancelling...
+                            </>
+                          ) : (
+                            <>
+                              <X className="w-4 h-4" />
+                              Cancel Order
+                            </>
+                          )}
+                        </button>
+                      )}
                       {selectedOrder.status === 'delivered' && (
                         <button
                           onClick={() => {
@@ -780,6 +1090,97 @@ export default function CustomerOrdersPage() {
                       )}
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelConfirm && orderToCancel && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => {
+              setShowCancelConfirm(false);
+              setOrderToCancel(null);
+            }}
+          />
+          
+          {/* Modal */}
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative w-full max-w-sm bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-zinc-900 dark:to-slate-900 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-b border-red-200 dark:border-red-800/50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                    <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Cancel Order?</h2>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-mono truncate">{orderToCancel.id}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-4 space-y-3">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  Are you sure? This action cannot be undone.
+                </p>
+                
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-800/30 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Total</span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white">₹{orderToCancel.total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Items</span>
+                    <span className="text-xs font-semibold text-gray-900 dark:text-white">{orderToCancel.items.length} items</span>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border border-yellow-200 dark:border-yellow-800/50 rounded-lg p-3">
+                  <div className="flex gap-2">
+                    <div className="flex-shrink-0">
+                      <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <p className="text-xs text-yellow-800 dark:text-yellow-300">
+                      Refunds will be processed per our policy.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
+                  <button
+                    onClick={() => {
+                      setShowCancelConfirm(false);
+                      setOrderToCancel(null);
+                    }}
+                    disabled={cancellingOrderId === orderToCancel.id}
+                    className="flex-1 px-4 py-2.5 bg-gray-900 dark:bg-white dark:text-gray-900 text-white hover:bg-gray-800 dark:hover:bg-gray-100 rounded-lg font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Keep Order
+                  </button>
+                  <button
+                    onClick={confirmCancelOrder}
+                    disabled={cancellingOrderId === orderToCancel.id}
+                    className="flex-1 px-4 py-2.5 border-2 border-red-300 dark:border-red-700/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {cancellingOrderId === orderToCancel.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Cancelling...
+                      </>
+                    ) : (
+                      'Yes, Cancel'
+                    )}
+                  </button>
                 </div>
               </div>
             </div>

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Clock, Users, MapPin, Eye, MoreHorizontal, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { ReservationData } from '@/app/(utils)/firebaseOperations';
+import { Clock, Users, MapPin, Eye, MoreHorizontal, CheckCircle, XCircle, AlertCircle, ShoppingCart } from 'lucide-react';
+import { ReservationData, OrderData } from '@/app/(utils)/firebaseOperations';
 
 interface ReservationCardProps {
     reservation: ReservationData;
+    orders?: OrderData[];
     formatTime: (time: string) => string;
     getStatusBadge: (status: string) => string;
     getStatusIcon: (status: string) => React.ReactElement;
@@ -15,6 +16,7 @@ interface ReservationCardProps {
 
 export default function ReservationCard({
     reservation,
+    orders = [],
     formatTime,
     getStatusBadge,
     getStatusIcon,
@@ -62,6 +64,12 @@ export default function ReservationCard({
                                         <span className="flex items-center gap-1 text-purple-400">
                                             <MapPin className="h-3 w-3" />
                                             Table {reservation.reservationDetails.tableNumber}
+                                        </span>
+                                    )}
+                                    {orders && orders.length > 0 && (
+                                        <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                                            <ShoppingCart className="h-3 w-3" />
+                                            {orders.length} Pre-order{orders.length !== 1 ? 's' : ''}
                                         </span>
                                     )}
                                     <span className="font-mono hidden sm:inline">{reservation.reservationId}</span>

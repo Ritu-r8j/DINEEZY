@@ -96,6 +96,9 @@ export default function Checkout() {
     const [userReservations, setUserReservations] = useState<any[]>([]);
     const [selectedReservation, setSelectedReservation] = useState<string | null>(null);
     const [loadingReservations, setLoadingReservations] = useState(false);
+    
+    // Payment timing for dine-in orders
+    const [paymentTiming, setPaymentTiming] = useState<'now' | 'later'>('now');
 
     // Load cart items and restaurant info on component mount
     useEffect(() => {
@@ -107,7 +110,6 @@ export default function Checkout() {
                 if (cartItems.length > 0) {
                     setCartItems(cartItems);
                 } else {
-                    router.back();
                     return;
                 }
 
@@ -293,11 +295,15 @@ export default function Checkout() {
         setIsPlacingOrder(true);
         setError(null);
 
-
-
         try {
-            // Simulate payment processing
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Check if this is a dine-in order with "pay later" option
+            const isDineInPayLater = selectedOrderType?.id === 'dine-in' && paymentTiming === 'later';
+            
+            // Skip payment processing if pay later is selected
+            if (!isDineInPayLater) {
+                // Simulate payment processing for pay now orders
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
 
             // Get restaurant ID from localStorage
             const restaurantId = localStorage.getItem('restaurantId');
@@ -350,7 +356,9 @@ export default function Checkout() {
                 })),
                 orderType: selectedOrderType?.id || 'takeaway',
                 deliveryOption: selectedOrderType?.id === 'delivery' ? selectedDeliveryOption : null,
-                paymentMethod: paymentMethods.find(m => m.selected)?.id || 'card',
+                paymentMethod: isDineInPayLater ? 'pay-later' : (paymentMethods.find(m => m.selected)?.id || 'card'),
+                paymentTiming: selectedOrderType?.id === 'dine-in' ? paymentTiming : undefined,
+                paymentStatus: isDineInPayLater ? 'pending' : 'completed',
                 specialInstructions,
                 subtotal,
                 deliveryFee,
@@ -1051,9 +1059,67 @@ export default function Checkout() {
                                     <div>
                                         <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Payment & Review</h2>
 
-                                        {/* Payment Method */}
-                                        <div className="mb-6 sm:mb-8">
-                                            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Payment Method</h3>
+                                        {/* Payment Timing for Dine-In */}
+                                        {selectedOrderType?.id === 'dine-in' && (
+                                            <div className="mb-6 sm:mb-8">
+                                                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">When would you like to pay?</h3>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <div
+                                                        onClick={() => setPaymentTiming('now')}
+                                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                                            paymentTiming === 'now'
+                                                                ? 'border-gray-900 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 shadow-lg'
+                                                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${
+                                                                paymentTiming === 'now'
+                                                                    ? 'border-gray-900 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50'
+                                                                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
+                                                            }`}>
+                                                                {paymentTiming === 'now' && (
+                                                                    <div className="w-2.5 h-2.5 rounded-full bg-gray-900 dark:bg-gray-400"></div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <h4 className="font-bold text-gray-900 dark:text-white mb-1">Pay Now</h4>
+                                                                <p className="text-sm text-gray-600 dark:text-gray-400">Complete payment online before your meal</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        onClick={() => setPaymentTiming('later')}
+                                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                                            paymentTiming === 'later'
+                                                                ? 'border-gray-900 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 shadow-lg'
+                                                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${
+                                                                paymentTiming === 'later'
+                                                                    ? 'border-gray-900 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50'
+                                                                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
+                                                            }`}>
+                                                                {paymentTiming === 'later' && (
+                                                                    <div className="w-2.5 h-2.5 rounded-full bg-gray-900 dark:bg-gray-400"></div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <h4 className="font-bold text-gray-900 dark:text-white mb-1">Pay Later</h4>
+                                                                <p className="text-sm text-gray-600 dark:text-gray-400">Pay at the restaurant after your meal</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Payment Method - Only show if Pay Now is selected for dine-in, or for other order types */}
+                                        {(selectedOrderType?.id !== 'dine-in' || paymentTiming === 'now') && (
+                                            <div className="mb-6 sm:mb-8">
+                                                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Payment Method</h3>
                                             <div className="space-y-2 sm:space-y-3">
                                                 {paymentMethods.map((method) => (
                                                     <div
@@ -1096,6 +1162,7 @@ export default function Checkout() {
                                                 ))}
                                             </div>
                                         </div>
+                                        )}
 
                                         {/* Promo Code */}
                                         <div className="mb-6 sm:mb-8">
@@ -1135,11 +1202,14 @@ export default function Checkout() {
                                             {isPlacingOrder ? (
                                                 <>
                                                     <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin mr-1 sm:mr-2 inline" />
-                                                    Processing...
+                                                    {selectedOrderType?.id === 'dine-in' && paymentTiming === 'later' ? 'Placing Order...' : 'Processing Payment...'}
                                                 </>
                                             ) : (
                                                 <>
-                                                    Place Order • ₹{total.toFixed(2)}
+                                                    {selectedOrderType?.id === 'dine-in' && paymentTiming === 'later' 
+                                                        ? `Place Order • ₹${total.toFixed(2)}` 
+                                                        : `Pay Now • ₹${total.toFixed(2)}`
+                                                    }
                                                 </>
                                             )}
                                         </button>

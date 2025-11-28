@@ -1,8 +1,9 @@
-import { XCircle, Calendar, Clock, Users, MapPin, Mail, Phone, CheckCircle, AlertCircle } from 'lucide-react';
-import { ReservationData, formatFirebaseTimestamp } from '@/app/(utils)/firebaseOperations';
+import { XCircle, Calendar, Clock, Users, MapPin, Mail, Phone, CheckCircle, AlertCircle, ShoppingCart } from 'lucide-react';
+import { ReservationData, formatFirebaseTimestamp, OrderData } from '@/app/(utils)/firebaseOperations';
 
 interface DetailsModalProps {
     reservation: ReservationData;
+    orders: OrderData[];
     onClose: () => void;
     onAssignTable: () => void;
     onCancel: () => void;
@@ -14,6 +15,7 @@ interface DetailsModalProps {
 
 export default function DetailsModal({
     reservation,
+    orders,
     onClose,
     onAssignTable,
     onCancel,
@@ -22,6 +24,22 @@ export default function DetailsModal({
     getStatusBadge,
     getStatusIcon
 }: DetailsModalProps) {
+    const getOrderStatusColor = (status: string) => {
+        switch (status) {
+            case 'confirmed':
+            case 'preparing':
+            case 'ready':
+                return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+            case 'pending':
+                return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+            case 'delivered':
+                return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+            case 'cancelled':
+                return 'bg-red-500/10 text-red-500 border-red-500/20';
+            default:
+                return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+        }
+    };
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
             <div className="bg-[#151d2f] rounded-lg sm:rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-800">
@@ -130,6 +148,65 @@ export default function DetailsModal({
                                 <p className="text-xs sm:text-sm text-gray-300">
                                     {reservation.reservationDetails.specialRequests}
                                 </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Pre-Orders Section */}
+                    {orders && orders.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                                <ShoppingCart className="h-4 w-4 text-emerald-400" />
+                                <p className="text-xs sm:text-sm font-medium text-gray-400">
+                                    Pre-Orders ({orders.length})
+                                </p>
+                            </div>
+                            <div className="space-y-2 sm:space-y-3">
+                                {orders.map((order) => (
+                                    <div key={order.id} className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3 sm:p-4">
+                                        <div className="flex items-center justify-between mb-2 sm:mb-3">
+                                            <p className="text-xs font-mono text-gray-400 truncate pr-2">
+                                                {order.orderId}
+                                            </p>
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border ${getOrderStatusColor(order.status)}`}>
+                                                {order.status}
+                                            </span>
+                                        </div>
+                                        <div className="space-y-1.5 sm:space-y-2">
+                                            {order.items.slice(0, 3).map((item, idx) => (
+                                                <div key={idx} className="text-xs">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span className="text-gray-300 truncate">
+                                                            {item.quantity}x {item.name}
+                                                            {item.selectedVariant && (
+                                                                <span className="text-gray-500 ml-1">({item.selectedVariant.name})</span>
+                                                            )}
+                                                        </span>
+                                                        <span className="text-gray-400 flex-shrink-0">
+                                                            ₹{((item.customPrice || item.price) * item.quantity).toFixed(0)}
+                                                        </span>
+                                                    </div>
+                                                    {item.selectedAddons && item.selectedAddons.length > 0 && (
+                                                        <div className="text-gray-500 ml-4 mt-0.5 text-[10px] sm:text-xs truncate">
+                                                            + {item.selectedAddons.map(addon => addon.name).join(', ')}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                            {order.items.length > 3 && (
+                                                <p className="text-xs text-gray-500 italic">
+                                                    +{order.items.length - 3} more items
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-emerald-500/20 flex items-center justify-between">
+                                            <span className="text-xs font-medium text-gray-400">Total</span>
+                                            <span className="text-sm sm:text-base font-bold text-emerald-400">
+                                                ₹{order.total.toFixed(0)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}

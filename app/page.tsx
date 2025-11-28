@@ -1284,11 +1284,15 @@ export default function HomePage() {
                       >
                         <div className="relative h-48 sm:h-52 w-full overflow-hidden">
                           <Image
-                            src={restaurant.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop"}
+                            src={restaurant.image || restaurant.logoDataUrl || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop"}
                             alt={restaurant.name}
                             fill
                             sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, (max-width: 1280px) 380px, 400px"
                             className="object-cover transition-all duration-500 group-hover:scale-105"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop";
+                            }}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
