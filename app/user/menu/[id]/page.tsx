@@ -137,44 +137,45 @@ export default function Menu() {
     const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
     const [categoryMappings, setCategoryMappings] = useState<CategoryMappings>({});
     const [customCategories, setCustomCategories] = useState<any[]>([]);
+    const [showSocialMedia, setShowSocialMedia] = useState(false);
 
     // Helper function to check if restaurant is currently open
     const isRestaurantOpen = () => {
         if (!restaurantInfo?.hours) return false;
-        
+
         const now = new Date();
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const currentDay = days[now.getDay()];
         const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
-        
+
         const dayHours = restaurantInfo.hours[currentDay];
         if (!dayHours || !dayHours.open) return false;
-        
+
         // Parse time strings (format: "HH:MM")
         const [fromHour, fromMin] = dayHours.from.split(':').map(Number);
         const [toHour, toMin] = dayHours.to.split(':').map(Number);
-        
+
         const fromTime = fromHour * 60 + fromMin;
         const toTime = toHour * 60 + toMin;
-        
+
         // Handle 24-hour operation (00:00 to 00:00)
         if (fromTime === 0 && toTime === 0) return true;
-        
+
         // Handle overnight hours (e.g., 22:00 to 02:00)
         if (toTime < fromTime) {
             return currentTime >= fromTime || currentTime <= toTime;
         }
-        
+
         return currentTime >= fromTime && currentTime <= toTime;
     };
 
     // Calculate average rating from menu items
     const getAverageRating = (): string => {
         if (!menuItems || menuItems.length === 0) return '0.0';
-        
+
         const itemsWithRatings = menuItems.filter(item => item.rating && item.rating > 0);
         if (itemsWithRatings.length === 0) return '4.5'; // Default fallback
-        
+
         const sum = itemsWithRatings.reduce((acc, item) => acc + (item.rating || 0), 0);
         return (sum / itemsWithRatings.length).toFixed(1);
     };
@@ -182,7 +183,7 @@ export default function Menu() {
     // Calculate total reviews from menu items
     const getTotalReviews = () => {
         if (!menuItems || menuItems.length === 0) return 0;
-        
+
         return menuItems.reduce((acc, item) => acc + (item.totalRatings || 0), 0);
     };
 
@@ -365,11 +366,15 @@ export default function Menu() {
             if (!target.closest('.search-container')) {
                 setShowSuggestions(false);
             }
+            // Close social media popup when clicking outside
+            if (!target.closest('.social-media-popup') && showSocialMedia) {
+                setShowSocialMedia(false);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [showSocialMedia]);
 
     // Handle keyboard navigation
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -503,6 +508,84 @@ export default function Menu() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/80" />
 
+                            {/* Pure Veg Badge - Top Right Corner */}
+                            {restaurantInfo?.restaurantType && (
+                                <div className="absolute top-3 xs:top-4 sm:top-6 right-3 xs:right-4 sm:right-6 z-10 animate-fade-in">
+                                    <span className="px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-semibold border border-green-300 dark:border-green-700 shadow-lg">
+                                        Pure {restaurantInfo.restaurantType}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Social Media Popup Button - Top Left Corner */}
+                            {(restaurantInfo?.socialMedia?.facebook || restaurantInfo?.socialMedia?.instagram || restaurantInfo?.socialMedia?.twitter) && (
+                                <div className="absolute top-3 xs:top-4 sm:top-6 left-3 xs:left-4 sm:left-6 z-10">
+                                    <div className="relative social-media-popup">
+                                        <button
+                                            onClick={() => setShowSocialMedia(!showSocialMedia)}
+                                            className="w-8 h-8 xs:w-9 xs:h-9 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50"
+                                            aria-label="Social Media"
+                                        >
+                                            <svg className="w-4 h-4 xs:w-4.5 xs:h-4.5 text-gray-700 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                                            </svg>
+                                        </button>
+
+                                        {/* Social Media Links Popup - Vertical Layout */}
+                                        {showSocialMedia && (
+                                            <div className="absolute top-full left-0 mt-2 animate-fade-in">
+                                                <div className="flex flex-col gap-2 p-1.5">
+                                                    {restaurantInfo?.socialMedia?.facebook && (
+                                                        <a
+                                                            href={restaurantInfo.socialMedia.facebook}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="group relative w-8 h-8 flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg transition-all hover:scale-110 shadow-lg hover:shadow-xl animate-slide-up"
+                                                            style={{ animationDelay: '0.05s' }}
+                                                        >
+                                                            <Facebook className="w-4 h-4 text-white" />
+                                                            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                                Facebook
+                                                            </div>
+                                                        </a>
+                                                    )}
+
+                                                    {restaurantInfo?.socialMedia?.instagram && (
+                                                        <a
+                                                            href={restaurantInfo.socialMedia.instagram}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="group relative w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600 rounded-lg transition-all hover:scale-110 shadow-lg hover:shadow-xl animate-slide-up"
+                                                            style={{ animationDelay: '0.1s' }}
+                                                        >
+                                                            <Instagram className="w-4 h-4 text-white" />
+                                                            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                                Instagram
+                                                            </div>
+                                                        </a>
+                                                    )}
+
+                                                    {restaurantInfo?.socialMedia?.twitter && (
+                                                        <a
+                                                            href={restaurantInfo.socialMedia.twitter}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="group relative w-8 h-8 flex items-center justify-center bg-gradient-to-br from-sky-400 to-sky-600 hover:from-sky-500 hover:to-sky-700 rounded-lg transition-all hover:scale-110 shadow-lg hover:shadow-xl animate-slide-up"
+                                                            style={{ animationDelay: '0.15s' }}
+                                                        >
+                                                            <Twitter className="w-4 h-4 text-white" />
+                                                            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                                Twitter
+                                                            </div>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Compact Mobile Overlay Content */}
                             <div className="absolute bottom-0 left-0 right-0 p-3 xs:p-4 sm:p-6">
                                 <div className="text-white space-y-1.5 xs:space-y-2 sm:space-y-3 animate-slide-up">
@@ -556,7 +639,7 @@ export default function Menu() {
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl" />
                                     </div>
-                                    
+
                                     {/* Social Media Icons Below Image */}
                                     <div className="mt-4">
                                         <p className="text-xs text-muted-foreground mb-2 font-medium">Follow Us:</p>
@@ -572,7 +655,7 @@ export default function Menu() {
                                                     <Facebook className="w-5 h-5 text-white" />
                                                 </a>
                                             )}
-                                            
+
                                             {restaurantInfo?.socialMedia?.instagram && (
                                                 <a
                                                     href={restaurantInfo.socialMedia.instagram}
@@ -584,7 +667,7 @@ export default function Menu() {
                                                     <Instagram className="w-5 h-5 text-white" />
                                                 </a>
                                             )}
-                                            
+
                                             {restaurantInfo?.socialMedia?.twitter && (
                                                 <a
                                                     href={restaurantInfo.socialMedia.twitter}
@@ -652,7 +735,7 @@ export default function Menu() {
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span className="text-xs font-semibold text-muted-foreground">Specialties:</span>
                                             {restaurantInfo.specialties.slice(0, 3).map((specialty: string, index: number) => (
-                                                <span 
+                                                <span
                                                     key={index}
                                                     className="px-2.5 py-1 bg-muted/50 text-foreground rounded-md text-xs font-medium border border-border"
                                                 >
@@ -666,7 +749,7 @@ export default function Menu() {
                                     {restaurantInfo?.dietaryOptions && restaurantInfo.dietaryOptions.length > 0 && (
                                         <div className="flex flex-wrap items-center gap-2">
                                             {restaurantInfo.dietaryOptions.slice(0, 3).map((option: string, index: number) => (
-                                                <span 
+                                                <span
                                                     key={index}
                                                     className="flex items-center gap-1 text-xs text-muted-foreground"
                                                 >
@@ -683,9 +766,9 @@ export default function Menu() {
                                             {[...Array(5)].map((_, i) => {
                                                 const rating = parseFloat(getAverageRating());
                                                 return (
-                                                    <Star 
-                                                        key={i} 
-                                                        className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`} 
+                                                    <Star
+                                                        key={i}
+                                                        className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
                                                     />
                                                 );
                                             })}
@@ -725,31 +808,12 @@ export default function Menu() {
 
                             {/* Compact Mobile/Tablet Content */}
                             <div className="lg:hidden space-y-4 mt-4 px-3 xs:px-4">
-                                {/* Restaurant Type Badge */}
-                                {restaurantInfo?.restaurantType && (
-                                    <div className="flex justify-center">
-                                        <span className="px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-semibold border border-green-300 dark:border-green-700">
-                                            Pure {restaurantInfo.restaurantType}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Mobile Restaurant Description */}
-                                {restaurantInfo?.description && (
-                                    <div className="text-center animate-fade-in">
-                                        <p className="text-muted-foreground leading-relaxed text-sm">
-                                            {restaurantInfo.description}
-                                        </p>
-                                    </div>
-                                )}
-
-                              
                                 {/* Specialties */}
                                 {restaurantInfo?.specialties && restaurantInfo.specialties.length > 0 && (
                                     <div className="flex flex-wrap items-center justify-center gap-2">
                                         <span className="text-xs font-semibold text-muted-foreground">Specialties:</span>
                                         {restaurantInfo.specialties.slice(0, 2).map((specialty: string, index: number) => (
-                                            <span 
+                                            <span
                                                 key={index}
                                                 className="px-2.5 py-1 bg-muted/50 text-foreground rounded-md text-xs font-medium border border-border"
                                             >
@@ -763,7 +827,7 @@ export default function Menu() {
                                 {restaurantInfo?.dietaryOptions && restaurantInfo.dietaryOptions.length > 0 && (
                                     <div className="flex flex-wrap items-center justify-center gap-2">
                                         {restaurantInfo.dietaryOptions.slice(0, 2).map((option: string, index: number) => (
-                                            <span 
+                                            <span
                                                 key={index}
                                                 className="flex items-center gap-1 text-xs text-muted-foreground"
                                             >
@@ -780,9 +844,9 @@ export default function Menu() {
                                         {[...Array(5)].map((_, i) => {
                                             const rating = parseFloat(getAverageRating());
                                             return (
-                                                <Star 
-                                                    key={i} 
-                                                    className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`} 
+                                                <Star
+                                                    key={i}
+                                                    className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
                                                 />
                                             );
                                         })}
@@ -817,54 +881,7 @@ export default function Menu() {
                                     )}
                                 </div>
 
-                                {/* Social Media */}
-                                {(restaurantInfo?.socialMedia?.facebook || restaurantInfo?.socialMedia?.instagram || restaurantInfo?.socialMedia?.twitter) && (
-                                    <div className="text-center">
-                                        <p className="text-xs text-muted-foreground mb-2 font-medium">Follow Us:</p>
-                                        <div className="flex items-center justify-center gap-2">
-                                            {restaurantInfo?.socialMedia?.facebook && (
-                                                <a
-                                                    href={restaurantInfo.socialMedia.facebook}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-700 rounded-full transition-all"
-                                                >
-                                                    <Facebook className="w-5 h-5 text-white" />
-                                                </a>
-                                            )}
-                                            
-                                            {restaurantInfo?.socialMedia?.instagram && (
-                                                <a
-                                                    href={restaurantInfo.socialMedia.instagram}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600 rounded-full transition-all"
-                                                >
-                                                    <Instagram className="w-5 h-5 text-white" />
-                                                </a>
-                                            )}
-                                            
-                                            {restaurantInfo?.socialMedia?.twitter && (
-                                                <a
-                                                    href={restaurantInfo.socialMedia.twitter}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="w-10 h-10 flex items-center justify-center bg-sky-500 hover:bg-sky-600 rounded-full transition-all"
-                                                >
-                                                    <Twitter className="w-5 h-5 text-white" />
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
 
-                                {/* Offer Badge
-                                {restaurantInfo?.offer && parseInt(restaurantInfo.offer) > 0 && (
-                                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl text-center shadow-lg mx-auto max-w-xs">
-                                        <p className="text-2xl font-bold">{restaurantInfo.offer}% OFF</p>
-                                        <p className="text-xs mt-1 opacity-90">on your order</p>
-                                    </div>
-                                )} */}
                             </div>
 
                             {/* Enhanced Info Card - Right Side */}
@@ -894,7 +911,7 @@ export default function Menu() {
                                         </div>
                                     )}
 
-                          
+
 
                                     {/* Offer Badge */}
                                     {restaurantInfo?.offer && parseInt(restaurantInfo.offer) > 0 && (
