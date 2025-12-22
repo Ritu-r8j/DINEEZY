@@ -12,8 +12,10 @@ import {
   storeOTPInFirestore,
   verifyOTPFromFirestore,
   checkPhoneNumberExists,
+  getUserCoupons,
   OrderData,
-  ReservationData
+  ReservationData,
+  NextVisitCoupon
 } from '@/app/(utils)/firebaseOperations';
 import { sendNotification } from '@/app/(utils)/notification';
 import { Loader2, Crown, ChevronRight, ArrowUpRight } from 'lucide-react';
@@ -174,6 +176,8 @@ export default function ProfilePage() {
   const [recentReservations, setRecentReservations] = useState<ReservationData[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [reservationsLoading, setReservationsLoading] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<NextVisitCoupon[]>([]);
+  const [couponsLoading, setCouponsLoading] = useState(false);
 
   // Enhanced Account Stats State
   const [accountStats, setAccountStats] = useState({
@@ -206,8 +210,11 @@ export default function ProfilePage() {
       });
       setIsLoading(false);
 
-      // Fetch user's orders and reservations
+      // Fetch user data
       fetchUserData();
+      
+      // Fetch user coupons
+      fetchUserCoupons();
     }
   }, [user, userProfile]);
 
@@ -304,6 +311,23 @@ export default function ProfilePage() {
       setOrdersLoading(false);
       setReservationsLoading(false);
       setStatsLoading(false);
+    }
+  };
+
+  const fetchUserCoupons = async () => {
+    if (!user) return;
+
+    try {
+      setCouponsLoading(true);
+      const couponsResult = await getUserCoupons(user.uid);
+      
+      if (couponsResult.success && couponsResult.data) {
+        setAvailableCoupons(couponsResult.data);
+      }
+    } catch (error) {
+      console.error('Error fetching user coupons:', error);
+    } finally {
+      setCouponsLoading(false);
     }
   };
 
@@ -1197,6 +1221,96 @@ export default function ProfilePage() {
                   </div>
 
 
+                </div>
+              )}
+            </div>
+
+            {/* Next Visit Coupons */}
+            <div className="bg-white bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-foreground/5 p-4 sm:p-6 transition-all duration-300 hover:shadow-xl dark:hover:border-primary/20">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Next Visit Coupons</h3>
+                {couponsLoading && (
+                  <Loader2 className="h-4 w-4 animate-spin text-gray-500 dark:text-gray-400" />
+                )}
+              </div>
+
+              {couponsLoading ? (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="p-4 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl animate-pulse">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg"></div>
+                          <div className="space-y-2">
+                            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                            <div className="h-3 w-16 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                          </div>
+                        </div>
+                        <div className="h-6 w-16 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : availableCoupons.length > 0 ? (
+                <div className="space-y-3">
+                  {availableCoupons.map((coupon) => {
+                    const expiryDate = coupon.expiryDate?.toDate ? coupon.expiryDate.toDate() : new Date(coupon.expiryDate);
+                    const daysLeft = Math.ceil((expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                    
+                    return (
+                      <div key={coupon.id} className="relative overflow-hidden p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800 transition-all duration-200 hover:shadow-md">
+                        {/* Coupon Design Elements */}
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-green-100 dark:bg-green-800/30 rounded-full -translate-y-8 translate-x-8 opacity-50"></div>
+                        <div className="absolute bottom-0 left-0 w-12 h-12 bg-emerald-100 dark:bg-emerald-800/30 rounded-full -translate-y-6 -translate-x-6 opacity-30"></div>
+                        
+                        <div className="relative z-10 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <span className="text-white text-xl font-bold">₹</span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                                {coupon.discountPercentage}% Off
+                              </p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                                {coupon.restaurantName}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-500">
+                                {daysLeft > 0 ? `Expires in ${daysLeft} days` : 'Expires today'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="px-3 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
+                              Available
+                            </span>
+                            <button
+                              onClick={() => router.push('/user/menu')}
+                              className="text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium transition-colors"
+                            >
+                              Use Now
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-gray-400 text-3xl font-bold">₹</span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">No Coupons Available</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                    Complete orders to earn next visit discount coupons
+                  </p>
+                  <a
+                    href="/user/menu"
+                    className="inline-block px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors text-sm"
+                  >
+                    Order Now
+                  </a>
                 </div>
               )}
             </div>

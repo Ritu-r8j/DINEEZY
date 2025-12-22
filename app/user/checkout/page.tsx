@@ -11,7 +11,11 @@ import {
     createOrder,
     OrderData,
     getUserReservations,
-    ReservationData
+    ReservationData,
+    getUserCoupons,
+    useCoupon,
+    NextVisitCoupon,
+    getOrdersByReservation
 } from '@/app/(utils)/firebaseOperations';
 import { CartManager, CartMenuItem } from '@/app/(utils)/cartUtils';
 import { useAuth } from '@/app/(contexts)/AuthContext';
@@ -93,6 +97,11 @@ export default function Checkout() {
 
     const [promoCode, setPromoCode] = useState('');
     
+    // Coupon state
+    const [availableCoupons, setAvailableCoupons] = useState<NextVisitCoupon[]>([]);
+    const [selectedCoupon, setSelectedCoupon] = useState<NextVisitCoupon | null>(null);
+    const [couponsLoading, setCouponsLoading] = useState(false);
+    
     // Pre-order time selection state
     const [preOrderTime, setPreOrderTime] = useState('');
     const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
@@ -166,12 +175,40 @@ export default function Checkout() {
                     setLoadingReservations(true);
                     const reservationsResult = await getUserReservations(user.uid);
                     if (reservationsResult.success && reservationsResult.data) {
-                        // Filter reservations for this restaurant that are upcoming (confirmed or pending)
-                        const restaurantReservations = reservationsResult.data.filter(
-                            (res: ReservationData) => 
-                                res.restaurantId === restaurantId && 
-                                (res.status === 'confirmed' || res.status === 'pending')
-                        );
+                        // Filter reservations for this restaurant that should be available for linking
+                        // Exclude: confirmed, cancelled, completed, expired dates, or those with existing pre-orders
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0); // Set to start of today for date comparison
+                        
+                        const filteredReservations = [];
+                        
+                        for (const res of reservationsResult.data) {
+                            // Must be for this restaurant
+                            if (res.restaurantId !== restaurantId) continue;
+                            
+                            // Exclude confirmed, cancelled, completed reservations
+                            if (['confirmed', 'cancelled', 'completed'].includes(res.status)) continue;
+                            
+                            // Check if reservation date is expired (before today)
+                            const reservationDate = new Date(res.reservationDetails.date);
+                            reservationDate.setHours(0, 0, 0, 0);
+                            if (reservationDate < today) continue;
+                            
+                            // Only consider pending reservations that are for today or future dates
+                            if (res.status !== 'pending') continue;
+                            
+                            // Check if this reservation already has a pre-order
+                            const existingOrdersResult = await getOrdersByReservation(res.id);
+                            
+                            // Skip if reservation already has orders (pre-orders)
+                            if (existingOrdersResult.success && existingOrdersResult.data && existingOrdersResult.data.length > 0) {
+                                continue;
+                            }
+                            
+                            filteredReservations.push(res);
+                        }
+                        
+                        const restaurantReservations = filteredReservations;
                         setUserReservations(restaurantReservations);
                         
                         // Auto-select if there's a pre-order reservation ID in localStorage
@@ -198,6 +235,18 @@ export default function Checkout() {
                         }
                     }
                     setLoadingReservations(false);
+
+                    // Load user coupons for this restaurant
+                    setCouponsLoading(true);
+                    const couponsResult = await getUserCoupons(user.uid);
+                    if (couponsResult.success && couponsResult.data) {
+                        // Filter coupons for this restaurant
+                        const restaurantCoupons = couponsResult.data.filter(
+                            (coupon: NextVisitCoupon) => coupon.restaurantId === restaurantId
+                        );
+                        setAvailableCoupons(restaurantCoupons);
+                    }
+                    setCouponsLoading(false);
                 }
 
             } catch (err) {
@@ -292,10 +341,15 @@ export default function Checkout() {
     const selectedDeliveryOption = deliveryOptions.find(option => option.selected);
     const selectedOrderType = orderTypes.find(type => type.selected);
     const deliveryFee = selectedOrderType?.id === 'delivery' ? (selectedDeliveryOption?.price || 0) : 0;
-    const discount = promoCode ? -2.50 : 0;
+    
+    // Calculate coupon discount
+    const couponDiscount = selectedCoupon ? (subtotal * selectedCoupon.discountPercentage / 100) : 0;
+    const promoDiscount = promoCode ? 2.50 : 0;
+    const discount = couponDiscount + promoDiscount;
+    
     const taxRate = 0;
     const tax = (subtotal + deliveryFee) * taxRate;
-    const total = subtotal + deliveryFee + discount + tax;
+    const total = subtotal + deliveryFee - discount + tax;
 
     const estimatedTime = selectedOrderType?.id === 'takeaway' ? '20-30 minutes' :
         selectedOrderType?.id === 'delivery' ? selectedDeliveryOption?.time || '30-45 minutes' :
@@ -447,6 +501,44 @@ export default function Checkout() {
 
             if (!orderResult.success) {
                 throw new Error(orderResult.error || 'Failed to create order');
+            }
+
+            // Mark coupon as used if one was selected
+            if (selectedCoupon) {
+                try {
+                    await useCoupon(selectedCoupon.id, orderId);
+                } catch (couponError) {
+                    console.error('Error marking coupon as used:', couponError);
+                    // Don't fail the order if coupon update fails
+                }
+            }
+
+            // Create next visit coupon for the user (only if logged in and not a guest)
+            if (user && restaurantInfo) {
+                try {
+                    const { createNextVisitCoupon, getRestaurantCouponSettings, canUserGetCouponToday } = await import('@/app/(utils)/firebaseOperations');
+                    
+                    // Check if user can get a coupon today
+                    const canGetCoupon = await canUserGetCouponToday(user.uid, restaurantId);
+                    
+                    if (canGetCoupon.success && canGetCoupon.canGet) {
+                        // Get restaurant's coupon discount percentage
+                        const couponSettings = await getRestaurantCouponSettings(restaurantId);
+                        
+                        if (couponSettings.success && couponSettings.discountPercentage) {
+                            await createNextVisitCoupon(
+                                user.uid,
+                                restaurantId,
+                                restaurantInfo.name,
+                                orderId,
+                                couponSettings.discountPercentage
+                            );
+                        }
+                    }
+                } catch (couponCreationError) {
+                    console.error('Error creating next visit coupon:', couponCreationError);
+                    // Don't fail the order if coupon creation fails
+                }
             }
 
             // Also save to localStorage for immediate access (backup)
@@ -1315,6 +1407,81 @@ export default function Checkout() {
                                         </div>
                                         )}
 
+                                        {/* Next Visit Coupons - Only show for logged-in users */}
+                                        {user && (
+                                            <div className="mb-6 sm:mb-8">
+                                                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Next Visit Coupons</h3>
+                                                
+                                                {couponsLoading ? (
+                                                    <div className="flex items-center justify-center py-4">
+                                                        <Loader2 className="h-5 w-5 animate-spin text-gray-500 dark:text-gray-400" />
+                                                        <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading coupons...</span>
+                                                    </div>
+                                                ) : availableCoupons.length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {availableCoupons.map((coupon) => {
+                                                            const expiryDate = coupon.expiryDate?.toDate ? coupon.expiryDate.toDate() : new Date(coupon.expiryDate);
+                                                            const daysLeft = Math.ceil((expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                                            const isSelected = selectedCoupon?.id === coupon.id;
+                                                            
+                                                            return (
+                                                                <div
+                                                                    key={coupon.id}
+                                                                    onClick={() => setSelectedCoupon(isSelected ? null : coupon)}
+                                                                    className={`relative overflow-hidden p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                                                        isSelected
+                                                                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-lg'
+                                                                            : 'border-green-200 dark:border-green-800 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 hover:border-green-300 dark:hover:border-green-700'
+                                                                    }`}
+                                                                >
+                                                                    {/* Coupon Design Elements */}
+                                                                    <div className="absolute top-0 right-0 w-16 h-16 bg-green-100 dark:bg-green-800/30 rounded-full -translate-y-8 translate-x-8 opacity-50"></div>
+                                                                    <div className="absolute bottom-0 left-0 w-12 h-12 bg-emerald-100 dark:bg-emerald-800/30 rounded-full -translate-y-6 -translate-x-6 opacity-30"></div>
+                                                                    
+                                                                    <div className="relative z-10 flex items-center justify-between">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                                                <span className="text-white text-xl font-bold">₹</span>
+                                                                            </div>
+                                                                            <div className="min-w-0 flex-1">
+                                                                                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                                                    {coupon.discountPercentage}% Off
+                                                                                </p>
+                                                                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                                                                    Save ₹{(subtotal * coupon.discountPercentage / 100).toFixed(2)} on this order
+                                                                                </p>
+                                                                                <p className="text-xs text-gray-500 dark:text-gray-500">
+                                                                                    {daysLeft > 0 ? `Expires in ${daysLeft} days` : 'Expires today'}
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="flex flex-col items-end gap-1">
+                                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                                                                isSelected
+                                                                                    ? 'border-green-500 bg-green-500'
+                                                                                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
+                                                                            }`}>
+                                                                                {isSelected && (
+                                                                                    <Check className="w-3 h-3 text-white" />
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-center py-4 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                                        <div className="w-8 h-8 text-gray-400 mx-auto mb-2 flex items-center justify-center">
+                                                            <span className="text-2xl font-bold">₹</span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 dark:text-gray-400">No coupons available for this restaurant</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
                                         {/* Promo Code */}
                                         <div className="mb-6 sm:mb-8">
                                             <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Promo Code</h3>
@@ -1425,10 +1592,16 @@ export default function Checkout() {
                                     <span>Tax (0%)</span>
                                     <span>₹{tax.toFixed(2)}</span>
                                 </div>
-                                {discount < 0 && (
-                                    <div className="flex justify-between text-gray-900 dark:text-gray-400 text-xs sm:text-sm">
-                                        <span>Discount</span>
-                                        <span>₹{discount.toFixed(2)}</span>
+                                {selectedCoupon && (
+                                    <div className="flex justify-between text-green-600 dark:text-green-400 text-xs sm:text-sm">
+                                        <span>Coupon Discount ({selectedCoupon.discountPercentage}%)</span>
+                                        <span>-₹{couponDiscount.toFixed(2)}</span>
+                                    </div>
+                                )}
+                                {promoCode && (
+                                    <div className="flex justify-between text-green-600 dark:text-green-400 text-xs sm:text-sm">
+                                        <span>Promo Discount</span>
+                                        <span>-₹{promoDiscount.toFixed(2)}</span>
                                     </div>
                                 )}
                                 <div className="border-t border-gray-300 dark:border-gray-600 pt-2 sm:pt-3">
@@ -1599,10 +1772,16 @@ export default function Checkout() {
                                 <span>Tax (0%)</span>
                                 <span>₹{tax.toFixed(2)}</span>
                             </div>
-                            {discount < 0 && (
-                                <div className="flex justify-between text-gray-900 dark:text-gray-400">
-                                    <span>Discount</span>
-                                    <span>₹{discount.toFixed(2)}</span>
+                            {selectedCoupon && (
+                                <div className="flex justify-between text-green-600 dark:text-green-400">
+                                    <span>Coupon ({selectedCoupon.discountPercentage}%)</span>
+                                    <span>-₹{couponDiscount.toFixed(2)}</span>
+                                </div>
+                            )}
+                            {promoCode && (
+                                <div className="flex justify-between text-green-600 dark:text-green-400">
+                                    <span>Promo</span>
+                                    <span>-₹{promoDiscount.toFixed(2)}</span>
                                 </div>
                             )}
                             <div className="border-t border-gray-300 dark:border-gray-600 pt-1">

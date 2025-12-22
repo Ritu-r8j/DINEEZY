@@ -26,6 +26,22 @@ export interface UserData {
   updatedAt: any;
 }
 
+// Next Visit Coupon Interface
+export interface NextVisitCoupon {
+  id: string;
+  userId: string;
+  restaurantId: string;
+  restaurantName: string;
+  discountPercentage: number;
+  orderId: string; // The order that generated this coupon
+  issuedDate: any;
+  expiryDate: any;
+  isUsed: boolean;
+  usedDate?: any;
+  usedOrderId?: string; // The order where this coupon was used
+  createdAt: any;
+}
+
 export const createUserProfile = async (userData: Partial<UserData>) => {
   try {
     const userRef = doc(db, 'users', userData.uid!);
@@ -267,6 +283,8 @@ export interface RestaurantSettings {
     capacity: number;
     status: 'active' | 'inactive';
   }>;
+  // Next Visit Coupon Settings
+  nextVisitCouponDiscount?: number; // Discount percentage for next visit coupons (default: 10%)
 }
 
 export const saveRestaurantSettings = async (
@@ -2687,5 +2705,164 @@ export const cleanupExpiredPhoneOTPs = async (): Promise<{ success: boolean; cle
   } catch (error: any) {
     console.error('Error cleaning up expired OTPs:', error);
     return { success: false, cleaned: 0, error: error.message };
+  }
+};
+
+// ==================== NEXT VISIT COUPON FUNCTIONS ====================
+
+// Create a next visit coupon after order completion
+export const createNextVisitCoupon = async (
+  userId: string,
+  restaurantId: string,
+  restaurantName: string,
+  orderId: string,
+  discountPercentage: number
+): Promise<{ success: boolean; couponId?: string; error?: string }> => {
+  try {
+    // Check if user already got a coupon today from this restaurant
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const couponsRef = collection(db, 'nextVisitCoupons');
+    const todayQuery = query(
+      couponsRef,
+      where('userId', '==', userId),
+      where('restaurantId', '==', restaurantId),
+      where('issuedDate', '>=', Timestamp.fromDate(today)),
+      where('issuedDate', '<', Timestamp.fromDate(tomorrow))
+    );
+
+    const todayCoupons = await getDocs(todayQuery);
+    if (!todayCoupons.empty) {
+      return { success: false, error: 'User already received a coupon today from this restaurant' };
+    }
+
+    // Create new coupon
+    const couponRef = doc(collection(db, 'nextVisitCoupons'));
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 30); // 30 days validity
+
+    const couponData: NextVisitCoupon = {
+      id: couponRef.id,
+      userId,
+      restaurantId,
+      restaurantName,
+      discountPercentage,
+      orderId,
+      issuedDate: serverTimestamp(),
+      expiryDate: Timestamp.fromDate(expiryDate),
+      isUsed: false,
+      createdAt: serverTimestamp()
+    };
+
+    await setDoc(couponRef, couponData);
+    return { success: true, couponId: couponRef.id };
+  } catch (error: any) {
+    console.error('Error creating next visit coupon:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get user's available coupons
+export const getUserCoupons = async (userId: string): Promise<{ success: boolean; data?: NextVisitCoupon[]; error?: string }> => {
+  try {
+    const couponsRef = collection(db, 'nextVisitCoupons');
+    const q = query(
+      couponsRef,
+      where('userId', '==', userId),
+      where('isUsed', '==', false),
+      where('expiryDate', '>', Timestamp.now()),
+      orderBy('expiryDate', 'asc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    const coupons: NextVisitCoupon[] = [];
+
+    querySnapshot.forEach((doc) => {
+      coupons.push(doc.data() as NextVisitCoupon);
+    });
+
+    return { success: true, data: coupons };
+  } catch (error: any) {
+    console.error('Error getting user coupons:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Use a coupon (mark as used)
+export const useCoupon = async (couponId: string, orderId: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const couponRef = doc(db, 'nextVisitCoupons', couponId);
+    await updateDoc(couponRef, {
+      isUsed: true,
+      usedDate: serverTimestamp(),
+      usedOrderId: orderId
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error using coupon:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get restaurant's coupon settings (discount percentage)
+export const getRestaurantCouponSettings = async (restaurantId: string): Promise<{ success: boolean; discountPercentage?: number; error?: string }> => {
+  try {
+    const restaurantRef = doc(db, 'restaurants', restaurantId);
+    const docSnap = await getDoc(restaurantRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return { success: true, discountPercentage: data.nextVisitCouponDiscount || 10 }; // Default 10%
+    } else {
+      return { success: false, error: 'Restaurant not found' };
+    }
+  } catch (error: any) {
+    console.error('Error getting restaurant coupon settings:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Update restaurant's coupon discount percentage (admin function)
+export const updateRestaurantCouponDiscount = async (restaurantId: string, discountPercentage: number): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const restaurantRef = doc(db, 'restaurants', restaurantId);
+    await updateDoc(restaurantRef, {
+      nextVisitCouponDiscount: discountPercentage,
+      updatedAt: serverTimestamp()
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error updating restaurant coupon discount:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Check if user can get a coupon today (admin helper)
+export const canUserGetCouponToday = async (userId: string, restaurantId: string): Promise<{ success: boolean; canGet?: boolean; error?: string }> => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const couponsRef = collection(db, 'nextVisitCoupons');
+    const todayQuery = query(
+      couponsRef,
+      where('userId', '==', userId),
+      where('restaurantId', '==', restaurantId),
+      where('issuedDate', '>=', Timestamp.fromDate(today)),
+      where('issuedDate', '<', Timestamp.fromDate(tomorrow))
+    );
+
+    const todayCoupons = await getDocs(todayQuery);
+    return { success: true, canGet: todayCoupons.empty };
+  } catch (error: any) {
+    console.error('Error checking if user can get coupon today:', error);
+    return { success: false, error: error.message };
   }
 };

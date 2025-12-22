@@ -1,7 +1,7 @@
 [-] Fix 10% off
 [-] Min 4 photos for food item
 [-] Fix best seller and recommend in menu page
-[-] Next visit coupon
+[+] Next visit coupon - COMPLETED
 [+] Fix nutritional information
 [+] Fix restaurent menu page 
 [+] Order estimated time issue
@@ -15,3 +15,4 @@
 [+] Add instruction input field when admin confirms reservations - COMPLETED
 [+] Display admin instructions on user reservation page when confirmed - COMPLETED
 [+] Auto-confirm linked pre-orders when admin confirms reservation - COMPLETED
+[+] Video in food page
