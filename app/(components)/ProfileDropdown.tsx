@@ -149,7 +149,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   <Link
                     href="/user/profile"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200  text-muted-foreground hover:text-foreground"
                   >
                     <User className="w-4 h-4" />
                     Profile
@@ -163,7 +163,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   <Link
                     href="/user/orders"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200  text-muted-foreground hover:text-foreground"
                   >
                     <ShoppingBag className="w-4 h-4" />
                     My Orders
@@ -177,7 +177,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   <Link
                     href="/user/my-reservations"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200  text-muted-foreground hover:text-foreground"
                   >
                     <Calendar className="w-4 h-4" />
                     Reservations
@@ -188,7 +188,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   open: { opacity: 1, y: 0, scale: 1 },
                   closed: { opacity: 0, y: -10, scale: 0.95 }
                 }} transition={{ duration: 0.3, ease: "easeOut" }}>
-                  <div className="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground">
+                  <div className="cursor-pointer flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200  text-muted-foreground  hover:text-foreground">
                     <div className="flex items-center gap-3">
                       <Settings className="w-4 h-4" />
                       <span>Theme</span>
@@ -207,7 +207,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   <Link
                     href="/user/profile"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200  text-muted-foreground hover:text-foreground"
                   >
                     <Settings className="w-4 h-4" />
                     Settings
@@ -224,7 +224,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                 >
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-destructive hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200  text-destructive cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
                     Sign Out

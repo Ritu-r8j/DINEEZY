@@ -19,7 +19,9 @@ import {
     ExternalLink,
     Facebook,
     Instagram,
-    Twitter
+    Twitter,
+    Award,
+    Heart
 } from 'lucide-react';
 import GradientStar from '@/components/ui/GradientStar';
 
@@ -780,10 +782,10 @@ export default function Menu() {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex flex-wrap items-center gap-3 pt-2">
+                                    <div className="flex items-center gap-3 pt-2 flex-nowrap">
                                         <button
                                             onClick={() => router.push(`/user/reservation/${restaurantId}`)}
-                                            className="group inline-flex items-center gap-2 bg-white dark:bg-card text-foreground px-5 py-2.5 rounded-lg font-semibold text-sm border-2 border-border hover:border-primary shadow-sm hover:shadow-md transition-all hover:scale-105"
+                                            className="group inline-flex items-center gap-2 bg-white dark:bg-card text-foreground px-4 py-2.5 rounded-lg font-semibold text-sm border-2 border-border hover:border-primary shadow-sm hover:shadow-md transition-all hover:scale-105 flex-shrink-0"
                                         >
                                             <Utensils className="w-4 h-4" />
                                             Reserve Table
@@ -795,7 +797,7 @@ export default function Menu() {
                                                 href={restaurantInfo.mapDirectionsLink}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-card text-foreground rounded-lg text-sm font-semibold border-2 border-border hover:border-primary shadow-sm hover:shadow-md transition-all hover:scale-105"
+                                                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-card text-foreground rounded-lg text-sm font-semibold border-2 border-border hover:border-primary shadow-sm hover:shadow-md transition-all hover:scale-105 flex-shrink-0"
                                             >
                                                 <ExternalLink className="w-4 h-4" />
                                                 Direction
@@ -858,10 +860,10 @@ export default function Menu() {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="flex flex-wrap items-center justify-center gap-3">
+                                <div className="flex items-center justify-center gap-3 flex-nowrap">
                                     <button
                                         onClick={() => router.push(`/user/reservation/${restaurantId}`)}
-                                        className="group inline-flex items-center gap-2 bg-white dark:bg-card text-foreground px-5 py-2.5 rounded-lg font-semibold text-sm border-2 border-border hover:border-primary shadow-sm transition-all"
+                                        className="group inline-flex items-center gap-2 bg-white dark:bg-card text-foreground px-4 py-2.5 rounded-lg font-semibold text-sm border-2 border-border hover:border-primary shadow-sm transition-all flex-shrink-0"
                                     >
                                         <Utensils className="w-4 h-4" />
                                         Reserve Table
@@ -873,7 +875,7 @@ export default function Menu() {
                                             href={restaurantInfo.mapDirectionsLink}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-card text-foreground rounded-lg text-sm font-semibold border-2 border-border hover:border-primary shadow-sm transition-all"
+                                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-card text-foreground rounded-lg text-sm font-semibold border-2 border-border hover:border-primary shadow-sm transition-all flex-shrink-0"
                                         >
                                             <ExternalLink className="w-4 h-4" />
                                             Direction
@@ -920,17 +922,7 @@ export default function Menu() {
                                             <p className="text-xs opacity-90">on your order</p>
                                         </div>
                                     )}
-
-                                    {/* Divider */}
-                                    <div className="w-full h-px bg-border" />
-
-                                    {/* Payment Info */}
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Payment:</span>
-                                            <span className="font-medium text-foreground">Online & COD</span>
-                                        </div>
-                                    </div>
+                                   
                                 </div>
                             </div>
 
@@ -1073,32 +1065,48 @@ export default function Menu() {
                                                         className="object-cover rounded-md"
                                                         priority={index < 4}
                                                     />
-                                                    {/* Enhanced Mobile Badges */}
-                                                    <div className="absolute -top-1 -right-1 flex flex-col gap-1">
+                                                    {/* Enhanced Mobile Badges - Right side, mobile optimized */}
+                                                    <div className="absolute -top-1 -right-1 flex flex-col gap-1 items-end">
                                                         {/* Discount Badge */}
                                                         {hasDiscount(item) && (
-                                                            <div className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                                                            <div className="bg-red-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold shadow-lg">
                                                                 {getDiscountPercentage(item)}% OFF
                                                             </div>
                                                         )}
 
                                                         {/* Best Seller Badge */}
                                                         {item.isBestSeller && (
-                                                            <div className="bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                                                                ⭐
+                                                            <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg shadow-md border border-amber-400/30">
+                                                                {/* Mobile: Icon only */}
+                                                                <div className="flex items-center px-1 py-0.5 xs:hidden">
+                                                                    <Award className="w-2.5 h-2.5" />
+                                                                </div>
+                                                                {/* Tablet and up: Icon + Text */}
+                                                                <div className="hidden xs:flex items-center gap-1 px-2 py-0.5 text-xs font-semibold">
+                                                                    <Award className="w-3 h-3" />
+                                                                    <span>Best Seller</span>
+                                                                </div>
                                                             </div>
                                                         )}
 
                                                         {/* Recommended Badge */}
                                                         {item.isRecommended && (
-                                                            <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                                                                ❤️
+                                                            <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg shadow-md border border-emerald-400/30">
+                                                                {/* Mobile: Icon only */}
+                                                                <div className="flex items-center px-1 py-0.5 xs:hidden">
+                                                                    <Heart className="w-2.5 h-2.5 fill-current" />
+                                                                </div>
+                                                                {/* Tablet and up: Icon + Text */}
+                                                                <div className="hidden xs:flex items-center gap-1 px-2 py-0.5 text-xs font-semibold">
+                                                                    <Heart className="w-3 h-3 fill-current" />
+                                                                    <span>Recommended</span>
+                                                                </div>
                                                             </div>
                                                         )}
 
                                                         {/* Popular Badge (fallback) */}
                                                         {!item.isBestSeller && !item.isRecommended && item.tags?.includes('Popular') && (
-                                                            <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                                                            <div className="bg-primary text-white px-1.5 py-0.5 rounded-full text-xs font-bold shadow-lg">
                                                                 <Sparkles className="w-2 h-2 inline mr-1" />
                                                                 Popular
                                                             </div>
@@ -1234,16 +1242,31 @@ export default function Menu() {
 
                                                     {/* Best Seller Badge */}
                                                     {item.isBestSeller && (
-                                                        <div className="bg-yellow-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20 group-hover:badge-glow transition-all duration-300">
-                                                            <Sparkles className="w-2.5 xs:w-3 h-2.5 xs:h-3 inline mr-1" />
-                                                            BESTSELLER
+                                                        <div className="w-fit flex self-end bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg shadow-md animate-fade-in backdrop-blur-sm border border-amber-400/30 group-hover:badge-glow transition-all duration-300">
+                                                            {/* Mobile: Icon only */}
+                                                            <div className="w-fit flex  px-1.5 py-0.5 xs:hidden">
+                                                                <Award className="w-3 h-3" />
+                                                            </div>
+                                                            {/* Tablet and up: Icon + Text */}
+                                                            <div className="w-fit hidden xs:flex items-center gap-1 px-2.5 py-1 text-xs font-semibold">
+                                                                <Award className="w-3 h-3" />
+                                                                <span>Best Seller</span>
+                                                            </div>
                                                         </div>
                                                     )}
 
                                                     {/* Recommended Badge */}
                                                     {item.isRecommended && (
-                                                        <div className="bg-green-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">
-                                                            ❤️ Recommended
+                                                        <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg shadow-md animate-fade-in backdrop-blur-sm border border-emerald-400/30">
+                                                            {/* Mobile: Icon only */}
+                                                            <div className="flex items-center px-1.5 py-0.5 xs:hidden">
+                                                                <Heart className="w-3 h-3 fill-current" />
+                                                            </div>
+                                                            {/* Tablet and up: Icon + Text */}
+                                                            <div className="hidden xs:flex items-center gap-1 px-2.5 py-1 text-xs font-semibold">
+                                                                <Heart className="w-3 h-3 fill-current" />
+                                                                <span>Recommended</span>
+                                                            </div>
                                                         </div>
                                                     )}
 

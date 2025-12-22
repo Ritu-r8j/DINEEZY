@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Minus, ShoppingCart, Star, Clock, Flame, Sparkles, Heart, TrendingUp } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Star, Clock, Flame, Sparkles, Heart, TrendingUp, Award } from 'lucide-react';
 import { MenuItem } from '@/app/(utils)/firebaseOperations';
 
 // Enhanced MenuItem interface
@@ -84,17 +84,17 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
                         
                         {/* Best Seller Badge */}
                         {menuItem.isBestSeller && (
-                            <div className="bg-yellow-500 text-white px-3 xs:px-4 py-1.5 xs:py-2 rounded-full text-xs xs:text-sm font-bold backdrop-blur-sm shadow-lg border border-white/20 flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3" />
-                                BESTSELLER
+                            <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-3 xs:px-4 py-1.5 xs:py-2 rounded-lg text-xs xs:text-sm font-semibold backdrop-blur-sm shadow-md border border-amber-400/30 flex items-center gap-1">
+                                <Award className="w-3 h-3" />
+                                <span>Best Seller</span>
                             </div>
                         )}
                         
                         {/* Recommended Badge */}
                         {menuItem.isRecommended && (
-                            <div className="bg-green-500 text-white px-3 xs:px-4 py-1.5 xs:py-2 rounded-full text-xs xs:text-sm font-bold backdrop-blur-sm shadow-lg border border-white/20 flex items-center gap-1">
-                                <Heart className="w-3 h-3" />
-                                Recommended
+                            <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 xs:px-4 py-1.5 xs:py-2 rounded-lg text-xs xs:text-sm font-semibold backdrop-blur-sm shadow-md border border-emerald-400/30 flex items-center gap-1">
+                                <Heart className="w-3 h-3 fill-current" />
+                                <span>Recommended</span>
                             </div>
                         )}
                         
@@ -126,26 +126,7 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
                         </p>
                     </div>
 
-                    {/* Enhanced Rating and Info */}
-                    <div className="flex flex-wrap items-center gap-2 xs:gap-3">
-                        <div className="flex items-center gap-1.5 bg-muted/50 px-3 xs:px-4 py-1.5 xs:py-2 rounded-full shadow-sm border border-border/50">
-                            <Star className="w-3 xs:w-4 h-3 xs:h-4 text-black fill-current" />
-                            <span className="text-xs xs:text-sm font-bold text-foreground">4.5</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <Clock className="w-3 xs:w-4 h-3 xs:h-4" />
-                            <span className="text-xs xs:text-sm font-medium">15-20 min</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <Flame className="w-3 xs:w-4 h-3 xs:h-4" />
-                            <span className="text-xs xs:text-sm font-medium">{menuItem.calories || '450'} cal</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-primary">
-                            <Sparkles className="w-3 xs:w-4 h-3 xs:h-4" />
-                            <span className="text-xs xs:text-sm font-medium">Chef's Special</span>
-                        </div>
-                    </div>
-
+          
                     {/* Enhanced Price and Quantity */}
                     <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-4 xs:gap-6 py-4 xs:py-6 border-y border-border/50">
                         <div className="flex flex-col gap-2">
@@ -250,31 +231,98 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
                     </div>
 
                     {/* Enhanced Nutritional Information */}
-                    <div className="space-y-3">
-                        <h3 className="text-sm xs:text-base font-bold text-foreground flex items-center gap-2">
-                            <div className="w-1 h-3 xs:h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full"></div>
-                            Nutritional Information
-                        </h3>
-                        <div className="bg-card/50 backdrop-blur-sm rounded-xl p-4 xs:p-5 border border-border/50 shadow-sm">
-                            <div className="grid grid-cols-2 xs:grid-cols-4 gap-3 xs:gap-4">
-                                {[
-                                    { value: menuItem.calories || '450', label: 'Calories' },
-                                    { value: (menuItem as any).protein || '25g', label: 'Protein' },
-                                    { value: (menuItem as any).fat || '20g', label: 'Fat' },
-                                    { value: (menuItem as any).carbs || '40g', label: 'Carbs' }
-                                ].map((item, index) => (
-                                    <div key={index} className="text-center">
-                                        <div className="text-base xs:text-lg font-bold text-foreground">
-                                            {item.value}
+                    {menuItem.nutritionalInfo && Object.values(menuItem.nutritionalInfo).some(value => value !== undefined && value !== null) && (
+                        <div className="space-y-3">
+                            <h3 className="text-sm xs:text-base font-bold text-foreground flex items-center gap-2">
+                                <div className="w-1 h-3 xs:h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full"></div>
+                                Nutritional Information
+                            </h3>
+                            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-4 xs:p-5 border border-border/50 shadow-sm">
+                                <div className="grid grid-cols-2 xs:grid-cols-4 gap-3 xs:gap-4">
+                                    {menuItem.nutritionalInfo.calories && (
+                                        <div className="text-center">
+                                            <div className="text-base xs:text-lg font-bold text-foreground">
+                                                {menuItem.nutritionalInfo.calories}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground font-medium mt-1">
+                                                Calories
+                                            </div>
                                         </div>
-                                        <div className="text-xs text-muted-foreground font-medium mt-1">
-                                            {item.label}
+                                    )}
+                                    {menuItem.nutritionalInfo.protein && (
+                                        <div className="text-center">
+                                            <div className="text-base xs:text-lg font-bold text-foreground">
+                                                {menuItem.nutritionalInfo.protein}g
+                                            </div>
+                                            <div className="text-xs text-muted-foreground font-medium mt-1">
+                                                Protein
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )}
+                                    {menuItem.nutritionalInfo.fat && (
+                                        <div className="text-center">
+                                            <div className="text-base xs:text-lg font-bold text-foreground">
+                                                {menuItem.nutritionalInfo.fat}g
+                                            </div>
+                                            <div className="text-xs text-muted-foreground font-medium mt-1">
+                                                Fat
+                                            </div>
+                                        </div>
+                                    )}
+                                    {menuItem.nutritionalInfo.carbs && (
+                                        <div className="text-center">
+                                            <div className="text-base xs:text-lg font-bold text-foreground">
+                                                {menuItem.nutritionalInfo.carbs}g
+                                            </div>
+                                            <div className="text-xs text-muted-foreground font-medium mt-1">
+                                                Carbs
+                                            </div>
+                                        </div>
+                                    )}
+                                    {menuItem.nutritionalInfo.fiber && (
+                                        <div className="text-center">
+                                            <div className="text-base xs:text-lg font-bold text-foreground">
+                                                {menuItem.nutritionalInfo.fiber}g
+                                            </div>
+                                            <div className="text-xs text-muted-foreground font-medium mt-1">
+                                                Fiber
+                                            </div>
+                                        </div>
+                                    )}
+                                    {menuItem.nutritionalInfo.sugar && (
+                                        <div className="text-center">
+                                            <div className="text-base xs:text-lg font-bold text-foreground">
+                                                {menuItem.nutritionalInfo.sugar}g
+                                            </div>
+                                            <div className="text-xs text-muted-foreground font-medium mt-1">
+                                                Sugar
+                                            </div>
+                                        </div>
+                                    )}
+                                    {menuItem.nutritionalInfo.sodium && (
+                                        <div className="text-center">
+                                            <div className="text-base xs:text-lg font-bold text-foreground">
+                                                {menuItem.nutritionalInfo.sodium}mg
+                                            </div>
+                                            <div className="text-xs text-muted-foreground font-medium mt-1">
+                                                Sodium
+                                            </div>
+                                        </div>
+                                    )}
+                                    {menuItem.nutritionalInfo.cholesterol && (
+                                        <div className="text-center">
+                                            <div className="text-base xs:text-lg font-bold text-foreground">
+                                                {menuItem.nutritionalInfo.cholesterol}mg
+                                            </div>
+                                            <div className="text-xs text-muted-foreground font-medium mt-1">
+                                                Cholesterol
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

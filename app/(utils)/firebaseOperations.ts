@@ -634,6 +634,18 @@ export interface MenuItem {
   preparationTime: number;
   calories: number;
   
+  // Nutritional Information
+  nutritionalInfo?: {
+    calories?: number;
+    protein?: number;
+    fat?: number;
+    carbs?: number;
+    fiber?: number;
+    sugar?: number;
+    sodium?: number;
+    cholesterol?: number;
+  };
+  
   // Dietary Info
   isVegetarian: boolean;
   isVegan: boolean;
@@ -814,6 +826,8 @@ export interface OrderData {
   orderType: string;
   deliveryOption?: any;
   paymentMethod: string;
+  paymentTiming?: 'now' | 'later'; // Optional - only for dine-in orders
+  paymentStatus?: 'pending' | 'completed'; // Payment status
   specialInstructions: string;
   subtotal: number;
   deliveryFee: number;
@@ -822,6 +836,9 @@ export interface OrderData {
   total: number;
   estimatedTime: string;
   adminEstimatedTime?: number; // Admin can set custom estimated time in minutes
+  estimatedTimeUpdatedAt?: any; // Track when admin updated the time
+  preOrderTime?: string; // Selected time for pre-orders (e.g., "2:30 PM")
+  scheduledFor?: string; // Same as preOrderTime for consistency
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   createdAt: any;
   restaurantId: string;
@@ -829,6 +846,13 @@ export interface OrderData {
   guestSessionId?: string; // Optional for guest users to track their session
   isGuest: boolean;
   reservationId?: string; // Optional - links order to a reservation for pre-orders
+  tablePreference?: string; // Table preference for dine-in orders
+  diningPreferences?: {
+    windowSeat: boolean;
+    quietArea: boolean;
+    highChair: boolean;
+    wheelchairAccessible: boolean;
+  }; // Dining preferences for dine-in orders
 }
 
 // Create a new order in the database
@@ -919,17 +943,117 @@ export const updateOrderStatus = async (orderId: string, status: OrderData['stat
   }
 };
 
+// Update all orders linked to a reservation
+export const updateOrdersByReservation = async (reservationId: string, status: OrderData['status']) => {
+  try {
+    // Get all orders linked to this reservation
+    const ordersResult = await getOrdersByReservation(reservationId);
+    if (!ordersResult.success || !ordersResult.data) {
+      return { success: true, updatedCount: 0 }; // No orders to update, but not an error
+    }
+
+    const orders = ordersResult.data;
+    const updatePromises = orders.map(order => 
+      updateOrderStatus(order.id, status)
+    );
+
+    const results = await Promise.all(updatePromises);
+    const failedUpdates = results.filter(result => !result.success);
+
+    if (failedUpdates.length > 0) {
+      console.error('Some order updates failed:', failedUpdates);
+      return { 
+        success: false, 
+        error: `Failed to update ${failedUpdates.length} out of ${orders.length} orders`,
+        updatedCount: orders.length - failedUpdates.length
+      };
+    }
+
+    return { success: true, updatedCount: orders.length };
+  } catch (error: any) {
+    console.error('Error updating orders by reservation:', error);
+    return { success: false, error: error.message, updatedCount: 0 };
+  }
+};
+
 // Update order estimated time (admin function)
 export const updateOrderEstimatedTime = async (orderId: string, estimatedTime: number) => {
   try {
     const orderRef = doc(db, 'orders', orderId);
     await updateDoc(orderRef, {
       adminEstimatedTime: estimatedTime,
+      estimatedTimeUpdatedAt: serverTimestamp(), // Track when admin updated the time
       updatedAt: serverTimestamp(),
     });
     return { success: true };
   } catch (error: any) {
     console.error('Error updating order estimated time:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Update pre-order time by adding minutes to the original scheduled time
+export const updatePreOrderTime = async (orderId: string, additionalMinutes: number) => {
+  try {
+    const orderRef = doc(db, 'orders', orderId);
+    
+    // First, get the current order to access the original preOrderTime
+    const orderSnap = await getDoc(orderRef);
+    if (!orderSnap.exists()) {
+      return { success: false, error: 'Order not found' };
+    }
+    
+    const orderData = orderSnap.data() as OrderData;
+    
+    if (!orderData.preOrderTime) {
+      return { success: false, error: 'This is not a pre-order' };
+    }
+    
+    // Parse the original pre-order time (e.g., "4:00 PM")
+    const originalTime = orderData.preOrderTime;
+    const timeMatch = originalTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    
+    if (!timeMatch) {
+      return { success: false, error: 'Invalid time format' };
+    }
+    
+    let hours = parseInt(timeMatch[1]);
+    const minutes = parseInt(timeMatch[2]);
+    const period = timeMatch[3].toUpperCase();
+    
+    // Convert to 24-hour format
+    if (period === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    
+    // Create a date object for today with the original time
+    const today = new Date();
+    const originalDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
+    
+    // Add the additional minutes
+    const newDateTime = new Date(originalDateTime.getTime() + (additionalMinutes * 60 * 1000));
+    
+    // Format the new time back to 12-hour format
+    const newTimeString = newDateTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    // Update the order with the new time
+    await updateDoc(orderRef, {
+      preOrderTime: newTimeString,
+      scheduledFor: newTimeString,
+      adminEstimatedTime: additionalMinutes,
+      estimatedTimeUpdatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    
+    return { success: true, newTime: newTimeString };
+  } catch (error: any) {
+    console.error('Error updating pre-order time:', error);
     return { success: false, error: error.message };
   }
 };

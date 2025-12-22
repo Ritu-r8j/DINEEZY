@@ -39,6 +39,9 @@ interface Order {
   total: number;
   estimatedTime: string;
   adminEstimatedTime?: number; // Admin-set estimated time
+  estimatedTimeUpdatedAt?: any; // When admin updated the estimated time
+  preOrderTime?: string; // Selected time for pre-orders
+  scheduledFor?: string; // Same as preOrderTime
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   createdAt: any; // Firebase timestamp or string
   restaurantId: string;
@@ -119,16 +122,6 @@ export default function CustomerOrdersPage() {
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  // Update current time every minute for live countdown
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000); // Update every minute
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Memoized helper function to calculate remaining time
   const calculateRemainingTime = useCallback((order: Order): string => {
@@ -147,105 +140,31 @@ export default function CustomerOrdersPage() {
         return 'Completed';
       }
       
-      // For confirmed/preparing orders, calculate time from order creation
-      // In a real app, you'd want to track when the order was confirmed (confirmedAt timestamp)
-      // For now, we'll use createdAt but the timer effectively starts when status changes from pending
-      const orderDate = formatFirebaseTimestamp(order.createdAt);
+      // For pre-orders, show scheduled time instead of countdown
+      if (order.orderType === 'pre-order' && order.preOrderTime) {
+        if (order.status === 'confirmed' || order.status === 'preparing') {
+          return `Scheduled for ${order.preOrderTime}`;
+        }
+      }
+      
       const estimatedMinutes = order.adminEstimatedTime || 20;
-      const elapsedMinutes = Math.floor((currentTime.getTime() - orderDate.getTime()) / (60 * 1000));
       
-      // Calculate remaining time based on elapsed time
-      const remainingMinutes = estimatedMinutes - elapsedMinutes;
-      
-      // If time has passed but order is still in progress
-      if (remainingMinutes <= 0) {
-        return 'Ready soon';
+      // For confirmed orders, show the full estimated time (they haven't started cooking yet)
+      if (order.status === 'confirmed') {
+        return `${estimatedMinutes} min`;
       }
       
-      // Show remaining time
-      if (remainingMinutes < 1) {
-        return 'Less than 1 min';
-      } else if (remainingMinutes === 1) {
-        return '1 min';
-      } else {
-        return `${remainingMinutes} min`;
+      // For preparing orders, show estimated time
+      if (order.status === 'preparing') {
+        return `${estimatedMinutes} min`;
       }
+      
+      return `${estimatedMinutes} min`;
     } catch (error) {
       console.error('Error calculating remaining time:', error);
       return `${order.adminEstimatedTime || 20} min`;
     }
-  }, [currentTime]); // Only recreate when currentTime changes
-
-  // Auto-update order status based on time progression
-  useEffect(() => {
-    const autoProgressOrders = async () => {
-      const now = new Date();
-
-      for (const order of orders) {
-        const orderDate = formatFirebaseTimestamp(order.createdAt);
-        const minutesSinceOrder = Math.floor((now.getTime() - orderDate.getTime()) / (60 * 1000));
-        const estimatedTime = order.adminEstimatedTime || 20;
-
-        try {
-          // Auto-cancel pending orders older than 30 minutes
-          if (order.status === 'pending' && minutesSinceOrder >= 30) {
-            console.log(`Auto-cancelling expired order: ${order.id}`);
-            const result = await updateOrderStatus(order.id, 'cancelled');
-            
-            if (result.success) {
-              toast.error('Order automatically cancelled', {
-                description: `Order ${order.id} was cancelled due to no restaurant confirmation within 30 minutes.`,
-              });
-            }
-            continue;
-          }
-
-          // Auto-progress confirmed orders to preparing after 2 minutes
-          if (order.status === 'confirmed' && minutesSinceOrder >= 2) {
-            console.log(`Auto-progressing order ${order.id} to preparing`);
-            await updateOrderStatus(order.id, 'preparing');
-            toast.success('Order is now being prepared!', {
-              description: 'Your food is being cooked.',
-            });
-            continue;
-          }
-
-          // Auto-progress preparing orders to ready based on estimated time (75% of estimated time)
-          const preparingThreshold = Math.floor(estimatedTime * 0.75);
-          if (order.status === 'preparing' && minutesSinceOrder >= preparingThreshold) {
-            console.log(`Auto-progressing order ${order.id} to ready`);
-            await updateOrderStatus(order.id, 'ready');
-            toast.success('Order is ready!', {
-              description: order.orderType === 'dine-in' 
-                ? 'Your food is ready to be served.' 
-                : 'Your order is ready for pickup.',
-            });
-            continue;
-          }
-
-          // Auto-progress ready orders to delivered after estimated time + 5 minutes
-          if (order.status === 'ready' && minutesSinceOrder >= (estimatedTime + 5)) {
-            console.log(`Auto-progressing order ${order.id} to delivered`);
-            await updateOrderStatus(order.id, 'delivered');
-            toast.success('Order completed!', {
-              description: 'Thank you for your order.',
-            });
-            continue;
-          }
-        } catch (error) {
-          console.error(`Error auto-progressing order ${order.id}:`, error);
-        }
-      }
-    };
-
-    // Check immediately and then every minute
-    if (orders.length > 0) {
-      autoProgressOrders();
-      
-      const interval = setInterval(autoProgressOrders, 60000); // Check every minute
-      return () => clearInterval(interval);
-    }
-  }, [orders]);
+  }, []); // Remove currentTime dependency
 
   // Load orders with real-time listeners
   useEffect(() => {

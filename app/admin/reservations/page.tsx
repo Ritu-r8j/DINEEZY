@@ -9,16 +9,17 @@ import {
     AlertCircle,
     Users,
     MapPin,
-    RefreshCw,
     Download,
     Clock,
     Eye,
     LayoutGrid,
-    ShoppingCart
+    ShoppingCart,
+    X
 } from 'lucide-react';
 import {
     getRestaurantReservations,
     updateReservationStatus,
+    updateOrdersByReservation,
     cancelReservation,
     updateReservation,
     subscribeToRestaurantReservations,
@@ -51,9 +52,13 @@ export default function ReservationsPage() {
     const [showTableModal, setShowTableModal] = useState(false);
     const [selectedReservation, setSelectedReservation] = useState<ReservationData | null>(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [autoRefresh, setAutoRefresh] = useState(true);
     const [restaurantSettings, setRestaurantSettings] = useState<RestaurantSettings | null>(null);
     const [reservationOrders, setReservationOrders] = useState<Record<string, OrderData[]>>({});
+    
+    // Confirmation modal state
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [reservationToConfirm, setReservationToConfirm] = useState<ReservationData | null>(null);
+    const [confirmationInstructions, setConfirmationInstructions] = useState('');
 
     // Load reservations and restaurant settings
     useEffect(() => {
@@ -120,21 +125,6 @@ export default function ReservationsPage() {
             if (unsubscribe) unsubscribe();
         };
     }, [user]);
-
-    // Auto-refresh
-    useEffect(() => {
-        if (!autoRefresh || !user) return;
-        
-        const interval = setInterval(() => {
-            getRestaurantReservations(user.uid).then(result => {
-                if (result.success) {
-                    setReservations(result.data || []);
-                }
-            });
-        }, 30000);
-
-        return () => clearInterval(interval);
-    }, [autoRefresh, user]);
 
     // Filter reservations
     const filteredReservations = reservations.filter(reservation => {
@@ -219,11 +209,49 @@ export default function ReservationsPage() {
 
     // Action handlers
     const handleConfirmReservation = async (reservationId: string) => {
+        const reservation = reservations.find(r => r.id === reservationId);
+        if (reservation) {
+            setReservationToConfirm(reservation);
+            setConfirmationInstructions('');
+            setShowConfirmModal(true);
+        }
+    };
+    
+    const handleConfirmWithInstructions = async () => {
+        if (!reservationToConfirm) return;
+        
         try {
-            const result = await updateReservationStatus(reservationId, 'confirmed');
+            // First, confirm the reservation
+            const result = await updateReservationStatus(
+                reservationToConfirm.id, 
+                'confirmed', 
+                confirmationInstructions || undefined
+            );
+            
             if (!result.success) {
                 setError(result.error || 'Failed to confirm reservation');
+                return;
             }
+
+            // Then, confirm any linked pre-orders
+            const orderUpdateResult = await updateOrdersByReservation(
+                reservationToConfirm.id, 
+                'confirmed'
+            );
+
+            if (!orderUpdateResult.success) {
+                console.error('Failed to update linked orders:', orderUpdateResult.error);
+                // Don't fail the whole operation, just log the error
+                // The reservation is still confirmed successfully
+            } else if (orderUpdateResult.updatedCount > 0) {
+                console.log(`Successfully confirmed ${orderUpdateResult.updatedCount} linked pre-order(s)`);
+            }
+
+            // Success - close modal and reset state
+            setShowConfirmModal(false);
+            setReservationToConfirm(null);
+            setConfirmationInstructions('');
+            
         } catch (err) {
             console.error('Error confirming reservation:', err);
             setError('Failed to confirm reservation');
@@ -300,18 +328,6 @@ export default function ReservationsPage() {
                             </p>
                         </div>
                         <div className="flex items-center gap-2 sm:gap-3">
-                            <button
-                                onClick={() => setAutoRefresh(!autoRefresh)}
-                                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                                    autoRefresh
-                                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                        : 'bg-gray-800 text-gray-400 border border-gray-700'
-                                }`}
-                            >
-                                <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
-                                <span className="hidden sm:inline">Auto-refresh</span>
-                                <span className="sm:hidden">Auto</span>
-                            </button>
                             <button className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs sm:text-sm font-medium border border-gray-700 transition-all">
                                 <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                 <span className="hidden sm:inline">Export</span>
@@ -691,6 +707,91 @@ export default function ReservationsPage() {
                     getStatusBadge={getStatusBadge}
                     getStatusIcon={getStatusIcon}
                 />
+            )}
+
+            {/* Confirmation Modal */}
+            {showConfirmModal && reservationToConfirm && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+                    <div className="bg-[#151d2f] rounded-lg sm:rounded-xl shadow-2xl max-w-md w-full border border-gray-800 max-h-[90vh] overflow-y-auto">
+                        <div className="p-4 sm:p-6 border-b border-gray-800">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg sm:text-xl font-bold text-white">Confirm Reservation</h2>
+                                <button
+                                    onClick={() => {
+                                        setShowConfirmModal(false);
+                                        setReservationToConfirm(null);
+                                        setConfirmationInstructions('');
+                                    }}
+                                    className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                                >
+                                    <X className="h-5 w-5 text-gray-400" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-4 sm:p-6 space-y-4">
+                            {/* Reservation Details */}
+                            <div className="bg-gray-800/50 rounded-lg p-4">
+                                <h3 className="text-sm font-semibold text-white mb-2">Reservation Details</h3>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Guest:</span>
+                                        <span className="text-white">{reservationToConfirm.customerInfo.name}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Date:</span>
+                                        <span className="text-white">{formatDate(reservationToConfirm.reservationDetails.date)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Time:</span>
+                                        <span className="text-white">{formatTime(reservationToConfirm.reservationDetails.time)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Guests:</span>
+                                        <span className="text-white">{reservationToConfirm.reservationDetails.guests}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Instructions Input */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Instructions for Customer (Optional)
+                                </label>
+                                <textarea
+                                    value={confirmationInstructions}
+                                    onChange={(e) => setConfirmationInstructions(e.target.value)}
+                                    placeholder="Add any special instructions or information for the customer..."
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+                                    rows={3}
+                                />
+                                <p className="text-xs text-gray-400 mt-1">
+                                    This message will be sent to the customer along with the confirmation.
+                                </p>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => {
+                                        setShowConfirmModal(false);
+                                        setReservationToConfirm(null);
+                                        setConfirmationInstructions('');
+                                    }}
+                                    className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleConfirmWithInstructions}
+                                    className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Confirm Reservation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

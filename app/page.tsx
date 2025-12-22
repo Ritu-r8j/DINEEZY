@@ -21,7 +21,9 @@ import {
   Wine,
   X,
   CreditCard,
-  BarChart3
+  BarChart3,
+  Award,
+  Heart
 } from "lucide-react";
 import GradientStar from "@/components/ui/GradientStar";
 import { useTheme } from "./(contexts)/ThemeContext";
@@ -1126,16 +1128,17 @@ export default function HomePage() {
                                   
                                   {/* Best Seller Badge */}
                                   {dish.isBestSeller && (
-                                    <div className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
-                                      <Sparkles className="w-2.5 h-2.5" />
-                                      <span>BESTSELLER</span>
+                                    <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md flex items-center gap-1 border border-amber-400/30">
+                                      <Award className="w-3 h-3" />
+                                      <span>Best Seller</span>
                                     </div>
                                   )}
                                   
                                   {/* Recommended Badge */}
                                   {dish.isRecommended && (
-                                    <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-                                      ❤️ Recommended
+                                    <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md flex items-center gap-1 border border-emerald-400/30">
+                                      <Heart className="w-3 h-3 fill-current" />
+                                      <span>Recommended</span>
                                     </div>
                                   )}
                                 </div>

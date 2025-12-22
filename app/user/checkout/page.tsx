@@ -65,6 +65,7 @@ export default function Checkout() {
     const [orderTypes, setOrderTypes] = useState<OrderType[]>([
         { id: 'dine-in', name: 'Dine In', description: 'Eat at the restaurant', icon: '🍽️', selected: true },
         { id: 'takeaway', name: 'Takeaway', description: 'Pick up in 20-30 min', icon: '🥡', selected: false },
+        { id: 'pre-order', name: 'Pre-order', description: 'Schedule for later today', icon: '⏰', selected: false },
         // { id: 'delivery', name: 'Delivery', description: 'Deliver to your address', icon: '🚚', selected: false }
     ]);
 
@@ -92,12 +93,51 @@ export default function Checkout() {
 
     const [promoCode, setPromoCode] = useState('');
     
+    // Pre-order time selection state
+    const [preOrderTime, setPreOrderTime] = useState('');
+    const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+    
     // Reservation selection state
     const [userReservations, setUserReservations] = useState<any[]>([]);
     const [selectedReservation, setSelectedReservation] = useState<string | null>(null);
     const [loadingReservations, setLoadingReservations] = useState(false);
+    const [isReservationPreOrder, setIsReservationPreOrder] = useState(false); // Track if this is a reservation pre-order
     
     // Payment timing for dine-in orders
+    
+    // Generate available time slots for pre-order (minimum 30 minutes from now)
+    const generateTimeSlots = () => {
+        const slots: string[] = [];
+        const now = new Date();
+        const minTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
+        
+        // Round up to next 15-minute interval
+        const minutes = minTime.getMinutes();
+        const roundedMinutes = Math.ceil(minutes / 15) * 15;
+        minTime.setMinutes(roundedMinutes, 0, 0);
+        
+        // Generate slots until end of day (11:30 PM)
+        const endOfDay = new Date(now);
+        endOfDay.setHours(23, 30, 0, 0);
+        
+        const current = new Date(minTime);
+        while (current <= endOfDay) {
+            const timeString = current.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+            slots.push(timeString);
+            current.setMinutes(current.getMinutes() + 15); // 15-minute intervals
+        }
+        
+        return slots;
+    };
+    
+    // Initialize time slots when component mounts
+    useEffect(() => {
+        setAvailableTimeSlots(generateTimeSlots());
+    }, []);
     const [paymentTiming, setPaymentTiming] = useState<'now' | 'later'>('now');
 
     // Load cart items and restaurant info on component mount
@@ -142,6 +182,15 @@ export default function Checkout() {
                             );
                             if (matchingReservation) {
                                 setSelectedReservation(preOrderReservationId);
+                                setIsReservationPreOrder(true); // Mark this as a reservation pre-order
+                                
+                                // Set order type to dine-in and disable selection
+                                setOrderTypes(types =>
+                                    types.map(type => ({
+                                        ...type,
+                                        selected: type.id === 'dine-in'
+                                    }))
+                                );
                             }
                             // Clear the localStorage after using it
                             localStorage.removeItem('preOrderReservationId');
@@ -184,6 +233,11 @@ export default function Checkout() {
     }, [currentStep, customerInfo, orderTypes]);
 
     const selectOrderType = (typeId: string) => {
+        // Prevent order type selection if this is a reservation pre-order
+        if (isReservationPreOrder) {
+            return;
+        }
+        
         setOrderTypes(types =>
             types.map(type => ({
                 ...type,
@@ -245,6 +299,7 @@ export default function Checkout() {
 
     const estimatedTime = selectedOrderType?.id === 'takeaway' ? '20-30 minutes' :
         selectedOrderType?.id === 'delivery' ? selectedDeliveryOption?.time || '30-45 minutes' :
+        selectedOrderType?.id === 'pre-order' ? `Ready at ${preOrderTime}` :
             'Ready when you arrive';
 
     // Step validation functions
@@ -254,6 +309,11 @@ export default function Checkout() {
     };
 
     const isStep2Valid = () => {
+        // If pre-order is selected, pre-order time must be selected
+        const isPreOrderSelected = orderTypes.find(type => type.id === 'pre-order')?.selected;
+        if (isPreOrderSelected && !preOrderTime) {
+            return false;
+        }
         return true; // Special instructions are optional
     };
 
@@ -357,8 +417,7 @@ export default function Checkout() {
                 orderType: selectedOrderType?.id || 'takeaway',
                 deliveryOption: selectedOrderType?.id === 'delivery' ? selectedDeliveryOption : null,
                 paymentMethod: isDineInPayLater ? 'pay-later' : (paymentMethods.find(m => m.selected)?.id || 'card'),
-                paymentTiming: selectedOrderType?.id === 'dine-in' ? paymentTiming : undefined,
-                paymentStatus: isDineInPayLater ? 'pending' : 'completed',
+                paymentStatus: isDineInPayLater ? 'pending' as const : 'completed' as const,
                 specialInstructions,
                 subtotal,
                 deliveryFee,
@@ -368,9 +427,14 @@ export default function Checkout() {
                 estimatedTime,
                 status: 'pending' as const, // Start as pending, restaurant will accept to confirm
                 restaurantId,
+                ...(selectedOrderType?.id === 'pre-order' && preOrderTime && {
+                    preOrderTime,
+                    scheduledFor: preOrderTime
+                }),
                 ...(selectedOrderType?.id === 'dine-in' && {
                     tablePreference,
-                    diningPreferences
+                    diningPreferences,
+                    ...(paymentTiming && { paymentTiming }) // Only include paymentTiming if it has a value
                 }),
                 ...(user?.uid && { userId: user.uid }), // Only include userId if user is logged in
                 ...(guestSessionId && { guestSessionId }), // Include guest session ID for guest users
@@ -399,10 +463,17 @@ export default function Checkout() {
             // Clear cart
             CartManager.clearCart();
 
-            toast.success("Order Placed Successfully!", {
-                icon: <CircleCheck className="size-5 text-green-500" />,
-
-            });
+            // Show appropriate success message
+            if (isReservationPreOrder) {
+                toast.success("Reservation Pre-Order Placed Successfully!", {
+                    icon: <CircleCheck className="size-5 text-green-500" />,
+                    description: "Your meal will be prepared for your reservation time."
+                });
+            } else {
+                toast.success("Order Placed Successfully!", {
+                    icon: <CircleCheck className="size-5 text-green-500" />,
+                });
+            }
             await sendNotification(
                 'ORDER_CONFIRMED',
                 customerInfo.phone,
@@ -413,7 +484,13 @@ export default function Checkout() {
                     restaurant: restaurantInfo?.name || 'Restaurant'
                 }
             );
-            router.push('/user/orders');
+            
+            // Redirect based on order type
+            if (isReservationPreOrder) {
+                router.push('/user/my-reservations');
+            } else {
+                router.push('/user/orders');
+            }
 
         } catch (err) {
             console.error('Error placing order:', err);
@@ -692,15 +769,39 @@ export default function Checkout() {
                                         {/* Order Type Selection */}
                                         <div>
                                             <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Choose Order Type</h3>
+                                            
+                                            {/* Show message for reservation pre-order */}
+                                            {isReservationPreOrder && (
+                                                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex-shrink-0">
+                                                            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200">Reservation Pre-Order</h4>
+                                                            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                                                This order is linked to your reservation. The order type is automatically set to "Dine In" and your meal will be prepared for your reservation time.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
                                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
                                                 {orderTypes.map((type) => (
                                                     <div
                                                         key={type.id}
                                                         onClick={() => selectOrderType(type.id)}
-                                                        className={`${styles.orderTypeCard} p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border-2 cursor-pointer transition-all ${type.selected
+                                                        className={`${styles.orderTypeCard} p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border-2 transition-all ${
+                                                            isReservationPreOrder 
+                                                                ? 'cursor-not-allowed opacity-60' 
+                                                                : 'cursor-pointer'
+                                                        } ${type.selected
                                                             ? 'border-gray-900 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/50 shadow-lg'
                                                             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                                            }`}
+                                                            } ${isReservationPreOrder && !type.selected ? 'bg-gray-100 dark:bg-gray-800/30' : ''}`}
                                                     >
                                                         <div className="text-center">
                                                             <div className="mb-2 sm:mb-3 flex items-center justify-center">
@@ -716,19 +817,69 @@ export default function Checkout() {
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                                                     </svg>
                                                                 )}
+                                                                {type.id === 'pre-order' && (
+                                                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                )}
                                                                 {type.id === 'delivery' && (
                                                                     <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 17l4 4 4-4m-4-5v9m5-5v2a2 2 0 11-4 0v-2m0 0V7a2 2 0 114 0v10a2 2 0 01-2 2H6a2 2 0 01-2-2z" />
                                                                     </svg>
                                                                 )}
                                                             </div>
-                                                            <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white mb-1">{type.name}</h3>
-                                                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
+                                                            <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white mb-1">
+                                                                {type.name}
+                                                                {isReservationPreOrder && type.selected && (
+                                                                    <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
+                                                                        Selected
+                                                                    </span>
+                                                                )}
+                                                            </h3>
+                                                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                                {isReservationPreOrder && type.selected 
+                                                                    ? 'Linked to your reservation' 
+                                                                    : type.description
+                                                                }
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
                                         </div>
+
+                                        {/* Pre-order Time Selection (only show if pre-order is selected) */}
+                                        {orderTypes.find(type => type.id === 'pre-order')?.selected && (
+                                            <div className="mt-6">
+                                                <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
+                                                    Select Pickup Time
+                                                </h3>
+                                                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                                    Choose when you want to pick up your order today. Minimum 30 minutes from now.
+                                                </p>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 max-h-48 overflow-y-auto">
+                                                    {availableTimeSlots.map((timeSlot) => (
+                                                        <div
+                                                            key={timeSlot}
+                                                            onClick={() => setPreOrderTime(timeSlot)}
+                                                            className={`p-2 sm:p-3 rounded-lg border-2 cursor-pointer transition-all text-center ${preOrderTime === timeSlot
+                                                                ? 'border-gray-900 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/50 shadow-lg'
+                                                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                                                }`}
+                                                        >
+                                                            <span className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
+                                                                {timeSlot}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                {availableTimeSlots.length === 0 && (
+                                                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                                                        <p>No time slots available for today. Please try again tomorrow.</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
 
                                       
 

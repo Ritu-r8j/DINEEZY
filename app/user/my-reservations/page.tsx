@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import {
     getUserReservations,
@@ -22,6 +23,7 @@ interface Reservation {
     guests: number;
     status: 'confirmed' | 'pending' | 'cancelled' | 'completed' | 'no-show';
     specialRequests?: string;
+    notes?: string; // Admin instructions when confirming reservation
     restaurantName: string;
     reservationId: string;
     tableNumber?: string;
@@ -86,6 +88,7 @@ export default function MyReservationsPage() {
                                     guests: reservation.reservationDetails.guests,
                                     status: reservation.status,
                                     specialRequests: reservation.reservationDetails.specialRequests,
+                                    notes: reservation.notes, // Admin instructions
                                     restaurantName: restaurantResult.success ? restaurantResult.data?.name || 'Unknown Restaurant' : 'Unknown Restaurant',
                                     reservationId: reservation.reservationId,
                                     tableNumber: reservation.reservationDetails.tableNumber,
@@ -102,6 +105,7 @@ export default function MyReservationsPage() {
                                     guests: reservation.reservationDetails.guests,
                                     status: reservation.status,
                                     specialRequests: reservation.reservationDetails.specialRequests,
+                                    notes: reservation.notes, // Admin instructions
                                     restaurantName: 'Unknown Restaurant',
                                     reservationId: reservation.reservationId,
                                     tableNumber: reservation.reservationDetails.tableNumber,
@@ -146,6 +150,7 @@ export default function MyReservationsPage() {
                                 guests: reservation.reservationDetails.guests,
                                 status: reservation.status,
                                 specialRequests: reservation.reservationDetails.specialRequests,
+                                notes: reservation.notes, // Admin instructions
                                 restaurantName: restaurantResult.success ? restaurantResult.data?.name || 'Unknown Restaurant' : 'Unknown Restaurant',
                                 reservationId: reservation.reservationId,
                                 tableNumber: reservation.reservationDetails.tableNumber,
@@ -162,6 +167,7 @@ export default function MyReservationsPage() {
                                 guests: reservation.reservationDetails.guests,
                                 status: reservation.status,
                                 specialRequests: reservation.reservationDetails.specialRequests,
+                                notes: reservation.notes, // Admin instructions
                                 restaurantName: 'Unknown Restaurant',
                                 reservationId: reservation.reservationId,
                                 tableNumber: reservation.reservationDetails.tableNumber,
@@ -397,12 +403,24 @@ export default function MyReservationsPage() {
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-                        My Reservations
-                    </h1>
-                    <p className="text-lg text-gray-600 dark:text-gray-400">
-                        Manage your upcoming bookings and view your reservation history.
-                    </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
+                                My Reservations
+                            </h1>
+                            <p className="text-lg text-gray-600 dark:text-gray-400">
+                                Manage your upcoming bookings and view your reservation history.
+                            </p>
+                        </div>
+                        <div className="flex-shrink-0">
+                            <Link href="/user/reservation">
+                                <button className="cursor-pointer px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold text-sm hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-lg flex items-center gap-2">
+                                   
+                                    Make New Reservation
+                                </button>
+                            </Link>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Tabs */}
@@ -499,6 +517,29 @@ export default function MyReservationsPage() {
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     </svg>
                                                     Table {reservation.tableNumber}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Admin Instructions Display */}
+                                        {reservation.notes && reservation.status === 'confirmed' && (
+                                            <div className="mt-4">
+                                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="flex-shrink-0 mt-0.5">
+                                                            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                                                                Message from Restaurant
+                                                            </h4>
+                                                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                                                                {reservation.notes}
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -607,7 +648,7 @@ export default function MyReservationsPage() {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-48">
+                                    <div className=" flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-48">
                                         {reservation.status === 'confirmed' && (
                                             <>
                                                 {/* Only show Pre-Order button if no orders have been placed */}
@@ -619,7 +660,7 @@ export default function MyReservationsPage() {
                                                             localStorage.setItem('preOrderRestaurantId', reservation.restaurantInfo?.id || '');
                                                             router.push(`/user/menu/${reservation.restaurantInfo?.id || ''}`);
                                                         }}
-                                                        className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-xl font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
+                                                        className="cursor-pointer px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-xl font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -797,6 +838,16 @@ export default function MyReservationsPage() {
                                                     </svg>
                                                     {selectedReservation.tableNumber}
                                                 </span>
+                                            </div>
+                                        )}
+                                        {selectedReservation.notes && selectedReservation.status === 'confirmed' && (
+                                            <div className="col-span-2">
+                                                <span className="text-gray-600 dark:text-gray-400">Restaurant Message:</span>
+                                                <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                                                        {selectedReservation.notes}
+                                                    </p>
+                                                </div>
                                             </div>
                                         )}
                                     </div>

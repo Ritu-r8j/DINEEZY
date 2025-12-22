@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Edit, Clock, MapPin, SortAsc, Heart, Share2, Info, Shield, Leaf, Zap, Flame, ChevronDown, Loader2, Filter } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Edit, Clock, MapPin, SortAsc, Heart, Share2, Info, Shield, Leaf, Zap, Flame, ChevronDown, Loader2, Filter, Award } from 'lucide-react';
 import Link from 'next/link';
 import { getAllRestaurants, getAllMenuItems, getFilteredMenuItems, getMenuItemsRatings, RestaurantSettings, MenuItem as FirebaseMenuItem, getRestaurantRating } from '@/app/(utils)/firebaseOperations';
 import { useRouter } from 'next/navigation';
@@ -1163,8 +1163,8 @@ export default function MenuPage() {
                             }}
                           />
 
-                          {/* Enhanced Badges */}
-                          <div className="absolute top-2 left-2 flex flex-col gap-1">
+                          {/* Enhanced Badges - Moved to right side */}
+                          <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
                             {/* Discount Badge */}
                             {hasDiscount(item) && (
                               <div className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
@@ -1174,17 +1174,31 @@ export default function MenuPage() {
 
                             {/* Best Seller Badge */}
                             {item.isBestSeller && (
-                              <div className="bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
-                                <span>⭐</span>
-                                <span>BESTSELLER</span>
+                              <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg shadow-md border border-amber-400/30">
+                                {/* Mobile: Icon only */}
+                                <div className="flex items-center px-1.5 py-0.5 sm:hidden">
+                                  <Award className="w-3 h-3" />
+                                </div>
+                                {/* Desktop: Icon + Text */}
+                                <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 text-xs font-semibold">
+                                  <Award className="w-3 h-3" />
+                                  <span>Best Seller</span>
+                                </div>
                               </div>
                             )}
 
                             {/* Recommended Badge */}
                             {item.isRecommended && (
-                              <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
-                                <Heart className="h-3 w-3" />
-                                <span>Recommended</span>
+                              <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg shadow-md border border-emerald-400/30">
+                                {/* Mobile: Icon only */}
+                                <div className="flex items-center px-1.5 py-0.5 sm:hidden">
+                                  <Heart className="w-3 h-3 fill-current" />
+                                </div>
+                                {/* Desktop: Icon + Text */}
+                                <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 text-xs font-semibold">
+                                  <Heart className="w-3 h-3 fill-current" />
+                                  <span>Recommended</span>
+                                </div>
                               </div>
                             )}
                           </div>

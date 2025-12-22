@@ -47,6 +47,19 @@ export default function MenuManagement() {
   // Image management state
   const [imagePublicId, setImagePublicId] = useState<string>('');
 
+  // Helper function to clean nutritional information (remove undefined/null/empty values)
+  const cleanNutritionalInfo = (nutritionalInfo: any) => {
+    if (!nutritionalInfo) return undefined;
+    
+    const cleaned = Object.fromEntries(
+      Object.entries(nutritionalInfo).filter(([_, value]) => 
+        value !== undefined && value !== null && value !== '' && !isNaN(Number(value))
+      )
+    );
+    
+    return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+  };
+
   // Helper function to capitalize first letter of each word
   const capitalizeWords = (str: string): string => {
     return str
@@ -273,12 +286,16 @@ export default function MenuManagement() {
 
     setActionLoading('save');
     try {
+      // Clean nutritional information
+      const cleanedNutritionalInfo = cleanNutritionalInfo(formData.nutritionalInfo);
+
       // Include variants and addons in the update data (filter out empty entries)
       const updateData = {
         ...formData,
         variants: variants.filter(v => v.name.trim() && v.price > 0) || [],
         addons: addons.filter(a => a.name.trim() && a.price > 0) || [],
-        imagePublicId: imagePublicId || undefined,
+        ...(imagePublicId && { imagePublicId }), // Only include if imagePublicId exists
+        ...(cleanedNutritionalInfo && { nutritionalInfo: cleanedNutritionalInfo }),
         updatedAt: new Date()
       };
 
@@ -311,6 +328,9 @@ export default function MenuManagement() {
 
     setActionLoading('add');
     try {
+      // Clean nutritional information
+      const cleanedNutritionalInfo = cleanNutritionalInfo(formData.nutritionalInfo);
+
       const newItemData = {
         // Admin & Restaurant Info
         adminId: user.uid,
@@ -355,12 +375,15 @@ export default function MenuManagement() {
         ingredients: Array.isArray(formData.ingredients) ? formData.ingredients :
           (formData.ingredients ? formData.ingredients.split(',').map(i => i.trim()) : []),
 
+        // Nutritional Information (only include if provided and has valid values)
+        ...(cleanedNutritionalInfo && { nutritionalInfo: cleanedNutritionalInfo }),
+
         // Variants & Add-ons (filter out empty entries)
         variants: variants.filter(v => v.name.trim() && v.price > 0) || [],
         addons: addons.filter(a => a.name.trim() && a.price > 0) || [],
         
-        // Image Public ID for Cloudinary cleanup
-        imagePublicId: imagePublicId || undefined,
+        // Image Public ID for Cloudinary cleanup (only include if exists)
+        ...(imagePublicId && { imagePublicId }),
 
         // Meta Info
         rating: 0,
@@ -538,9 +561,9 @@ export default function MenuManagement() {
 
                   {/* Best Seller Badge */}
                   {item.isBestSeller && (
-                    <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center">
-                      <Award className="h-3 w-3 mr-1" />
-                      BESTSELLER
+                    <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1 border border-amber-400/30">
+                      <Award className="h-3 w-3" />
+                      <span>Best Seller</span>
                     </div>
                   )}
 
@@ -583,9 +606,9 @@ export default function MenuManagement() {
                 {/* Recommended Badge */}
                 {item.isRecommended && (
                   <div className="absolute top-3 right-16">
-                    <div className="bg-green-500 text-white px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
-                      <Heart className="h-3 w-3" />
-                      <span className="text-xs font-semibold">Recommended</span>
+                    <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1 border border-emerald-400/30 text-xs font-semibold">
+                      <Heart className="h-3 w-3 fill-current" />
+                      <span>Recommended</span>
                     </div>
                   </div>
                 )}
@@ -714,6 +737,12 @@ export default function MenuManagement() {
                     <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded-full">
                       <span className="text-gray-700 dark:text-gray-300 font-medium">{item.calories} cal</span>
                     </div>
+                    {/* Nutritional Info Indicator */}
+                    {item.nutritionalInfo && Object.values(item.nutritionalInfo).some(value => value !== undefined && value !== null) && (
+                      <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+                        <span className="text-green-700 dark:text-green-300 font-medium text-xs">🥗 Nutrition</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     {item.spiceLevel !== 'none' && (
@@ -1329,6 +1358,178 @@ export default function MenuManagement() {
                         Add Add-on
                       </button>
                     </div>
+                  </div>
+
+                  {/* Nutritional Information */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <span className="flex items-center">
+                        <span className="text-green-600 mr-2">🥗</span>
+                        Nutritional Information (Optional)
+                      </span>
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Calories
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={formData.nutritionalInfo?.calories || ''}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            nutritionalInfo: { 
+                              ...formData.nutritionalInfo, 
+                              calories: parseInt(e.target.value) || undefined 
+                            } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                          placeholder="450"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Protein (g)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={formData.nutritionalInfo?.protein || ''}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            nutritionalInfo: { 
+                              ...formData.nutritionalInfo, 
+                              protein: parseFloat(e.target.value) || undefined 
+                            } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                          placeholder="25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Fat (g)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={formData.nutritionalInfo?.fat || ''}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            nutritionalInfo: { 
+                              ...formData.nutritionalInfo, 
+                              fat: parseFloat(e.target.value) || undefined 
+                            } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                          placeholder="20"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Carbs (g)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={formData.nutritionalInfo?.carbs || ''}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            nutritionalInfo: { 
+                              ...formData.nutritionalInfo, 
+                              carbs: parseFloat(e.target.value) || undefined 
+                            } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                          placeholder="40"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Fiber (g)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={formData.nutritionalInfo?.fiber || ''}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            nutritionalInfo: { 
+                              ...formData.nutritionalInfo, 
+                              fiber: parseFloat(e.target.value) || undefined 
+                            } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                          placeholder="5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Sugar (g)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={formData.nutritionalInfo?.sugar || ''}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            nutritionalInfo: { 
+                              ...formData.nutritionalInfo, 
+                              sugar: parseFloat(e.target.value) || undefined 
+                            } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                          placeholder="8"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Sodium (mg)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={formData.nutritionalInfo?.sodium || ''}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            nutritionalInfo: { 
+                              ...formData.nutritionalInfo, 
+                              sodium: parseInt(e.target.value) || undefined 
+                            } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                          placeholder="800"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Cholesterol (mg)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={formData.nutritionalInfo?.cholesterol || ''}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            nutritionalInfo: { 
+                              ...formData.nutritionalInfo, 
+                              cholesterol: parseInt(e.target.value) || undefined 
+                            } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                          placeholder="50"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Leave fields empty if nutritional information is not available. Only filled fields will be displayed to customers.
+                    </p>
                   </div>
 
                   {/* Meta Information */}

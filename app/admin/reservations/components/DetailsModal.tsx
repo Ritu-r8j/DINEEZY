@@ -161,49 +161,172 @@ export default function DetailsModal({
                                     Pre-Orders ({orders.length})
                                 </p>
                             </div>
-                            <div className="space-y-2 sm:space-y-3">
+                            <div className="space-y-3 sm:space-y-4">
                                 {orders.map((order) => (
                                     <div key={order.id} className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3 sm:p-4">
-                                        <div className="flex items-center justify-between mb-2 sm:mb-3">
-                                            <p className="text-xs font-mono text-gray-400 truncate pr-2">
-                                                {order.orderId}
-                                            </p>
+                                        {/* Order Header */}
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div>
+                                                <p className="text-xs font-mono text-gray-400">
+                                                    {order.orderId}
+                                                </p>
+                                                {order.preOrderTime && (
+                                                    <p className="text-xs text-emerald-400 mt-1">
+                                                        Scheduled for: {order.preOrderTime}
+                                                    </p>
+                                                )}
+                                            </div>
                                             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border ${getOrderStatusColor(order.status)}`}>
                                                 {order.status}
                                             </span>
                                         </div>
-                                        <div className="space-y-1.5 sm:space-y-2">
-                                            {order.items.slice(0, 3).map((item, idx) => (
-                                                <div key={idx} className="text-xs">
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <span className="text-gray-300 truncate">
-                                                            {item.quantity}x {item.name}
+
+                                        {/* Order Items - Show ALL items */}
+                                        <div className="space-y-2 mb-3">
+                                            <h4 className="text-xs font-semibold text-gray-300 border-b border-gray-700 pb-1">
+                                                Order Items ({order.items.length})
+                                            </h4>
+                                            {order.items.map((item, idx) => (
+                                                <div key={idx} className="bg-gray-800/30 rounded p-2">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs font-medium text-white">
+                                                                    {item.quantity}x {item.name}
+                                                                </span>
+                                                                <span className="text-xs text-gray-400 flex-shrink-0">
+                                                                    ₹{(item.customPrice || item.price).toFixed(0)} each
+                                                                </span>
+                                                            </div>
+                                                            
+                                                            {/* Variant */}
                                                             {item.selectedVariant && (
-                                                                <span className="text-gray-500 ml-1">({item.selectedVariant.name})</span>
+                                                                <div className="text-xs text-blue-400 mt-1">
+                                                                    Variant: {item.selectedVariant.name} (+₹{item.selectedVariant.price})
+                                                                </div>
                                                             )}
-                                                        </span>
-                                                        <span className="text-gray-400 flex-shrink-0">
+                                                            
+                                                            {/* Add-ons */}
+                                                            {item.selectedAddons && item.selectedAddons.length > 0 && (
+                                                                <div className="text-xs text-yellow-400 mt-1">
+                                                                    Add-ons: {item.selectedAddons.map(addon => 
+                                                                        `${addon.name} (+₹${addon.price})`
+                                                                    ).join(', ')}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-xs font-semibold text-emerald-400 flex-shrink-0">
                                                             ₹{((item.customPrice || item.price) * item.quantity).toFixed(0)}
                                                         </span>
                                                     </div>
-                                                    {item.selectedAddons && item.selectedAddons.length > 0 && (
-                                                        <div className="text-gray-500 ml-4 mt-0.5 text-[10px] sm:text-xs truncate">
-                                                            + {item.selectedAddons.map(addon => addon.name).join(', ')}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Order Details */}
+                                        <div className="space-y-2 mb-3">
+                                            <h4 className="text-xs font-semibold text-gray-300 border-b border-gray-700 pb-1">
+                                                Order Details
+                                            </h4>
+                                            <div className="grid grid-cols-2 gap-2 text-xs">
+                                                <div>
+                                                    <span className="text-gray-400">Order Type:</span>
+                                                    <span className="text-white ml-1 capitalize">{order.orderType}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-400">Payment:</span>
+                                                    <span className="text-white ml-1 capitalize">{order.paymentMethod}</span>
+                                                </div>
+                                                {order.paymentTiming && (
+                                                    <div className="col-span-2">
+                                                        <span className="text-gray-400">Payment Timing:</span>
+                                                        <span className="text-white ml-1 capitalize">Pay {order.paymentTiming}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Special Instructions */}
+                                        {order.specialInstructions && (
+                                            <div className="mb-3">
+                                                <h4 className="text-xs font-semibold text-gray-300 mb-1">Special Instructions</h4>
+                                                <div className="bg-amber-500/10 border border-amber-500/20 rounded p-2">
+                                                    <p className="text-xs text-amber-200">{order.specialInstructions}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Dining Preferences (for dine-in orders) */}
+                                        {order.orderType === 'dine-in' && (order.tablePreference || order.diningPreferences) && (
+                                            <div className="mb-3">
+                                                <h4 className="text-xs font-semibold text-gray-300 mb-1">Dining Preferences</h4>
+                                                <div className="bg-blue-500/10 border border-blue-500/20 rounded p-2 space-y-1">
+                                                    {order.tablePreference && (
+                                                        <p className="text-xs text-blue-200">
+                                                            <span className="text-gray-400">Table Preference:</span> {order.tablePreference}
+                                                        </p>
+                                                    )}
+                                                    {order.diningPreferences && (
+                                                        <div className="text-xs text-blue-200">
+                                                            <span className="text-gray-400">Special Needs:</span>
+                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                                {order.diningPreferences.windowSeat && (
+                                                                    <span className="bg-blue-500/20 px-1 py-0.5 rounded text-[10px]">Window Seat</span>
+                                                                )}
+                                                                {order.diningPreferences.quietArea && (
+                                                                    <span className="bg-blue-500/20 px-1 py-0.5 rounded text-[10px]">Quiet Area</span>
+                                                                )}
+                                                                {order.diningPreferences.highChair && (
+                                                                    <span className="bg-blue-500/20 px-1 py-0.5 rounded text-[10px]">High Chair</span>
+                                                                )}
+                                                                {order.diningPreferences.wheelchairAccessible && (
+                                                                    <span className="bg-blue-500/20 px-1 py-0.5 rounded text-[10px]">Wheelchair Access</span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
-                                            ))}
-                                            {order.items.length > 3 && (
-                                                <p className="text-xs text-gray-500 italic">
-                                                    +{order.items.length - 3} more items
-                                                </p>
-                                            )}
+                                            </div>
+                                        )}
+
+                                        {/* Order Summary */}
+                                        <div className="pt-2 border-t border-emerald-500/20">
+                                            <div className="space-y-1 text-xs">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-400">Subtotal:</span>
+                                                    <span className="text-white">₹{order.subtotal.toFixed(0)}</span>
+                                                </div>
+                                                {order.deliveryFee > 0 && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-400">Delivery Fee:</span>
+                                                        <span className="text-white">₹{order.deliveryFee.toFixed(0)}</span>
+                                                    </div>
+                                                )}
+                                                {order.discount < 0 && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-400">Discount:</span>
+                                                        <span className="text-green-400">₹{Math.abs(order.discount).toFixed(0)}</span>
+                                                    </div>
+                                                )}
+                                                {order.tax > 0 && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-400">Tax:</span>
+                                                        <span className="text-white">₹{order.tax.toFixed(0)}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between font-semibold pt-1 border-t border-gray-700">
+                                                    <span className="text-gray-300">Total:</span>
+                                                    <span className="text-emerald-400">₹{order.total.toFixed(0)}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-emerald-500/20 flex items-center justify-between">
-                                            <span className="text-xs font-medium text-gray-400">Total</span>
-                                            <span className="text-sm sm:text-base font-bold text-emerald-400">
-                                                ₹{order.total.toFixed(0)}
-                                            </span>
+
+                                        {/* Order Timing */}
+                                        <div className="mt-2 pt-2 border-t border-emerald-500/20 text-xs text-gray-400">
+                                            Ordered: {formatFirebaseTimestamp(order.createdAt)}
+                                            {order.adminEstimatedTime && (
+                                                <span className="ml-2">• Est. Time: {order.adminEstimatedTime} min</span>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

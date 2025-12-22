@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Bell, Clock, Eye, Phone, MapPin, DollarSign, Search, RefreshCw, X, ChefHat, Package, Loader2, CheckCircle, Calendar } from 'lucide-react';
-import { getRestaurantOrders, updateOrderStatus, updateOrderEstimatedTime, OrderData, subscribeToRestaurantOrdersByDate } from '@/app/(utils)/firebaseOperations';
+import { getRestaurantOrders, updateOrderStatus, updateOrderEstimatedTime, updatePreOrderTime, OrderData, subscribeToRestaurantOrdersByDate } from '@/app/(utils)/firebaseOperations';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { sendNotification } from '@/app/(utils)/notification';
 
@@ -30,6 +30,8 @@ interface Order extends Omit<OrderData, 'estimatedTime'> {
   orderType: string;
   specialNotes?: string;
   reservationId?: string; // Link to reservation for pre-orders
+  preOrderTime?: string; // Selected time for pre-orders
+  scheduledFor?: string; // Same as preOrderTime
 }
 
 export default function OrderManagement() {
@@ -77,12 +79,14 @@ export default function OrderManagement() {
               paymentMethod: order.paymentMethod,
               orderType: order.orderType,
               specialNotes: order.specialInstructions,
-              reservationId: order.reservationId
+              reservationId: order.reservationId,
+              preOrderTime: order.preOrderTime,
+              scheduledFor: order.scheduledFor
             }));
 
-            // Filter out orders linked to reservations (pre-orders)
-            const standaloneOrders = transformedOrders.filter(order => !order.reservationId);
-            setOrders(standaloneOrders);
+            // Filter out reservation pre-orders (orders with reservationId should only show in reservations page)
+            const regularOrders = transformedOrders.filter(order => !order.reservationId);
+            setOrders(regularOrders);
           } else {
             setOrders([]);
           }
@@ -186,22 +190,48 @@ export default function OrderManagement() {
   const handleSetEstimatedTime = async (orderId: string, estimatedTime: number) => {
     try {
       setIsUpdating(orderId);
-      const result = await updateOrderEstimatedTime(orderId, estimatedTime);
+      
+      // Find the order to check if it's a pre-order
+      const order = orders.find(o => o.id === orderId);
+      
+      let result;
+      let newScheduledTime = null;
+      
+      if (order && order.orderType === 'pre-order') {
+        // For pre-orders, add the time to the original scheduled time
+        result = await updatePreOrderTime(orderId, estimatedTime);
+        if (result.success && 'newTime' in result) {
+          newScheduledTime = result.newTime;
+        }
+      } else {
+        // For regular orders, just update the estimated time
+        result = await updateOrderEstimatedTime(orderId, estimatedTime);
+      }
 
       if (result.success) {
-        const order = orders.find(o => o.id === orderId);
         setOrders(orders.map(order =>
           order.id === orderId
-            ? { ...order, adminEstimatedTime: estimatedTime }
+            ? { 
+                ...order, 
+                adminEstimatedTime: estimatedTime,
+                ...(newScheduledTime && {
+                  preOrderTime: newScheduledTime,
+                  scheduledFor: newScheduledTime
+                })
+              }
             : order
         ));
 
-        if (order && order.customerPhone && ['confirmed', 'preparing'].includes(order.status)) {
+        if (order && order.customerInfo?.phone && ['confirmed', 'preparing'].includes(order.status)) {
           try {
-            await sendNotification('ORDER_ACCEPTED', order.customerPhone, {
-              name: order.customerName || 'User',
+            const notificationMessage = order.orderType === 'pre-order' && newScheduledTime
+              ? `Your pre-order is now scheduled for ${newScheduledTime}`
+              : `Your order will be ready in ${estimatedTime} minutes`;
+              
+            await sendNotification('ORDER_ACCEPTED', order.customerInfo.phone, {
+              name: order.customerInfo.firstName || 'User',
               orderId: orderId,
-              time: `${estimatedTime}`,
+              time: order.orderType === 'pre-order' && newScheduledTime ? newScheduledTime : `${estimatedTime}`,
               restaurant: 'Restaurant'
             });
           } catch (notificationError) {
@@ -497,6 +527,9 @@ export default function OrderManagement() {
                   <MapPin className="h-4 w-4 mx-auto mb-1 text-gray-400" />
                   <p className="text-gray-500 dark:text-gray-400">Type</p>
                   <p className="font-medium text-gray-900 dark:text-white capitalize">{order.orderType}</p>
+                  {order.orderType === 'pre-order' && order.preOrderTime && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">@ {order.preOrderTime}</p>
+                  )}
                 </div>
                 <div className="text-center">
                   <DollarSign className="h-4 w-4 mx-auto mb-1 text-green-500" />
@@ -682,6 +715,12 @@ export default function OrderManagement() {
                       <span className="text-gray-600 dark:text-gray-400">Order Type:</span>
                       <span className="font-medium text-gray-900 dark:text-white capitalize">{selectedOrder.orderType}</span>
                     </div>
+                    {selectedOrder.orderType === 'pre-order' && selectedOrder.preOrderTime && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Scheduled For:</span>
+                        <span className="font-medium text-blue-600 dark:text-blue-400">{selectedOrder.preOrderTime}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -740,7 +779,9 @@ export default function OrderManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Set Preparation Time</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {selectedOrderForTime.orderType === 'pre-order' ? 'Adjust Pre-Order Time' : 'Set Preparation Time'}
+              </h2>
               <button
                 onClick={() => setShowTimeModal(false)}
                 className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg transition-colors"
@@ -750,9 +791,23 @@ export default function OrderManagement() {
             </div>
 
             <div className="p-6 space-y-4">
+              {selectedOrderForTime.orderType === 'pre-order' && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Current scheduled time:</strong> {selectedOrderForTime.preOrderTime}
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                    Adding minutes will update the scheduled time accordingly.
+                  </p>
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Estimated Time (minutes)
+                  {selectedOrderForTime.orderType === 'pre-order' 
+                    ? 'Additional Time (minutes)' 
+                    : 'Estimated Time (minutes)'
+                  }
                 </label>
                 <input
                   type="number"
@@ -797,7 +852,7 @@ export default function OrderManagement() {
                       <span>Updating...</span>
                     </>
                   ) : (
-                    'Set Time'
+                    selectedOrderForTime.orderType === 'pre-order' ? 'Update Time' : 'Set Time'
                   )}
                 </button>
               </div>
