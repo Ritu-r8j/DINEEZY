@@ -14,6 +14,7 @@ import {
 } from '@/app/(utils)/firebaseOperations';
 import CategoryManagementModal from '@/app/(components)/CategoryManagementModal';
 import ImageUpload from '@/app/(components)/ImageUpload';
+import VideoUpload from '@/app/(components)/VideoUpload';
 import { DEFAULT_CATEGORIES, getCategoryDisplayName } from '@/lib/categoryData';
 import { getCategoryMappings, CategoryMappings } from '@/app/(utils)/categoryOperations';
 import { deleteFromCloudinary } from '@/app/(utils)/cloudinary';
@@ -46,6 +47,9 @@ export default function MenuManagement() {
   
   // Image management state
   const [imagePublicId, setImagePublicId] = useState<string>('');
+  
+  // Video management state
+  const [videoPublicId, setVideoPublicId] = useState<string>('');
 
   // Helper function to clean nutritional information (remove undefined/null/empty values)
   const cleanNutritionalInfo = (nutritionalInfo: any) => {
@@ -236,6 +240,16 @@ export default function MenuManagement() {
           }
         }
         
+        // Delete video from Cloudinary if it exists and has a public_id
+        if (item?.videoPublicId) {
+          try {
+            await deleteFromCloudinary(item.videoPublicId);
+          } catch (cloudinaryError) {
+            console.error('Failed to delete video from Cloudinary:', cloudinaryError);
+            // Continue even if Cloudinary deletion fails
+          }
+        }
+        
         setMenuItems(items => items.filter(item => item.id !== itemId));
       } else {
         setError(result.error || 'Failed to delete item');
@@ -278,6 +292,7 @@ export default function MenuManagement() {
     setVariants(item.variants || []);
     setAddons(item.addons || []);
     setImagePublicId(item.imagePublicId || '');
+    setVideoPublicId(item.videoPublicId || '');
     setShowEditModal(true);
   };
 
@@ -295,6 +310,7 @@ export default function MenuManagement() {
         variants: variants.filter(v => v.name.trim() && v.price > 0) || [],
         addons: addons.filter(a => a.name.trim() && a.price > 0) || [],
         ...(imagePublicId && { imagePublicId }), // Only include if imagePublicId exists
+        ...(videoPublicId && { videoPublicId }), // Only include if videoPublicId exists
         ...(cleanedNutritionalInfo && { nutritionalInfo: cleanedNutritionalInfo }),
         updatedAt: new Date()
       };
@@ -312,6 +328,7 @@ export default function MenuManagement() {
         setVariants([]);
         setAddons([]);
         setImagePublicId('');
+        setVideoPublicId('');
       } else {
         setError(result.error || 'Failed to update item');
       }
@@ -384,6 +401,9 @@ export default function MenuManagement() {
         
         // Image Public ID for Cloudinary cleanup (only include if exists)
         ...(imagePublicId && { imagePublicId }),
+        
+        // Video Public ID for Cloudinary cleanup (only include if exists)
+        ...(videoPublicId && { videoPublicId }),
 
         // Meta Info
         rating: 0,
@@ -410,6 +430,7 @@ export default function MenuManagement() {
         setVariants([]);
         setAddons([]);
         setImagePublicId('');
+        setVideoPublicId('');
       } else {
         setError(result.error || 'Failed to add item');
       }
@@ -450,6 +471,7 @@ export default function MenuManagement() {
                   setVariants([]);
                   setAddons([]);
                   setImagePublicId('');
+                  setVideoPublicId('');
                   setShowAddModal(true);
                 }}
                 className="cursor-pointer flex items-center px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
@@ -910,6 +932,7 @@ export default function MenuManagement() {
                     setVariants([]);
                     setAddons([]);
                     setImagePublicId('');
+                    setVideoPublicId('');
                     setError(null);
                   }}
                   className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-all"
@@ -1167,6 +1190,23 @@ export default function MenuManagement() {
                       }}
                       folder="menu-items"
                     />
+                  </div>
+
+                  {/* Video Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Item Video (Optional)
+                    </label>
+                    <VideoUpload
+                      value={formData.video}
+                      onChange={(url, publicId) => {
+                        setFormData({ ...formData, video: url, videoPublicId: publicId });
+                      }}
+                      folder="menu-videos"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Upload a video to showcase your food item. Videos will be automatically converted to MP4 format for optimal performance.
+                    </p>
                   </div>
 
                   {/* Ingredients */}
@@ -1576,6 +1616,7 @@ export default function MenuManagement() {
                         setVariants([]);
                         setAddons([]);
                         setImagePublicId('');
+                        setVideoPublicId('');
                         setError(null);
                       }}
                       className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"

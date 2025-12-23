@@ -15,21 +15,16 @@ import {
     getUserCoupons,
     useCoupon,
     NextVisitCoupon,
-    getOrdersByReservation
+    getOrdersByReservation,
+    createTransaction
 } from '@/app/(utils)/firebaseOperations';
 import { CartManager, CartMenuItem } from '@/app/(utils)/cartUtils';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { toast } from 'sonner';
 import { sendNotification } from '@/app/(utils)/notification';
+import RazorpayPayment from '@/app/(components)/RazorpayPayment';
 
 // Use CartMenuItem from cartUtils instead of local interface
-
-interface PaymentMethod {
-    id: string;
-    name: string;
-    icon: string;
-    selected: boolean;
-}
 
 interface OrderType {
     id: string;
@@ -88,13 +83,8 @@ export default function Checkout() {
         wheelchairAccessible: false
     });
 
-    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-
-        { id: 'card', name: 'Credit/Debit Card', icon: '💳', selected: true },
-        { id: 'upi', name: 'UPI', icon: '📱', selected: false },
-        { id: 'cash', name: 'Cash on Delivery', icon: '💵', selected: false }
-    ]);
-
+    const [paymentTiming, setPaymentTiming] = useState<'now' | 'later'>('now');
+    
     const [promoCode, setPromoCode] = useState('');
     
     // Coupon state
@@ -111,8 +101,6 @@ export default function Checkout() {
     const [selectedReservation, setSelectedReservation] = useState<string | null>(null);
     const [loadingReservations, setLoadingReservations] = useState(false);
     const [isReservationPreOrder, setIsReservationPreOrder] = useState(false); // Track if this is a reservation pre-order
-    
-    // Payment timing for dine-in orders
     
     // Generate available time slots for pre-order (minimum 30 minutes from now)
     const generateTimeSlots = () => {
@@ -147,7 +135,10 @@ export default function Checkout() {
     useEffect(() => {
         setAvailableTimeSlots(generateTimeSlots());
     }, []);
-    const [paymentTiming, setPaymentTiming] = useState<'now' | 'later'>('now');
+    
+    // Razorpay payment state
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentProcessing, setPaymentProcessing] = useState(false);
 
     // Load cart items and restaurant info on component mount
     useEffect(() => {
@@ -304,15 +295,6 @@ export default function Checkout() {
         );
     };
 
-    const selectPaymentMethod = (methodId: string) => {
-        setPaymentMethods(methods =>
-            methods.map(method => ({
-                ...method,
-                selected: method.id === methodId
-            }))
-        );
-    };
-
     const updateQuantity = (cartItemId: string, change: number) => {
         const currentItem = cartItems.find(item => item.cartItemId === cartItemId);
         if (!currentItem) return;
@@ -347,9 +329,13 @@ export default function Checkout() {
     const promoDiscount = promoCode ? 2.50 : 0;
     const discount = couponDiscount + promoDiscount;
     
+    // Calculate convenience fee - ₹2 for online payments, ₹0 for cash/pay-later
+    const isDineInPayLater = selectedOrderType?.id === 'dine-in' && paymentTiming === 'later';
+    const convenienceFee = isDineInPayLater ? 0 : 2; // ₹2 for online payments, ₹0 for pay-later
+    
     const taxRate = 0;
     const tax = (subtotal + deliveryFee) * taxRate;
-    const total = subtotal + deliveryFee - discount + tax;
+    const total = subtotal + deliveryFee - discount + tax + convenienceFee;
 
     const estimatedTime = selectedOrderType?.id === 'takeaway' ? '20-30 minutes' :
         selectedOrderType?.id === 'delivery' ? selectedDeliveryOption?.time || '30-45 minutes' :
@@ -372,7 +358,7 @@ export default function Checkout() {
     };
 
     const isStep3Valid = () => {
-        return paymentMethods.some(method => method.selected);
+        return true; // Always valid since payment method is selected in the modal
     };
 
     // Form validation (overall)
@@ -406,19 +392,25 @@ export default function Checkout() {
             return;
         }
 
+        // Check if this is a dine-in order with "pay later" option
+        const isDineInPayLater = selectedOrderType?.id === 'dine-in' && paymentTiming === 'later';
+
+        // If online payment is required, show payment modal
+        if (!isDineInPayLater) {
+            setShowPaymentModal(true);
+            return;
+        }
+
+        // Process order directly for pay later only
+        await processOrder(null);
+    };
+
+    // Process order after payment or for cash/pay later orders
+    const processOrder = async (paymentResult: any) => {
         setIsPlacingOrder(true);
         setError(null);
 
         try {
-            // Check if this is a dine-in order with "pay later" option
-            const isDineInPayLater = selectedOrderType?.id === 'dine-in' && paymentTiming === 'later';
-            
-            // Skip payment processing if pay later is selected
-            if (!isDineInPayLater) {
-                // Simulate payment processing for pay now orders
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-
             // Get restaurant ID from localStorage
             const restaurantId = localStorage.getItem('restaurantId');
             if (!restaurantId) {
@@ -441,21 +433,37 @@ export default function Checkout() {
             // Generate or get guest session ID for guest users
             let guestSessionId = null;
             if (!user) {
-                // Check if guest session already exists
                 guestSessionId = localStorage.getItem('guestSessionId');
                 if (!guestSessionId) {
-                    // Generate new guest session ID
                     guestSessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                     localStorage.setItem('guestSessionId', guestSessionId);
                 }
             }
 
-            // Generate meaningful order ID
             const orderId = generateOrderId();
+            const isDineInPayLater = selectedOrderType?.id === 'dine-in' && paymentTiming === 'later';
+
+            // Determine payment status and method
+            let paymentStatus: 'pending' | 'completed' = 'pending';
+            let finalPaymentMethod = 'online'; // Default to online
+
+            if (paymentResult) {
+                // Online payment completed
+                paymentStatus = 'completed';
+                finalPaymentMethod = 'online'; // Always online for Razorpay payments
+            } else if (isDineInPayLater) {
+                // Pay later at restaurant
+                paymentStatus = 'pending';
+                finalPaymentMethod = 'pay-later';
+            } else {
+                // Default case - should not reach here as payment modal handles this
+                paymentStatus = 'pending';
+                finalPaymentMethod = 'online';
+            }
 
             // Create order data for database
             const orderData = {
-                orderId, // Include the meaningful order ID
+                orderId,
                 customerInfo,
                 items: cartItems.map(item => ({
                     id: item.id.toString(),
@@ -463,15 +471,14 @@ export default function Checkout() {
                     quantity: item.quantity || 1,
                     price: item.customPrice || item.price,
                     image: item.image,
-                    // Include customization details
                     selectedVariant: item.selectedVariant || null,
                     selectedAddons: item.selectedAddons || [],
                     customPrice: item.customPrice || item.price
                 })),
                 orderType: selectedOrderType?.id || 'takeaway',
                 deliveryOption: selectedOrderType?.id === 'delivery' ? selectedDeliveryOption : null,
-                paymentMethod: isDineInPayLater ? 'pay-later' : (paymentMethods.find(m => m.selected)?.id || 'card'),
-                paymentStatus: isDineInPayLater ? 'pending' as const : 'completed' as const,
+                paymentMethod: finalPaymentMethod,
+                paymentStatus,
                 specialInstructions,
                 subtotal,
                 deliveryFee,
@@ -479,7 +486,7 @@ export default function Checkout() {
                 discount,
                 total,
                 estimatedTime,
-                status: 'pending' as const, // Start as pending, restaurant will accept to confirm
+                status: 'pending' as const,
                 restaurantId,
                 ...(selectedOrderType?.id === 'pre-order' && preOrderTime && {
                     preOrderTime,
@@ -488,12 +495,22 @@ export default function Checkout() {
                 ...(selectedOrderType?.id === 'dine-in' && {
                     tablePreference,
                     diningPreferences,
-                    ...(paymentTiming && { paymentTiming }) // Only include paymentTiming if it has a value
+                    ...(paymentTiming && { paymentTiming })
                 }),
-                ...(user?.uid && { userId: user.uid }), // Only include userId if user is logged in
-                ...(guestSessionId && { guestSessionId }), // Include guest session ID for guest users
-                isGuest: !user, // Track if this is a guest order
-                ...(selectedReservation && { reservationId: selectedReservation }) // Link to reservation if selected
+                ...(user?.uid && { userId: user.uid }),
+                ...(guestSessionId && { guestSessionId }),
+                isGuest: !user,
+                ...(selectedReservation && { reservationId: selectedReservation }),
+                ...(paymentResult && {
+                    paymentDetails: {
+                        razorpayOrderId: paymentResult.orderId,
+                        razorpayPaymentId: paymentResult.paymentId,
+                        razorpaySignature: paymentResult.signature,
+                        processingFee: paymentResult.processingFee || 0,
+                        totalAmount: paymentResult.totalAmount || total,
+                        paidAt: new Date()
+                    }
+                })
             };
 
             // Save order to database
@@ -503,13 +520,29 @@ export default function Checkout() {
                 throw new Error(orderResult.error || 'Failed to create order');
             }
 
+            // Create transaction record for pay-later payments only (online payments already have transactions from verification)
+            if (finalPaymentMethod === 'pay-later') {
+                await createTransaction({
+                    orderId,
+                    restaurantId,
+                    customerInfo,
+                    amount: total,
+                    currency: 'INR',
+                    paymentMethod: 'cash',
+                    paymentStatus: 'pending',
+                    transactionType: 'offline',
+                    processingFee: 0,
+                    netAmount: total,
+                    notes: 'Pay at restaurant'
+                });
+            }
+
             // Mark coupon as used if one was selected
             if (selectedCoupon) {
                 try {
                     await useCoupon(selectedCoupon.id, orderId);
                 } catch (couponError) {
                     console.error('Error marking coupon as used:', couponError);
-                    // Don't fail the order if coupon update fails
                 }
             }
 
@@ -518,11 +551,9 @@ export default function Checkout() {
                 try {
                     const { createNextVisitCoupon, getRestaurantCouponSettings, canUserGetCouponToday } = await import('@/app/(utils)/firebaseOperations');
                     
-                    // Check if user can get a coupon today
                     const canGetCoupon = await canUserGetCouponToday(user.uid, restaurantId);
                     
                     if (canGetCoupon.success && canGetCoupon.canGet) {
-                        // Get restaurant's coupon discount percentage
                         const couponSettings = await getRestaurantCouponSettings(restaurantId);
                         
                         if (couponSettings.success && couponSettings.discountPercentage) {
@@ -537,13 +568,12 @@ export default function Checkout() {
                     }
                 } catch (couponCreationError) {
                     console.error('Error creating next visit coupon:', couponCreationError);
-                    // Don't fail the order if coupon creation fails
                 }
             }
 
-            // Also save to localStorage for immediate access (backup)
+            // Save to localStorage for immediate access (backup)
             const order = {
-                id: orderId, // Use the meaningful order ID
+                id: orderId,
                 ...orderData,
                 createdAt: new Date().toISOString()
             };
@@ -555,7 +585,7 @@ export default function Checkout() {
             // Clear cart
             CartManager.clearCart();
 
-            // Show appropriate success message
+            // Show success message
             if (isReservationPreOrder) {
                 toast.success("Reservation Pre-Order Placed Successfully!", {
                     icon: <CircleCheck className="size-5 text-green-500" />,
@@ -566,6 +596,8 @@ export default function Checkout() {
                     icon: <CircleCheck className="size-5 text-green-500" />,
                 });
             }
+
+            // Send notification
             await sendNotification(
                 'ORDER_CONFIRMED',
                 customerInfo.phone,
@@ -589,7 +621,25 @@ export default function Checkout() {
             setError('Failed to place order. Please try again.');
         } finally {
             setIsPlacingOrder(false);
+            setShowPaymentModal(false);
         }
+    };
+
+    // Handle successful payment
+    const handlePaymentSuccess = (paymentResult: any) => {
+        setShowPaymentModal(false);
+        processOrder(paymentResult);
+    };
+
+    // Handle payment error
+    const handlePaymentError = (error: string) => {
+        setError(error);
+        setShowPaymentModal(false);
+    };
+
+    // Handle payment cancellation
+    const handlePaymentCancel = () => {
+        setShowPaymentModal(false);
     };
 
     // Show loading state while cart items are being loaded
@@ -1359,54 +1409,6 @@ export default function Checkout() {
                                             </div>
                                         )}
 
-                                        {/* Payment Method - Only show if Pay Now is selected for dine-in, or for other order types */}
-                                        {(selectedOrderType?.id !== 'dine-in' || paymentTiming === 'now') && (
-                                            <div className="mb-6 sm:mb-8">
-                                                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Payment Method</h3>
-                                            <div className="space-y-2 sm:space-y-3">
-                                                {paymentMethods.map((method) => (
-                                                    <div
-                                                        key={method.id}
-                                                        onClick={() => selectPaymentMethod(method.id)}
-                                                        className={`${styles.paymentMethod} flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all ${method.selected
-                                                            ? 'border-gray-900 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 shadow-lg'
-                                                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                                            }`}
-                                                    >
-                                                        <div className="flex items-center justify-center w-8 h-8">
-                                                            {method.id === 'card' && (
-                                                                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                                                </svg>
-                                                            )}
-                                                            {method.id === 'upi' && (
-                                                                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                                                </svg>
-                                                            )}
-                                                            {method.id === 'cash' && (
-                                                                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                                </svg>
-                                                            )}
-                                                        </div>
-                                                        <span className="flex-1 font-medium text-sm sm:text-base text-gray-900 dark:text-white">
-                                                            {method.name}
-                                                        </span>
-                                                        <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center ${method.selected
-                                                            ? 'border-gray-900 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50'
-                                                            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
-                                                            }`}>
-                                                            {method.selected && (
-                                                                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-gray-900 dark:bg-gray-400"></div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        )}
-
                                         {/* Next Visit Coupons - Only show for logged-in users */}
                                         {user && (
                                             <div className="mb-6 sm:mb-8">
@@ -1592,6 +1594,12 @@ export default function Checkout() {
                                     <span>Tax (0%)</span>
                                     <span>₹{tax.toFixed(2)}</span>
                                 </div>
+                                {convenienceFee > 0 && (
+                                    <div className="flex justify-between text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+                                        <span>Convenience Fee</span>
+                                        <span>₹{convenienceFee.toFixed(2)}</span>
+                                    </div>
+                                )}
                                 {selectedCoupon && (
                                     <div className="flex justify-between text-green-600 dark:text-green-400 text-xs sm:text-sm">
                                         <span>Coupon Discount ({selectedCoupon.discountPercentage}%)</span>
@@ -1772,6 +1780,12 @@ export default function Checkout() {
                                 <span>Tax (0%)</span>
                                 <span>₹{tax.toFixed(2)}</span>
                             </div>
+                            {convenienceFee > 0 && (
+                                <div className="flex justify-between text-gray-600 dark:text-gray-300">
+                                    <span>Convenience Fee</span>
+                                    <span>₹{convenienceFee.toFixed(2)}</span>
+                                </div>
+                            )}
                             {selectedCoupon && (
                                 <div className="flex justify-between text-green-600 dark:text-green-400">
                                     <span>Coupon ({selectedCoupon.discountPercentage}%)</span>
@@ -1845,6 +1859,42 @@ export default function Checkout() {
                     </div>
                 </div>
             </div>
+
+            {/* Razorpay Payment Modal */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                    Complete Payment
+                                </h3>
+                                <button
+                                    onClick={handlePaymentCancel}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                >
+                                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <RazorpayPayment
+                                amount={total}
+                                orderId={`ORD${Date.now()}`}
+                                customerInfo={customerInfo}
+                                restaurantInfo={{
+                                    name: restaurantInfo?.name || 'Restaurant',
+                                    id: CartManager.getRestaurantId() || ''
+                                }}
+                                onSuccess={handlePaymentSuccess}
+                                onError={handlePaymentError}
+                                onCancel={handlePaymentCancel}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

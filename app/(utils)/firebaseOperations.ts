@@ -11,7 +11,8 @@ import {
   orderBy,
   serverTimestamp,
   Timestamp,
-  onSnapshot
+  onSnapshot,
+  limitToLast
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -612,7 +613,46 @@ export const getFilteredRestaurants = async (filters: {
   }
 };
 
-// Menu Item Operations
+// Transaction interface for payment tracking
+export interface Transaction {
+  id: string;
+  orderId: string;
+  restaurantId: string;
+  customerId?: string;
+  customerInfo: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email?: string;
+  };
+  amount: number;
+  currency: string;
+  paymentMethod: 'online' | 'cash' | 'pay-later' | 'card';
+  paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
+  transactionType: 'online' | 'offline';
+  
+  // Razorpay specific fields
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
+  
+  // Processing fees
+  processingFee?: number;
+  netAmount?: number;
+  
+  // Timestamps
+  createdAt: any;
+  updatedAt: any;
+  paidAt?: any;
+  
+  // Additional metadata
+  notes?: string;
+  refundReason?: string;
+  refundAmount?: number;
+  refundedAt?: any;
+}
+
+// MenuItem interface for menu management
 export interface MenuItem {
   id: string;
   
@@ -680,6 +720,10 @@ export interface MenuItem {
   // Image Management
   imagePublicId?: string;
   
+  // Video Management
+  video?: string;
+  videoPublicId?: string;
+  
   // Meta Info
   rating: number;
   totalRatings?: number;
@@ -699,6 +743,513 @@ export interface MenuItem {
   createdAt?: any;
   updatedAt?: any;
 }
+
+// Transaction Operations
+
+// Create a new transaction record
+export const createTransaction = async (transactionData: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
+  try {
+    const transactionsRef = collection(db, 'transactions');
+    const newTransactionRef = doc(transactionsRef);
+    
+    const transaction: Transaction = {
+      ...transactionData,
+      id: newTransactionRef.id,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    await setDoc(newTransactionRef, transaction);
+    return { success: true, data: transaction };
+  } catch (error: any) {
+    console.error('Error creating transaction:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Update transaction status
+export const updateTransactionStatus = async (
+  transactionId: string, 
+  status: Transaction['paymentStatus'],
+  additionalData?: Partial<Transaction>
+) => {
+  try {
+    const transactionRef = doc(db, 'transactions', transactionId);
+    
+    const updateData: Partial<Transaction> = {
+      paymentStatus: status,
+      updatedAt: serverTimestamp(),
+      ...additionalData
+    };
+
+    if (status === 'completed') {
+      updateData.paidAt = serverTimestamp();
+    }
+
+    await updateDoc(transactionRef, updateData);
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error updating transaction:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get transactions for a restaurant
+export const getRestaurantTransactions = async (restaurantId: string, limit?: number) => {
+  try {
+    const transactionsRef = collection(db, 'transactions');
+    let q = query(
+      transactionsRef,
+      where('restaurantId', '==', restaurantId),
+      orderBy('createdAt', 'desc')
+    );
+
+    if (limit) {
+      q = query(q, limitToLast(limit));
+    }
+
+    const querySnapshot = await getDocs(q);
+    const transactions: Transaction[] = [];
+
+    querySnapshot.forEach((doc) => {
+      transactions.push(doc.data() as Transaction);
+    });
+
+    return { success: true, data: transactions };
+  } catch (error: any) {
+    console.error('Error getting restaurant transactions:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get transactions by date range
+export const getTransactionsByDateRange = async (
+  restaurantId: string,
+  startDate: Date,
+  endDate: Date
+) => {
+  try {
+    const transactionsRef = collection(db, 'transactions');
+    
+    // Convert JavaScript Date objects to Firestore Timestamps for proper querying
+    const startTimestamp = Timestamp.fromDate(startDate);
+    const endTimestamp = Timestamp.fromDate(endDate);
+    
+    console.log('Querying transactions between:', startDate, 'and', endDate);
+    
+    const q = query(
+      transactionsRef,
+      where('restaurantId', '==', restaurantId),
+      where('createdAt', '>=', startTimestamp),
+      where('createdAt', '<=', endTimestamp),
+      orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    const transactions: Transaction[] = [];
+
+    querySnapshot.forEach((doc) => {
+      transactions.push(doc.data() as Transaction);
+    });
+
+    console.log('Found transactions in date range:', transactions.length);
+    return { success: true, data: transactions };
+  } catch (error: any) {
+    console.error('Error getting transactions by date range:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get day-wise transaction analytics with payout request filtering
+export const getDayWiseTransactionAnalytics = async (restaurantId: string, days: number = 30) => {
+  try {
+    console.log('=== STARTING DAY-WISE ANALYTICS ===');
+    console.log('Restaurant ID:', restaurantId, 'Days:', days);
+    
+    // For "Today" filter, use the force calculation logic that works
+    if (days === 1) {
+      console.log('Using direct calculation for TODAY filter');
+      
+      // Get all transactions
+      const transactionsRef = collection(db, 'transactions');
+      const q = query(
+        transactionsRef,
+        where('restaurantId', '==', restaurantId),
+        orderBy('createdAt', 'desc')
+      );
+
+      const querySnapshot = await getDocs(q);
+      const allTransactions: Transaction[] = [];
+
+      querySnapshot.forEach((doc) => {
+        allTransactions.push(doc.data() as Transaction);
+      });
+
+      // Filter for today's completed transactions
+      const today = new Date();
+      const todayString = today.toISOString().split('T')[0];
+      
+      const todayCompletedTransactions = allTransactions.filter(t => {
+        const transactionDate = t.createdAt?.seconds ? 
+          new Date(t.createdAt.seconds * 1000) : 
+          new Date(t.createdAt);
+        const transactionDateString = transactionDate.toISOString().split('T')[0];
+        return transactionDateString === todayString && t.paymentStatus === 'completed';
+      });
+
+      console.log('Today completed transactions found:', todayCompletedTransactions.length);
+
+      // Get existing payout requests to exclude already requested transactions
+      const payoutRequestsResult = await getRestaurantPayoutRequests(restaurantId);
+      let excludedTransactionIds: string[] = [];
+      
+      if (payoutRequestsResult.success && payoutRequestsResult.data) {
+        // Get transaction IDs from pending, approved, AND PAID payout requests
+        const processedPayouts = payoutRequestsResult.data.filter(p => 
+          p.status === 'pending' || p.status === 'approved' || p.status === 'paid'
+        );
+        
+        excludedTransactionIds = processedPayouts.flatMap(p => p.transactionIds || []);
+        console.log('Excluded transaction IDs from pending/approved/paid payouts:', excludedTransactionIds);
+      }
+
+      // Filter out transactions that are already in pending/approved payout requests
+      const availableTransactions = todayCompletedTransactions.filter(t => 
+        !excludedTransactionIds.includes(t.id)
+      );
+
+      console.log('Available transactions for payout:', availableTransactions.length);
+
+      // Calculate totals directly - NO PLATFORM COMMISSION
+      const totalRevenue = availableTransactions.reduce((sum, t) => sum + t.amount, 0);
+      const totalProcessingFees = availableTransactions.reduce((sum, t) => sum + (t.processingFee || 0), 0);
+      const totalNetRevenue = availableTransactions.reduce((sum, t) => sum + (t.netAmount || t.amount), 0);
+      const payoutAmount = totalNetRevenue; // Full net revenue, no platform commission
+
+      // Create day-wise data structure
+      const dayWiseData = [{
+        date: todayString,
+        transactions: availableTransactions,
+        totalRevenue: totalRevenue,
+        totalTransactions: availableTransactions.length,
+        processingFees: totalProcessingFees,
+        netRevenue: totalNetRevenue,
+        onlineTransactions: availableTransactions.filter(t => t.paymentMethod === 'online' || t.paymentMethod === 'card').length,
+        cashTransactions: availableTransactions.filter(t => t.paymentMethod === 'cash').length,
+        payoutAmount: payoutAmount
+      }];
+
+      const totals = {
+        totalRevenue: totalRevenue,
+        totalTransactions: availableTransactions.length,
+        totalProcessingFees: totalProcessingFees,
+        totalNetRevenue: totalNetRevenue,
+        totalPayoutAmount: payoutAmount,
+        averageTransaction: availableTransactions.length > 0 ? totalRevenue / availableTransactions.length : 0,
+        hasAvailableTransactions: availableTransactions.length > 0,
+        excludedTransactionIds: excludedTransactionIds
+      };
+
+      console.log('TODAY ANALYTICS RESULT:', { dayWiseData, totals });
+
+      return { 
+        success: true, 
+        data: {
+          dayWiseData: dayWiseData,
+          totals,
+          period: { startDate: today, endDate: today, days: 1 }
+        }
+      };
+    }
+    
+    // For other periods (week/month), use the original logic
+    const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days + 1);
+    startDate.setHours(0, 0, 0, 0);
+
+    console.log('Date range for analytics:', { startDate, endDate, days });
+
+    const transactionsResult = await getTransactionsByDateRange(restaurantId, startDate, endDate);
+    
+    if (!transactionsResult.success || !transactionsResult.data) {
+      return { success: false, error: 'Failed to fetch transactions' };
+    }
+
+    const transactions = transactionsResult.data;
+    const completedTransactions = transactions.filter(t => t.paymentStatus === 'completed');
+
+    console.log('Transactions found:', transactions.length, 'Completed:', completedTransactions.length);
+
+    // Get existing payout requests to exclude already requested transactions
+    const payoutRequestsResult = await getRestaurantPayoutRequests(restaurantId);
+    let excludedTransactionIds: string[] = [];
+    
+    if (payoutRequestsResult.success && payoutRequestsResult.data) {
+      // Get transaction IDs from pending, approved, AND PAID payout requests
+      const processedPayouts = payoutRequestsResult.data.filter(p => 
+        p.status === 'pending' || p.status === 'approved' || p.status === 'paid'
+      );
+      
+      excludedTransactionIds = processedPayouts.flatMap(p => p.transactionIds || []);
+      console.log('Excluded transaction IDs from pending/approved/paid payouts:', excludedTransactionIds);
+    }
+
+    // Filter out transactions that are already in pending/approved/paid payout requests
+    const availableTransactions = completedTransactions.filter(t => 
+      !excludedTransactionIds.includes(t.id)
+    );
+
+    console.log('Available transactions for payout (multi-day):', availableTransactions.length, 'out of', completedTransactions.length);
+
+    // Group transactions by day
+    const dayWiseData: { [key: string]: {
+      date: string;
+      transactions: Transaction[];
+      totalRevenue: number;
+      totalTransactions: number;
+      processingFees: number;
+      netRevenue: number;
+      onlineTransactions: number;
+      cashTransactions: number;
+      payoutAmount: number;
+    }} = {};
+
+    // Initialize all days in the range
+    for (let i = 0; i < days; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      const dateKey = date.toISOString().split('T')[0];
+      
+      dayWiseData[dateKey] = {
+        date: dateKey,
+        transactions: [],
+        totalRevenue: 0,
+        totalTransactions: 0,
+        processingFees: 0,
+        netRevenue: 0,
+        onlineTransactions: 0,
+        cashTransactions: 0,
+        payoutAmount: 0
+      };
+    }
+
+    // Group transactions by day
+    availableTransactions.forEach(transaction => {
+      let transactionDate;
+      
+      // Handle different timestamp formats
+      if (transaction.createdAt?.toDate) {
+        transactionDate = transaction.createdAt.toDate();
+      } else if (transaction.createdAt?.seconds) {
+        transactionDate = new Date(transaction.createdAt.seconds * 1000);
+      } else {
+        transactionDate = new Date(transaction.createdAt);
+      }
+      
+      const dateKey = transactionDate.toISOString().split('T')[0];
+      
+      if (dayWiseData[dateKey]) {
+        const dayData = dayWiseData[dateKey];
+        dayData.transactions.push(transaction);
+        dayData.totalRevenue += transaction.amount;
+        dayData.totalTransactions += 1;
+        dayData.processingFees += transaction.processingFee || 0;
+        dayData.netRevenue += transaction.netAmount || transaction.amount;
+        
+        if (transaction.paymentMethod === 'online' || transaction.paymentMethod === 'card') {
+          dayData.onlineTransactions += 1;
+        } else {
+          dayData.cashTransactions += 1;
+        }
+        
+        // Calculate payout amount - NO PLATFORM COMMISSION
+        dayData.payoutAmount = dayData.netRevenue; // Full net revenue, no platform commission
+      }
+    });
+
+    // Convert to array and sort by date
+    const dayWiseArray = Object.values(dayWiseData).sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    // Calculate totals
+    const totals = {
+      totalRevenue: dayWiseArray.reduce((sum, day) => sum + day.totalRevenue, 0),
+      totalTransactions: dayWiseArray.reduce((sum, day) => sum + day.totalTransactions, 0),
+      totalProcessingFees: dayWiseArray.reduce((sum, day) => sum + day.processingFees, 0),
+      totalNetRevenue: dayWiseArray.reduce((sum, day) => sum + day.netRevenue, 0),
+      totalPayoutAmount: dayWiseArray.reduce((sum, day) => sum + day.payoutAmount, 0),
+      averageTransaction: dayWiseArray.reduce((sum, day) => sum + day.totalTransactions, 0) > 0 
+        ? dayWiseArray.reduce((sum, day) => sum + day.totalRevenue, 0) / dayWiseArray.reduce((sum, day) => sum + day.totalTransactions, 0)
+        : 0,
+      hasAvailableTransactions: availableTransactions.length > 0,
+      excludedTransactionIds: excludedTransactionIds
+    };
+
+    console.log('MULTI-DAY ANALYTICS RESULT:', { 
+      totalTransactions: completedTransactions.length,
+      availableTransactions: availableTransactions.length,
+      excludedCount: excludedTransactionIds.length,
+      totals 
+    });
+
+    return { 
+      success: true, 
+      data: {
+        dayWiseData: dayWiseArray,
+        totals,
+        period: { startDate, endDate, days }
+      }
+    };
+  } catch (error: any) {
+    console.error('Error calculating day-wise analytics:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Payout Management Interface
+export interface PayoutRequest {
+  id: string;
+  restaurantId: string;
+  restaurantName: string;
+  adminId: string;
+  adminName: string;
+  adminEmail: string;
+  amount: number;
+  currency: string;
+  period: {
+    startDate: any;
+    endDate: any;
+  };
+  transactionIds: string[];
+  status: 'pending' | 'approved' | 'paid' | 'rejected';
+  requestedAt: any;
+  processedAt?: any;
+  processedBy?: string; // Super admin ID
+  notes?: string;
+  paymentDetails?: {
+    method: string;
+    reference: string; // UTR/Transaction Number
+    utrNumber?: string; // Specific UTR field for clarity
+    paidAt: any;
+  };
+}
+
+// Create payout request
+export const createPayoutRequest = async (payoutData: Omit<PayoutRequest, 'id' | 'requestedAt'>) => {
+  try {
+    const payoutsRef = collection(db, 'payoutRequests');
+    const newPayoutRef = doc(payoutsRef);
+    
+    const payout: PayoutRequest = {
+      ...payoutData,
+      id: newPayoutRef.id,
+      requestedAt: serverTimestamp(),
+    };
+
+    await setDoc(newPayoutRef, payout);
+    return { success: true, data: payout };
+  } catch (error: any) {
+    console.error('Error creating payout request:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get payout requests for a restaurant
+export const getRestaurantPayoutRequests = async (restaurantId: string) => {
+  try {
+    const payoutsRef = collection(db, 'payoutRequests');
+    const q = query(
+      payoutsRef,
+      where('restaurantId', '==', restaurantId),
+      orderBy('requestedAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    const payouts: PayoutRequest[] = [];
+
+    querySnapshot.forEach((doc) => {
+      payouts.push(doc.data() as PayoutRequest);
+    });
+
+    return { success: true, data: payouts };
+  } catch (error: any) {
+    console.error('Error getting payout requests:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Update payout request status
+export const updatePayoutRequestStatus = async (
+  payoutId: string, 
+  status: PayoutRequest['status'],
+  processedBy?: string,
+  notes?: string,
+  paymentDetails?: PayoutRequest['paymentDetails']
+) => {
+  try {
+    const payoutRef = doc(db, 'payoutRequests', payoutId);
+    
+    const updateData: Partial<PayoutRequest> = {
+      status,
+      processedAt: serverTimestamp(),
+      ...(processedBy && { processedBy }),
+      ...(notes && { notes }),
+      ...(paymentDetails && { paymentDetails })
+    };
+
+    await updateDoc(payoutRef, updateData);
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error updating payout request:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Calculate transaction analytics
+export const getTransactionAnalytics = async (restaurantId: string, days: number = 30) => {
+  try {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const transactionsResult = await getTransactionsByDateRange(restaurantId, startDate, endDate);
+    
+    if (!transactionsResult.success || !transactionsResult.data) {
+      return { success: false, error: 'Failed to fetch transactions' };
+    }
+
+    const transactions = transactionsResult.data;
+    const completedTransactions = transactions.filter(t => t.paymentStatus === 'completed');
+
+    const analytics = {
+      totalRevenue: completedTransactions.reduce((sum, t) => sum + t.amount, 0),
+      totalTransactions: completedTransactions.length,
+      averageTransaction: completedTransactions.length > 0 
+        ? completedTransactions.reduce((sum, t) => sum + t.amount, 0) / completedTransactions.length 
+        : 0,
+      totalProcessingFees: completedTransactions.reduce((sum, t) => sum + (t.processingFee || 0), 0),
+      netRevenue: completedTransactions.reduce((sum, t) => sum + (t.netAmount || t.amount), 0),
+      paymentMethodBreakdown: {
+        online: completedTransactions.filter(t => t.paymentMethod === 'online').length,
+        cash: completedTransactions.filter(t => t.paymentMethod === 'cash').length,
+        payLater: completedTransactions.filter(t => t.paymentMethod === 'pay-later').length,
+      },
+      transactionTypeBreakdown: {
+        online: completedTransactions.filter(t => t.transactionType === 'online').length,
+        offline: completedTransactions.filter(t => t.transactionType === 'offline').length,
+      }
+    };
+
+    return { success: true, data: analytics };
+  } catch (error: any) {
+    console.error('Error calculating transaction analytics:', error);
+    return { success: false, error: error.message };
+  }
+};
 
 export const addMenuItem = async (adminId: string, menuItem: Omit<MenuItem, 'id' | 'adminId' | 'createdAt' | 'updatedAt'>) => {
   try {

@@ -59,7 +59,8 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
         <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-4 xs:gap-6 lg:gap-8 animate-fade-in">
                 {/* Enhanced Product Image */}
-                <div className="relative group">
+                <div className="relative group space-y-4">
+                    {/* Main Image */}
                     <div className="aspect-square rounded-2xl xs:rounded-3xl overflow-hidden shadow-xl bg-card relative">
                         <Image
                             src={menuItem.image}
@@ -72,6 +73,26 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
                         {/* Enhanced Gradient Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl xs:rounded-3xl"></div>
                     </div>
+
+                    {/* Video Section */}
+                    {menuItem.video && (
+                        <div className="aspect-video rounded-2xl xs:rounded-3xl overflow-hidden shadow-xl bg-card relative">
+                            <video
+                                src={menuItem.video}
+                                controls
+                                className="w-full h-full object-cover rounded-2xl xs:rounded-3xl"
+                                poster={menuItem.image}
+                                preload="metadata"
+                            >
+                                Your browser does not support the video tag.
+                            </video>
+                            {/* Video Badge */}
+                            <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                Video Preview
+                            </div>
+                        </div>
+                    )}
 
                     {/* Enhanced Badges Container */}
                     <div className="absolute top-3 xs:top-4 right-3 xs:right-4 flex flex-col gap-2">

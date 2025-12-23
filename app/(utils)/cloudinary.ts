@@ -37,16 +37,25 @@ export const uploadToCloudinary = async (
 
       xhr.addEventListener('load', () => {
         if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
-          resolve({
-            secure_url: response.secure_url,
-            public_id: response.public_id,
-            original_filename: response.original_filename,
-            format: response.format,
-            resource_type: response.resource_type
-          });
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve({
+              secure_url: response.secure_url,
+              public_id: response.public_id,
+              original_filename: response.original_filename,
+              format: response.format,
+              resource_type: response.resource_type
+            });
+          } catch (parseError) {
+            reject(new Error('Invalid response from server'));
+          }
         } else {
-          reject(new Error('Upload failed'));
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            reject(new Error(errorResponse.error?.message || `Upload failed with status ${xhr.status}`));
+          } catch (parseError) {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
         }
       });
 
@@ -78,23 +87,22 @@ export const deleteFromCloudinary = async (publicId: string): Promise<void> => {
   }
 };
 
-// Helper function to generate image URLs with transformations
-export const getCloudinaryImageUrl = (
+// Helper function to generate video URLs with transformations
+export const getCloudinaryVideoUrl = (
   publicId: string,
   options: {
     width?: number;
     height?: number;
-    crop?: string;
     quality?: string;
     format?: string;
   } = {}
 ): string => {
-  const { width, height, crop = 'fill', quality = 'auto', format = 'auto' } = options;
+  const { width, height, quality = 'auto', format = 'mp4' } = options;
   const transformations = [];
 
   if (width) transformations.push(`w_${width}`);
   if (height) transformations.push(`h_${height}`);
-  transformations.push(`c_${crop}`, `q_${quality}`, `f_${format}`);
+  transformations.push(`q_${quality}`, `f_${format}`);
 
-  return `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${transformations.join(',')}/${publicId}`;
+  return `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload/${transformations.join(',')}/${publicId}`;
 };

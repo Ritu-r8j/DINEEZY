@@ -1,5 +1,4 @@
 [-] Fix 10% off
-[-] Min 4 photos for food item
 [-] Fix best seller and recommend in menu page
 [+] Next visit coupon - COMPLETED
 [+] Fix nutritional information
