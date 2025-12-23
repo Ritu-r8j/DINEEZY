@@ -187,6 +187,9 @@ interface MenuItem {
   viewCount?: number;
   orderCount?: number;
 
+  // Video field
+  video?: string;
+
   restaurantLocation?: {
     lat: number;
     lng: number;
@@ -697,6 +700,9 @@ export default function MenuPage() {
             totalOrders: item.totalOrders || 0,
             viewCount: item.viewCount || 0,
             orderCount: item.orderCount || 0,
+
+            // Video field
+            video: item.video,
 
             restaurantLocation: item.restaurantLocation,
             restaurantAddress: item.restaurantAddress,
