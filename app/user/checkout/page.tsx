@@ -18,6 +18,7 @@ import {
     getOrdersByReservation,
     createTransaction
 } from '@/app/(utils)/firebaseOperations';
+import { notifyNewOrder, notifyPaymentReceived } from '@/app/(utils)/adminNotifications';
 import { CartManager, CartMenuItem } from '@/app/(utils)/cartUtils';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { toast } from 'sonner';
@@ -607,6 +608,20 @@ export default function Checkout() {
 
             if (!orderResult.success) {
                 throw new Error(orderResult.error || 'Failed to create order');
+            }
+
+            // Send admin notification for new order
+            try {
+                const customerName = `${customerInfo.firstName} ${customerInfo.lastName}`.trim() || 'Guest';
+                await notifyNewOrder(restaurantId, orderId, customerName, total);
+                
+                // If payment is completed (online payment), send payment notification
+                if (paymentStatus === 'completed') {
+                    await notifyPaymentReceived(restaurantId, orderId, total, finalPaymentMethod);
+                }
+            } catch (notificationError) {
+                console.error('Error sending admin notification:', notificationError);
+                // Don't fail the order if notification fails
             }
 
             // Create transaction record for pay-later payments only (online payments already have transactions from verification)

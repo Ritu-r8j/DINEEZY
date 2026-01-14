@@ -21,6 +21,7 @@ import {
 } from '@/app/(utils)/firebaseOperations';
 import { uploadToCloudinary } from '@/app/(utils)/cloudinary';
 import { sendNotification } from '@/app/(utils)/notification';
+import { notifyNewReservation } from '@/app/(utils)/adminNotifications';
 import { AlertCircle, Calendar, Clock, Users, Phone, Mail, User, CheckCircle, XCircle, Camera, ShoppingBag, Plus, Minus } from 'lucide-react';
 
 // Import components
@@ -631,6 +632,28 @@ export default function ReservationPage() {
       const result = await createReservation(reservationData);
 
       if (result.success) {
+        // Send admin notification for new reservation
+        try {
+          await notifyNewReservation(
+            restaurantId,
+            reservationForm.name,
+            new Date(reservationForm.date).toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            new Date(`2000-01-01T${reservationForm.time}`).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }),
+            reservationForm.guests
+          );
+        } catch (notificationError) {
+          console.error('Error sending admin notification:', notificationError);
+        }
+        
         // Send WhatsApp notification to user (reservation submitted, pending confirmation)
         try {
           const notificationData = {
