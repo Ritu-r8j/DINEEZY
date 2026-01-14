@@ -38,6 +38,7 @@ export default function OrderManagement() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'active' | 'completed'>('all');
+  const [activeOrderTypeFilter, setActiveOrderTypeFilter] = useState<'all' | 'pre-order' | 'dine-in' | 'takeaway' | 'delivery'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
@@ -262,12 +263,18 @@ export default function OrderManagement() {
     const matchesSearch = (order.customerName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.id.toLowerCase().includes(searchTerm.toLowerCase());
 
-    switch (activeTab) {
-      case 'pending': return matchesSearch && order.status === 'pending';
-      case 'active': return matchesSearch && ['confirmed', 'preparing', 'ready'].includes(order.status);
-      case 'completed': return matchesSearch && ['delivered', 'cancelled'].includes(order.status);
-      default: return matchesSearch;
-    }
+    const matchesOrderType = activeOrderTypeFilter === 'all' || order.orderType === activeOrderTypeFilter;
+
+    const matchesStatus = (() => {
+      switch (activeTab) {
+        case 'pending': return order.status === 'pending';
+        case 'active': return ['confirmed', 'preparing', 'ready'].includes(order.status);
+        case 'completed': return ['delivered', 'cancelled'].includes(order.status);
+        default: return true;
+      }
+    })();
+
+    return matchesSearch && matchesOrderType && matchesStatus;
   });
 
   const getTimeAgo = (date: Date) => {
@@ -364,6 +371,22 @@ export default function OrderManagement() {
               </p>
             </div>
             <div className="flex items-center space-x-3">
+              {/* Notification Badges */}
+              <div className="flex items-center space-x-2">
+                {orders.filter(o => o.orderType === 'pre-order' && ['pending', 'confirmed', 'preparing'].includes(o.status)).length > 0 && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
+                    <Clock className="h-4 w-4" />
+                    <span>{orders.filter(o => o.orderType === 'pre-order' && ['pending', 'confirmed', 'preparing'].includes(o.status)).length} pre-order{orders.filter(o => o.orderType === 'pre-order' && ['pending', 'confirmed', 'preparing'].includes(o.status)).length > 1 ? 's' : ''}</span>
+                  </div>
+                )}
+                {orders.filter(o => o.orderType === 'takeaway' && ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status)).length > 0 && (
+                  <div className="bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
+                    <Package className="h-4 w-4" />
+                    <span>{orders.filter(o => o.orderType === 'takeaway' && ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status)).length} pickup{orders.filter(o => o.orderType === 'takeaway' && ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status)).length > 1 ? 's' : ''}</span>
+                  </div>
+                )}
+              </div>
+              
               {orders.filter(o => o.status === 'pending').length > 0 && (
                 <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-3 py-2 rounded-lg text-sm font-medium">
                   {orders.filter(o => o.status === 'pending').length} new order{orders.filter(o => o.status === 'pending').length > 1 ? 's' : ''}
@@ -455,20 +478,58 @@ export default function OrderManagement() {
             </div>
           </div>
 
+          {/* Order Type Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Order Type:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: 'all', label: 'All Types', count: orders.length, icon: '📋' },
+                { key: 'pre-order', label: 'Pre-order', count: orders.filter(o => o.orderType === 'pre-order').length, icon: '⏰' },
+                { key: 'dine-in', label: 'Dine-in', count: orders.filter(o => o.orderType === 'dine-in').length, icon: '🍽️' },
+                { key: 'takeaway', label: 'Pickup', count: orders.filter(o => o.orderType === 'takeaway').length, icon: '🥡' },
+                { key: 'delivery', label: 'Delivery', count: orders.filter(o => o.orderType === 'delivery').length, icon: '🚚' }
+              ].map((filter) => (
+                <button
+                  key={filter.key}
+                  onClick={() => setActiveOrderTypeFilter(filter.key as any)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${activeOrderTypeFilter === filter.key
+                      ? 'bg-blue-500 text-white shadow-sm'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                >
+                  <span>{filter.icon}</span>
+                  <span>{filter.label} ({filter.count})</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Selected Date Info */}
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-              <span>Showing orders for:</span>
-              <span className="font-medium text-gray-900 dark:text-white">
-                {getDateLabel(selectedDate)}
-                {selectedDate !== new Date().toISOString().split('T')[0] && (
-                  <span className="ml-2 text-xs">({new Date(selectedDate).toLocaleDateString()})</span>
-                )}
-              </span>
+            <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-400">
+              <div className="flex items-center space-x-2">
+                <span>Showing orders for:</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {getDateLabel(selectedDate)}
+                  {selectedDate !== new Date().toISOString().split('T')[0] && (
+                    <span className="ml-2 text-xs">({new Date(selectedDate).toLocaleDateString()})</span>
+                  )}
+                </span>
+              </div>
+              {activeOrderTypeFilter !== 'all' && (
+                <div className="flex items-center space-x-2">
+                  <span>•</span>
+                  <span className="font-medium text-blue-600 dark:text-blue-400 capitalize">
+                    {activeOrderTypeFilter === 'takeaway' ? 'Pickup' : activeOrderTypeFilter} orders only
+                  </span>
+                </div>
+              )}
             </div>
-            {orders.length > 0 && (
+            {filteredOrders.length > 0 && (
               <span className="text-gray-500 dark:text-gray-400">
-                {orders.length} order{orders.length !== 1 ? 's' : ''} found
+                {filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''} found
               </span>
             )}
           </div>
@@ -662,20 +723,33 @@ export default function OrderManagement() {
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No orders found</h3>
             <p className="text-gray-500 dark:text-gray-400 mb-4">
               {searchTerm
-                ? `No orders match "${searchTerm}" for ${getDateLabel(selectedDate).toLowerCase()}.`
+                ? `No orders match "${searchTerm}" for ${getDateLabel(selectedDate).toLowerCase()}${activeOrderTypeFilter !== 'all' ? ` in ${activeOrderTypeFilter === 'takeaway' ? 'pickup' : activeOrderTypeFilter} orders` : ''}.`
                 : activeTab === 'pending'
-                  ? `No new orders for ${getDateLabel(selectedDate).toLowerCase()}. New orders will appear here automatically.`
-                  : `No ${activeTab} orders found for ${getDateLabel(selectedDate).toLowerCase()}.`
+                  ? `No new orders for ${getDateLabel(selectedDate).toLowerCase()}${activeOrderTypeFilter !== 'all' ? ` in ${activeOrderTypeFilter === 'takeaway' ? 'pickup' : activeOrderTypeFilter} orders` : ''}. New orders will appear here automatically.`
+                  : `No ${activeTab !== 'all' ? activeTab + ' ' : ''}orders found for ${getDateLabel(selectedDate).toLowerCase()}${activeOrderTypeFilter !== 'all' ? ` in ${activeOrderTypeFilter === 'takeaway' ? 'pickup' : activeOrderTypeFilter} orders` : ''}.`
               }
             </p>
-            {selectedDate !== new Date().toISOString().split('T')[0] && (
-              <button
-                onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-              >
-                View Today's Orders
-              </button>
-            )}
+            <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
+              {selectedDate !== new Date().toISOString().split('T')[0] && (
+                <button
+                  onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                >
+                  View Today's Orders
+                </button>
+              )}
+              {(activeOrderTypeFilter !== 'all' || activeTab !== 'all') && (
+                <button
+                  onClick={() => {
+                    setActiveOrderTypeFilter('all');
+                    setActiveTab('all');
+                  }}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

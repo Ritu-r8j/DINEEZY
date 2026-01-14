@@ -25,6 +25,7 @@ import {
 export default function PaymentsPage() {
     const { user } = useAuth();
     const [timeFilter, setTimeFilter] = useState('today');
+    const [paymentMethodFilter, setPaymentMethodFilter] = useState('all'); // New filter state
     const [searchTerm, setSearchTerm] = useState('');
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [analytics, setAnalytics] = useState<any>(null);
@@ -67,7 +68,6 @@ export default function PaymentsPage() {
 
                 if (dayWiseResult.success && dayWiseResult.data) {
                     setDayWiseData(dayWiseResult.data);
-                    console.log('Day-wise data loaded:', dayWiseResult.data);
                 } else {
                     console.error('Failed to load day-wise data:', dayWiseResult.error);
                 }
@@ -112,7 +112,12 @@ export default function PaymentsPage() {
                 transaction.customerInfo.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 transaction.orderId.toLowerCase().includes(searchTerm.toLowerCase());
             
-            return matchesTimeFilter && matchesSearch;
+            // Payment method filter
+            const matchesPaymentMethod = paymentMethodFilter === 'all' || 
+                (paymentMethodFilter === 'online' && (transaction.paymentMethod === 'online' || transaction.paymentMethod === 'card')) ||
+                (paymentMethodFilter === 'cash' && (transaction.paymentMethod === 'cash' || transaction.paymentMethod === 'pay-later'));
+            
+            return matchesTimeFilter && matchesSearch && matchesPaymentMethod;
         });
     };
 
@@ -230,7 +235,7 @@ export default function PaymentsPage() {
                     restaurantName = restaurantResult.data.name;
                 }
             } catch (error) {
-                console.log('Could not fetch restaurant name, using default');
+                // Silently use default restaurant name
             }
 
             const payoutData = {
@@ -409,11 +414,14 @@ export default function PaymentsPage() {
                         </div>
                         <div>
                             <p className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300">Available Payout</p>
-                            <p className="text-xs text-blue-600 dark:text-blue-400">Ready to request</p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400">Online payments only</p>
                         </div>
                     </div>
-                    <p className="text-xl sm:text-2xl font-bold text-blue-800 dark:text-blue-200 mb-3">
+                    <p className="text-xl sm:text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
                         ₹{dayWiseData?.totals?.totalPayoutAmount?.toFixed(2) || '0.00'}
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
+                        Cash payments excluded
                     </p>
                     <button
                         onClick={() => setShowPayoutModal(true)}
@@ -726,6 +734,23 @@ export default function PaymentsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                     <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Completed Transactions</h3>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                        {/* Payment Method Filter */}
+                        <div className="inline-flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                            {['all', 'online', 'cash'].map((method) => (
+                                <button
+                                    key={method}
+                                    onClick={() => setPaymentMethodFilter(method)}
+                                    className={`px-3 sm:px-4 py-1.5 rounded text-xs sm:text-sm font-medium transition-all ${
+                                        paymentMethodFilter === method
+                                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                    }`}
+                                >
+                                    {method === 'all' ? 'All' : method === 'online' ? 'Online' : 'Cash'}
+                                </button>
+                            ))}
+                        </div>
+                        
                         {/* Search */}
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />

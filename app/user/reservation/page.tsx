@@ -445,9 +445,15 @@ export default function RestaurantListingPage() {
         });
     }, [selectedRatingFilter, getRating]);
 
-    // Memoized filtered restaurants with location filtering
+    // Memoized filtered restaurants with location filtering and business type filtering
     const allRestaurants = useMemo(() => {
         let restaurants = applyRatingFilter(filteredRestaurants);
+
+        // Filter out QSR restaurants - only show RESTO restaurants on reservation page
+        restaurants = restaurants.filter(restaurant => {
+            // Only show restaurants that are RESTO type or don't have businessType set (default to RESTO for backward compatibility)
+            return restaurant.businessType === 'RESTO' || !restaurant.businessType;
+        });
 
         // Apply location-based filtering if user location is available
         if (userLocation && !showAllRestaurants) {

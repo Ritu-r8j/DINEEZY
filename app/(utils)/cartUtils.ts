@@ -9,6 +9,9 @@ export interface CartMenuItem extends MenuItem {
     cartItemId?: string; // Unique identifier for cart item (id + variant + addons)
 }
 
+// Helper to check if we're in browser environment
+const isBrowser = typeof window !== 'undefined';
+
 // Cart utility functions
 export class CartManager {
     private static CART_KEY = 'cart';
@@ -17,6 +20,7 @@ export class CartManager {
 
     // Get cart items from localStorage
     static getCartItems(): CartMenuItem[] {
+        if (!isBrowser) return [];
         try {
             const cartItems = localStorage.getItem(this.CART_KEY);
             const items = cartItems ? JSON.parse(cartItems) : [];
@@ -36,6 +40,7 @@ export class CartManager {
 
     // Get cart count from localStorage
     static getCartCount(): number {
+        if (!isBrowser) return 0;
         try {
             const cartCount = localStorage.getItem(this.CART_COUNT_KEY);
             return cartCount ? parseInt(cartCount) : 0;
@@ -47,6 +52,7 @@ export class CartManager {
 
     // Get restaurant ID from localStorage
     static getRestaurantId(): string | null {
+        if (!isBrowser) return null;
         try {
             return localStorage.getItem(this.RESTAURANT_ID_KEY);
         } catch (error) {

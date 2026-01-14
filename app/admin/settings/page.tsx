@@ -21,14 +21,29 @@ import {
   MapPin,
   Share2,
   Navigation,
+  Settings,
+  Coffee,
+  UtensilsCrossed,
+  FileText,
+  CreditCard,
+  Building,
+  Smartphone,
 } from 'lucide-react';
 import {
   saveRestaurantSettings,
   getRestaurantSettings,
-  RestaurantSettings
+  RestaurantSettings,
+  savePaymentDetails,
+  getPaymentDetails,
+  PaymentDetails
 } from '@/app/(utils)/firebaseOperations';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import {toast} from 'sonner';
+import { 
+  BusinessType, 
+  BUSINESS_TYPE_INFO
+} from '@/app/(utils)/businessTypeConfig';
+import { BusinessTypeGate } from '@/app/(utils)/useFeatures';
 
 type DayKey =
   | 'Monday'
@@ -99,6 +114,15 @@ type SettingsState = {
   mapDirectionsLink?: string;
   // Next Visit Coupon Settings
   nextVisitCouponDiscount?: number;
+  // Business Type Configuration
+  businessType?: 'QSR' | 'RESTO';
+  // Special Instructions
+  specialInstructions?: {
+    id: string;
+    label: string;
+    category: string;
+    active: boolean;
+  }[];
 };
 
 const DEFAULT_HOURS: Record<DayKey, DayHours> = {
@@ -175,6 +199,21 @@ export default function AdminSettingsPage() {
     mapDirectionsLink: '',
     // Next Visit Coupon Settings
     nextVisitCouponDiscount: 10, // Default 10% discount
+    // Business Type Configuration
+    businessType: 'QSR', // Default to QSR for simpler setup
+    // Default Special Instructions
+    specialInstructions: [
+      { id: 'inst-1', label: 'Less spicy', category: 'spice', active: true },
+      { id: 'inst-2', label: 'Extra spicy', category: 'spice', active: true },
+      { id: 'inst-3', label: 'Less salt', category: 'preparation', active: true },
+      { id: 'inst-4', label: 'No butter', category: 'dietary', active: true },
+      { id: 'inst-5', label: 'No nuts', category: 'dietary', active: true },
+      { id: 'inst-6', label: 'No onion/garlic', category: 'dietary', active: true },
+      { id: 'inst-7', label: 'Extra veggies', category: 'preparation', active: true },
+      { id: 'inst-8', label: 'Well done', category: 'preparation', active: true },
+      { id: 'inst-9', label: 'Separate packaging', category: 'packaging', active: true },
+      { id: 'inst-10', label: 'Eco-friendly packaging', category: 'packaging', active: true },
+    ],
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -192,6 +231,29 @@ export default function AdminSettingsPage() {
   const [showTableModal, setShowTableModal] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [deleteTableTarget, setDeleteTableTarget] = useState<Table | null>(null);
+
+  // Special Instructions modal state
+  const [showSpecialInstructionModal, setShowSpecialInstructionModal] = useState(false);
+  const [editingSpecialInstruction, setEditingSpecialInstruction] = useState<any | null>(null);
+  const [deleteSpecialInstructionTarget, setDeleteSpecialInstructionTarget] = useState<any | null>(null);
+
+  // Payment Details state
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({
+    preferredMethod: 'bank' as 'bank' | 'upi',
+    bankDetails: {
+      accountHolderName: '',
+      accountNumber: '',
+      ifscCode: '',
+      bankName: '',
+      branchName: ''
+    },
+    upiDetails: {
+      upiId: '',
+      upiName: ''
+    }
+  });
 
   // Load settings from Firebase
   useEffect(() => {
@@ -246,10 +308,53 @@ export default function AdminSettingsPage() {
             mapDirectionsLink: data.mapDirectionsLink || '',
             // Next Visit Coupon Settings
             nextVisitCouponDiscount: data.nextVisitCouponDiscount || 10,
+            // Business Type Configuration
+            businessType: data.businessType || 'QSR',
+            // Special Instructions Configuration
+            specialInstructions: data.specialInstructions && data.specialInstructions.length > 0 
+              ? data.specialInstructions 
+              : [
+                  { id: 'inst-1', label: 'Less spicy', category: 'spice', active: true },
+                  { id: 'inst-2', label: 'Extra spicy', category: 'spice', active: true },
+                  { id: 'inst-3', label: 'Less salt', category: 'preparation', active: true },
+                  { id: 'inst-4', label: 'No butter', category: 'dietary', active: true },
+                  { id: 'inst-5', label: 'No nuts', category: 'dietary', active: true },
+                  { id: 'inst-6', label: 'No onion/garlic', category: 'dietary', active: true },
+                  { id: 'inst-7', label: 'Extra veggies', category: 'preparation', active: true },
+                  { id: 'inst-8', label: 'Well done', category: 'preparation', active: true },
+                  { id: 'inst-9', label: 'Separate packaging', category: 'packaging', active: true },
+                  { id: 'inst-10', label: 'Eco-friendly packaging', category: 'packaging', active: true },
+                ],
           });
         } else {
           // No settings found, use defaults
           console.log('No restaurant settings found, using defaults');
+        }
+
+        // Load payment details
+        const paymentResult = await getPaymentDetails(user.uid);
+        if (paymentResult.success && paymentResult.data) {
+          setPaymentDetails(paymentResult.data);
+          setPaymentForm({
+            preferredMethod: paymentResult.data.preferredMethod,
+            bankDetails: paymentResult.data.bankDetails ? {
+              accountHolderName: paymentResult.data.bankDetails.accountHolderName || '',
+              accountNumber: paymentResult.data.bankDetails.accountNumber || '',
+              ifscCode: paymentResult.data.bankDetails.ifscCode || '',
+              bankName: paymentResult.data.bankDetails.bankName || '',
+              branchName: paymentResult.data.bankDetails.branchName || ''
+            } : {
+              accountHolderName: '',
+              accountNumber: '',
+              ifscCode: '',
+              bankName: '',
+              branchName: ''
+            },
+            upiDetails: paymentResult.data.upiDetails || {
+              upiId: '',
+              upiName: ''
+            }
+          });
         }
       } catch (err: any) {
         console.error('Error loading settings:', err);
@@ -441,6 +546,25 @@ export default function AdminSettingsPage() {
             twitter: data.socialMedia?.twitter || '',
           },
           mapDirectionsLink: data.mapDirectionsLink || '',
+          // Next Visit Coupon Settings
+          nextVisitCouponDiscount: data.nextVisitCouponDiscount || 10,
+          // Business Type Configuration
+          businessType: data.businessType || 'QSR',
+          // Special Instructions Configuration
+          specialInstructions: data.specialInstructions && data.specialInstructions.length > 0 
+            ? data.specialInstructions 
+            : [
+                { id: 'inst-1', label: 'Less spicy', category: 'spice', active: true },
+                { id: 'inst-2', label: 'Extra spicy', category: 'spice', active: true },
+                { id: 'inst-3', label: 'Less salt', category: 'preparation', active: true },
+                { id: 'inst-4', label: 'No butter', category: 'dietary', active: true },
+                { id: 'inst-5', label: 'No nuts', category: 'dietary', active: true },
+                { id: 'inst-6', label: 'No onion/garlic', category: 'dietary', active: true },
+                { id: 'inst-7', label: 'Extra veggies', category: 'preparation', active: true },
+                { id: 'inst-8', label: 'Well done', category: 'preparation', active: true },
+                { id: 'inst-9', label: 'Separate packaging', category: 'packaging', active: true },
+                { id: 'inst-10', label: 'Eco-friendly packaging', category: 'packaging', active: true },
+              ],
         });
       } else {
         // Reset to defaults if no saved data
@@ -555,6 +679,109 @@ export default function AdminSettingsPage() {
     setDeleteTableTarget(null);
   }
 
+  // Special Instructions management
+  function openAddSpecialInstruction() {
+    setEditingSpecialInstruction(null);
+    setShowSpecialInstructionModal(true);
+  }
+
+  function openEditSpecialInstruction(instruction: any) {
+    setEditingSpecialInstruction(instruction);
+    setShowSpecialInstructionModal(true);
+  }
+
+  function upsertSpecialInstruction(payload: any) {
+    setState((s) => {
+      const currentInstructions = s.specialInstructions || [];
+      if (payload.id && currentInstructions.some(inst => inst.id === payload.id)) {
+        return { 
+          ...s, 
+          specialInstructions: currentInstructions.map((it) => (it.id === payload.id ? payload : it)) 
+        };
+      }
+      const newInstruction = {
+        id: payload.id || uid('inst'),
+        label: payload.label,
+        category: payload.category,
+        active: payload.active !== undefined ? payload.active : true
+      };
+      return { 
+        ...s, 
+        specialInstructions: [...currentInstructions, newInstruction] 
+      };
+    });
+    setShowSpecialInstructionModal(false);
+  }
+
+  function toggleSpecialInstructionStatus(instructionId: string) {
+    setState((s) => ({
+      ...s,
+      specialInstructions: (s.specialInstructions || []).map((inst) =>
+        inst.id === instructionId ? { ...inst, active: !inst.active } : inst
+      )
+    }));
+  }
+
+  function requestDeleteSpecialInstruction(instruction: any) {
+    setDeleteSpecialInstructionTarget(instruction);
+  }
+
+  function confirmDeleteSpecialInstruction() {
+    if (!deleteSpecialInstructionTarget) return;
+    setState((s) => ({ 
+      ...s, 
+      specialInstructions: (s.specialInstructions || []).filter((it) => it.id !== deleteSpecialInstructionTarget.id) 
+    }));
+    setDeleteSpecialInstructionTarget(null);
+  }
+
+  // Payment Details management
+  const handleSavePaymentDetails = async () => {
+    if (!user?.uid) return;
+
+    try {
+      const restaurantResult = await getRestaurantSettings(user.uid);
+      const restaurantName = restaurantResult.success && restaurantResult.data 
+        ? restaurantResult.data.name 
+        : 'Restaurant';
+
+      const paymentData: any = {
+        restaurantId: user.uid,
+        restaurantName,
+        preferredMethod: paymentForm.preferredMethod,
+        isVerified: false // Will be verified by super admin
+      };
+
+      // Only include the relevant payment details
+      if (paymentForm.preferredMethod === 'bank') {
+        paymentData.bankDetails = {
+          accountHolderName: paymentForm.bankDetails.accountHolderName.trim(),
+          accountNumber: paymentForm.bankDetails.accountNumber.trim(),
+          ifscCode: paymentForm.bankDetails.ifscCode.trim(),
+          bankName: paymentForm.bankDetails.bankName.trim(),
+          ...(paymentForm.bankDetails.branchName.trim() && { branchName: paymentForm.bankDetails.branchName.trim() })
+        };
+      } else if (paymentForm.preferredMethod === 'upi') {
+        paymentData.upiDetails = {
+          upiId: paymentForm.upiDetails.upiId.trim(),
+          upiName: paymentForm.upiDetails.upiName.trim()
+        };
+      }
+
+      const result = await savePaymentDetails(user.uid, paymentData);
+      
+      if (result.success) {
+        setPaymentDetails(result.data as PaymentDetails);
+        setShowPaymentModal(false);
+        toast.success('Payment details saved successfully');
+      } else {
+        toast.error('Failed to save payment details: ' + result.error);
+      }
+    } catch (error: any) {
+      toast.error('Error saving payment details: ' + error.message);
+    }
+  };
+
   // Show loading state
   if (isLoading) {
     return (
@@ -610,6 +837,111 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         )}
+
+        {/* Business Type Selection */}
+        <SectionCard title="Business Type Configuration" icon={<Settings className="h-6 w-6" />} className="border-2 border-blue-200 dark:border-blue-800">
+          <div className="space-y-6">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg">
+                  <Settings className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Choose Your Business Model</h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Select the type that best matches your restaurant to optimize your platform experience.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* QSR Option */}
+              <div 
+                className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
+                  state.businessType === 'QSR' 
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 shadow-lg' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600'
+                }`}
+                onClick={() => setField('businessType', 'QSR')}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-lg ${
+                    state.businessType === 'QSR' 
+                      ? 'bg-orange-500 text-white' 
+                      : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'
+                  }`}>
+                    <Coffee className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                        {BUSINESS_TYPE_INFO.QSR.name}
+                      </h3>
+                      {state.businessType === 'QSR' && (
+                        <CheckCircle2 className="h-5 w-5 text-orange-500" />
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      {BUSINESS_TYPE_INFO.QSR.description}
+                    </p>
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Key Features:</p>
+                      {BUSINESS_TYPE_INFO.QSR.features.slice(0, 3).map((feature, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                          <span className="text-xs text-gray-600 dark:text-gray-400">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* RESTO Option */}
+              <div 
+                className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
+                  state.businessType === 'RESTO' 
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
+                }`}
+                onClick={() => setField('businessType', 'RESTO')}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-lg ${
+                    state.businessType === 'RESTO' 
+                      ? 'bg-purple-500 text-white' 
+                      : 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400'
+                  }`}>
+                    <UtensilsCrossed className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                        {BUSINESS_TYPE_INFO.RESTO.name}
+                      </h3>
+                      {state.businessType === 'RESTO' && (
+                        <CheckCircle2 className="h-5 w-5 text-purple-500" />
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      {BUSINESS_TYPE_INFO.RESTO.description}
+                    </p>
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Key Features:</p>
+                      {BUSINESS_TYPE_INFO.RESTO.features.slice(0, 3).map((feature, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                          <span className="text-xs text-gray-600 dark:text-gray-400">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </SectionCard>
 
 
         <div className="space-y-4 sm:space-y-6 lg:space-y-8">
@@ -1366,12 +1698,40 @@ export default function AdminSettingsPage() {
           />
         )}
 
+        {/* Add/Edit Special Instruction Modal */}
+        {showSpecialInstructionModal && (
+          <SpecialInstructionModal
+            instruction={editingSpecialInstruction}
+            onSave={upsertSpecialInstruction}
+            onClose={() => setShowSpecialInstructionModal(false)}
+          />
+        )}
+
+        {/* Payment Details Modal */}
+        {showPaymentModal && (
+          <PaymentDetailsModal
+            paymentForm={paymentForm}
+            setPaymentForm={setPaymentForm}
+            onSave={handleSavePaymentDetails}
+            onClose={() => setShowPaymentModal(false)}
+          />
+        )}
+
         {/* Confirm Delete Table Modal */}
         {deleteTableTarget && (
           <ConfirmDeleteModal
             name={`Table ${deleteTableTarget.number}`}
             onCancel={() => setDeleteTableTarget(null)}
             onConfirm={confirmDeleteTable}
+          />
+        )}
+
+        {/* Confirm Delete Special Instruction Modal */}
+        {deleteSpecialInstructionTarget && (
+          <ConfirmDeleteModal
+            name={deleteSpecialInstructionTarget.label}
+            onCancel={() => setDeleteSpecialInstructionTarget(null)}
+            onConfirm={confirmDeleteSpecialInstruction}
           />
         )}
 
@@ -1420,62 +1780,63 @@ export default function AdminSettingsPage() {
           </div>
         )}
         <br/>
-        {/* Table Management */}
-        <SectionCard title="Table Management" icon={<MapPin className="h-6 w-6" />}>
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Restaurant Tables</h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Configure your tables for reservation management
-                </p>
-              </div>
-              <button
-                onClick={openAddTable}
-                className="bg-black text-white text-sm font-semibold py-2 px-4 rounded-lg hover:bg-gray-800 inline-flex items-center gap-2 transition-all duration-200 w-full sm:w-auto"
-              >
-                <Plus className="h-4 w-4" /> Add Table
-              </button>
-            </div>
-
-            {state.tables.length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
-                <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">No tables configured</p>
-                <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
-                  Add tables to enable table management in reservations
-                </p>
+        {/* Table Management - Only for RESTO */}
+        <BusinessTypeGate businessType="RESTO">
+          <SectionCard title="Table Management" icon={<MapPin className="h-6 w-6" />}>
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Restaurant Tables</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Configure your tables for reservation management
+                  </p>
+                </div>
                 <button
                   onClick={openAddTable}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 text-sm font-medium transition-all"
+                  className="bg-black text-white text-sm font-semibold py-2 px-4 rounded-lg hover:bg-gray-800 inline-flex items-center gap-2 transition-all duration-200 w-full sm:w-auto"
                 >
-                  <Plus className="h-4 w-4" /> Add Your First Table
+                  <Plus className="h-4 w-4" /> Add Table
                 </button>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs sm:text-sm text-left">
-                  <thead className="border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                    <tr>
-                      <th scope="col" className="py-3 pr-6 font-semibold">Table Number</th>
-                      <th scope="col" className="py-3 px-6 font-semibold">Capacity</th>
-                      <th scope="col" className="py-3 px-6 font-semibold">Status</th>
-                      <th scope="col" className="py-3 pl-6 text-right font-semibold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {state.tables.map((t, idx) => (
-                      <tr
-                        key={t.id}
-                        className={cx(
-                          'border-b border-gray-200 dark:border-gray-700',
-                          idx === state.tables.length - 1 && 'border-b-0'
-                        )}
-                      >
-                        <td className="py-4 pr-6 text-gray-900 dark:text-gray-100 font-medium">{t.number}</td>
-                        <td className="py-4 px-6 text-gray-600 dark:text-gray-300">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-gray-400" />
+
+              {state.tables.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                  <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">No tables configured</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
+                    Add tables to enable table management in reservations
+                  </p>
+                  <button
+                    onClick={openAddTable}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 text-sm font-medium transition-all"
+                  >
+                    <Plus className="h-4 w-4" /> Add Your First Table
+                  </button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs sm:text-sm text-left">
+                    <thead className="border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                      <tr>
+                        <th scope="col" className="py-3 pr-6 font-semibold">Table Number</th>
+                        <th scope="col" className="py-3 px-6 font-semibold">Capacity</th>
+                        <th scope="col" className="py-3 px-6 font-semibold">Status</th>
+                        <th scope="col" className="py-3 pl-6 text-right font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {state.tables.map((t, idx) => (
+                        <tr
+                          key={t.id}
+                          className={cx(
+                            'border-b border-gray-200 dark:border-gray-700',
+                            idx === state.tables.length - 1 && 'border-b-0'
+                          )}
+                        >
+                          <td className="py-4 pr-6 text-gray-900 dark:text-gray-100 font-medium">{t.number}</td>
+                          <td className="py-4 px-6 text-gray-600 dark:text-gray-300">
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4 text-gray-400" />
                             {t.capacity} seats
                           </div>
                         </td>
@@ -1541,6 +1902,182 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Avg Capacity</div>
                 </div>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+        </BusinessTypeGate>
+
+        {/* Special Instructions Management */}
+        <SectionCard title="Special Instructions" icon={<FileText className="h-6 w-6" />}>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Quick options for customer checkout</p>
+              <button
+                onClick={() => {
+                  setEditingSpecialInstruction(null);
+                  setShowSpecialInstructionModal(true);
+                }}
+                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add</span>
+              </button>
+            </div>
+
+            {/* Special Instructions List - Compact Grid */}
+            {(state.specialInstructions && state.specialInstructions.length > 0) ? (
+              <div className="flex flex-wrap gap-2">
+                {state.specialInstructions.map((instruction) => (
+                  <div
+                    key={instruction.id}
+                    className={`group inline-flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
+                      instruction.active 
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+                        : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60'
+                    }`}
+                  >
+                    <span 
+                      className={`text-sm font-medium cursor-pointer ${
+                        instruction.active 
+                          ? 'text-green-800 dark:text-green-300' 
+                          : 'text-gray-500 dark:text-gray-400 line-through'
+                      }`}
+                      onClick={() => toggleSpecialInstructionStatus(instruction.id)}
+                      title={instruction.active ? 'Click to disable' : 'Click to enable'}
+                    >
+                      {instruction.label}
+                    </span>
+                    <div className="hidden group-hover:flex items-center gap-0.5">
+                      <button
+                        onClick={() => openEditSpecialInstruction(instruction)}
+                        className="p-1 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded"
+                        title="Edit"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => requestDeleteSpecialInstruction(instruction)}
+                        className="p-1 text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                <p className="text-sm">No instructions yet. Click "Add" to create one.</p>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        {/* Payment Details Management */}
+        <SectionCard title="Payment Details" icon={<CreditCard className="h-6 w-6" />}>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Configure your bank account or UPI details for receiving payouts
+                </p>
+                {paymentDetails?.isVerified && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <span className="text-xs text-green-600 dark:text-green-400">Verified</span>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setShowPaymentModal(true)}
+                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                {paymentDetails ? <Edit3 className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                <span className="hidden sm:inline">{paymentDetails ? 'Edit' : 'Add'}</span>
+              </button>
+            </div>
+
+            {paymentDetails ? (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`p-2 rounded-lg ${
+                    paymentDetails.preferredMethod === 'bank' 
+                      ? 'bg-blue-100 dark:bg-blue-900/20' 
+                      : 'bg-green-100 dark:bg-green-900/20'
+                  }`}>
+                    {paymentDetails.preferredMethod === 'bank' ? (
+                      <Building className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    ) : (
+                      <Smartphone className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white">
+                      {paymentDetails.preferredMethod === 'bank' ? 'Bank Account' : 'UPI Details'}
+                    </h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Preferred payment method
+                    </p>
+                  </div>
+                </div>
+
+                {paymentDetails.preferredMethod === 'bank' && paymentDetails.bankDetails && (
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">Account Holder:</span>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {paymentDetails.bankDetails.accountHolderName}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">Bank:</span>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {paymentDetails.bankDetails.bankName}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">Account Number:</span>
+                        <p className="font-mono text-gray-900 dark:text-white">
+                          ****{paymentDetails.bankDetails.accountNumber.slice(-4)}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">IFSC Code:</span>
+                        <p className="font-mono text-gray-900 dark:text-white">
+                          {paymentDetails.bankDetails.ifscCode}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {paymentDetails.preferredMethod === 'upi' && paymentDetails.upiDetails && (
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">UPI ID:</span>
+                        <p className="font-mono text-gray-900 dark:text-white">
+                          {paymentDetails.upiDetails.upiId}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">Name:</span>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {paymentDetails.upiDetails.upiName}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <CreditCard className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">No payment details configured</p>
+                <p className="text-xs mt-1">Add your bank or UPI details to receive payouts</p>
               </div>
             )}
           </div>
@@ -1855,6 +2392,400 @@ function ConfirmDeleteModal(props: {
             className="px-4 py-2 rounded-md text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-all duration-200"
           >
             Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------- Special Instruction Modal ----------------------- */
+
+function SpecialInstructionModal(props: {
+  instruction?: { id: string; label: string; category: string; active: boolean } | null;
+  onSave: (payload: { id?: string; label: string; category: string; active: boolean }) => void;
+  onClose: () => void;
+}) {
+  const [label, setLabel] = useState(props.instruction?.label ?? '');
+  const isEditing = !!props.instruction;
+
+  function save() {
+    if (!label.trim()) {
+      alert('Instruction text is required.');
+      return;
+    }
+    
+    // Check if input contains commas - split into multiple instructions
+    if (!isEditing && label.includes(',')) {
+      const instructions = label.split(',')
+        .map((s: string) => s.trim())
+        .filter((s: string) => s.length > 0);
+      
+      // Save each instruction separately
+      instructions.forEach((instructionLabel: string) => {
+        props.onSave({ 
+          label: instructionLabel, 
+          category: 'other',
+          active: true 
+        });
+      });
+      return;
+    }
+    
+    // Single instruction save
+    props.onSave({ 
+      id: props.instruction?.id, 
+      label: label.trim(), 
+      category: 'other',
+      active: true
+    });
+  }
+
+  function handleKeyPress(e: React.KeyboardEvent) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      save();
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={props.onClose} />
+      <div className="relative w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-6 animate-slide-in-from-bottom">
+        <div className="flex items-center justify-between mb-6">
+          <h4 className="text-xl font-bold text-black dark:text-white">
+            {isEditing ? 'Edit Instruction' : 'Add Special Instruction'}
+          </h4>
+          <button
+            onClick={props.onClose}
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+              Instruction Text
+            </label>
+            <input
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={isEditing ? "Edit your instruction" : "Type instruction(s) - use commas to add multiple"}
+              className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              autoFocus
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {isEditing ? 'Press Enter to save quickly' : 'Tip: Use commas to add multiple at once (e.g., "Less spicy, No nuts, Extra sauce")'}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <button
+            onClick={props.onClose}
+            className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={save}
+            className="px-6 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200"
+          >
+            {isEditing ? 'Update' : 'Add'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+/* ----------------------- Payment Details Modal ----------------------- */
+
+function PaymentDetailsModal(props: {
+  paymentForm: {
+    preferredMethod: 'bank' | 'upi';
+    bankDetails: {
+      accountHolderName: string;
+      accountNumber: string;
+      ifscCode: string;
+      bankName: string;
+      branchName: string;
+    };
+    upiDetails: {
+      upiId: string;
+      upiName: string;
+    };
+  };
+  setPaymentForm: (form: any) => void;
+  onSave: () => void;
+  onClose: () => void;
+}) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSave = async () => {
+    // Validate form
+    if (props.paymentForm.preferredMethod === 'bank') {
+      if (!props.paymentForm.bankDetails.accountHolderName.trim() ||
+          !props.paymentForm.bankDetails.accountNumber.trim() ||
+          !props.paymentForm.bankDetails.ifscCode.trim() ||
+          !props.paymentForm.bankDetails.bankName.trim()) {
+        alert('Please fill all required bank details');
+        return;
+      }
+    } else {
+      if (!props.paymentForm.upiDetails.upiId.trim() ||
+          !props.paymentForm.upiDetails.upiName.trim()) {
+        alert('Please fill all required UPI details');
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    try {
+      await props.onSave();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={props.onClose} />
+      <div className="relative w-full max-w-lg mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-6 animate-slide-in-from-bottom max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h4 className="text-xl font-bold text-black dark:text-white">
+            Payment Details
+          </h4>
+          <button
+            onClick={props.onClose}
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-6">
+          {/* Payment Method Selection */}
+          <div>
+            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
+              Preferred Payment Method
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => props.setPaymentForm({
+                  ...props.paymentForm,
+                  preferredMethod: 'bank'
+                })}
+                className={`p-4 border-2 rounded-lg transition-all ${
+                  props.paymentForm.preferredMethod === 'bank'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                }`}
+              >
+                <Building className="h-6 w-6 mx-auto mb-2 text-blue-600" />
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Bank Account</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => props.setPaymentForm({
+                  ...props.paymentForm,
+                  preferredMethod: 'upi'
+                })}
+                className={`p-4 border-2 rounded-lg transition-all ${
+                  props.paymentForm.preferredMethod === 'upi'
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                }`}
+              >
+                <Smartphone className="h-6 w-6 mx-auto mb-2 text-green-600" />
+                <p className="text-sm font-medium text-gray-900 dark:text-white">UPI</p>
+              </button>
+            </div>
+          </div>
+
+          {/* Bank Details Form */}
+          {props.paymentForm.preferredMethod === 'bank' && (
+            <div className="space-y-4">
+              <h5 className="font-medium text-gray-900 dark:text-white">Bank Account Details</h5>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    Account Holder Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={props.paymentForm.bankDetails.accountHolderName}
+                    onChange={(e) => props.setPaymentForm({
+                      ...props.paymentForm,
+                      bankDetails: {
+                        ...props.paymentForm.bankDetails,
+                        accountHolderName: e.target.value
+                      }
+                    })}
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter account holder name"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    Account Number *
+                  </label>
+                  <input
+                    type="text"
+                    value={props.paymentForm.bankDetails.accountNumber}
+                    onChange={(e) => props.setPaymentForm({
+                      ...props.paymentForm,
+                      bankDetails: {
+                        ...props.paymentForm.bankDetails,
+                        accountNumber: e.target.value
+                      }
+                    })}
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter account number"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    IFSC Code *
+                  </label>
+                  <input
+                    type="text"
+                    value={props.paymentForm.bankDetails.ifscCode}
+                    onChange={(e) => props.setPaymentForm({
+                      ...props.paymentForm,
+                      bankDetails: {
+                        ...props.paymentForm.bankDetails,
+                        ifscCode: e.target.value.toUpperCase()
+                      }
+                    })}
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter IFSC code"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    Bank Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={props.paymentForm.bankDetails.bankName}
+                    onChange={(e) => props.setPaymentForm({
+                      ...props.paymentForm,
+                      bankDetails: {
+                        ...props.paymentForm.bankDetails,
+                        bankName: e.target.value
+                      }
+                    })}
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter bank name"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    Branch Name
+                  </label>
+                  <input
+                    type="text"
+                    value={props.paymentForm.bankDetails.branchName}
+                    onChange={(e) => props.setPaymentForm({
+                      ...props.paymentForm,
+                      bankDetails: {
+                        ...props.paymentForm.bankDetails,
+                        branchName: e.target.value
+                      }
+                    })}
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter branch name (optional)"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* UPI Details Form */}
+          {props.paymentForm.preferredMethod === 'upi' && (
+            <div className="space-y-4">
+              <h5 className="font-medium text-gray-900 dark:text-white">UPI Details</h5>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    UPI ID *
+                  </label>
+                  <input
+                    type="text"
+                    value={props.paymentForm.upiDetails.upiId}
+                    onChange={(e) => props.setPaymentForm({
+                      ...props.paymentForm,
+                      upiDetails: {
+                        ...props.paymentForm.upiDetails,
+                        upiId: e.target.value
+                      }
+                    })}
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="example@paytm or 9876543210@ybl"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    Name on UPI *
+                  </label>
+                  <input
+                    type="text"
+                    value={props.paymentForm.upiDetails.upiName}
+                    onChange={(e) => props.setPaymentForm({
+                      ...props.paymentForm,
+                      upiDetails: {
+                        ...props.paymentForm.upiDetails,
+                        upiName: e.target.value
+                      }
+                    })}
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Enter name as registered with UPI"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Security Notice */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">Security Notice</p>
+                <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
+                  Your payment details are encrypted and stored securely. They will be verified by our team before being used for payouts.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <button
+            onClick={props.onClose}
+            disabled={isLoading}
+            className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isLoading}
+            className="px-6 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+          >
+            {isLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+            Save Details
           </button>
         </div>
       </div>

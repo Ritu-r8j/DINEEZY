@@ -15,3 +15,6 @@
 [+] Display admin instructions on user reservation page when confirmed - COMPLETED
 [+] Auto-confirm linked pre-orders when admin confirms reservation - COMPLETED
 [+] Video in food page
+
+
+[-]  Fix cash on delivery 

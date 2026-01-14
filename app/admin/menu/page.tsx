@@ -50,6 +50,11 @@ export default function MenuManagement() {
   
   // Video management state
   const [videoPublicId, setVideoPublicId] = useState<string>('');
+  
+  // Input states for comma-separated fields
+  const [allergenInput, setAllergenInput] = useState<string>('');
+  const [tagInput, setTagInput] = useState<string>('');
+  const [ingredientInput, setIngredientInput] = useState<string>('');
 
   // Helper function to clean nutritional information (remove undefined/null/empty values)
   const cleanNutritionalInfo = (nutritionalInfo: any) => {
@@ -175,9 +180,6 @@ export default function MenuManagement() {
   // Get unique categories from menu items (these are default category IDs)
   const uniqueCategories = Array.from(new Set(menuItems.map(item => item.category)));
   
-  // Combine default and custom categories
-  const allCategories = [...DEFAULT_CATEGORIES, ...customCategories];
-  
   // Map categories to display names
   const categories = [
     { id: 'all', displayName: 'All' },
@@ -293,6 +295,12 @@ export default function MenuManagement() {
     setAddons(item.addons || []);
     setImagePublicId(item.imagePublicId || '');
     setVideoPublicId(item.videoPublicId || '');
+    
+    // Initialize input states for comma-separated fields
+    setIngredientInput(Array.isArray(item.ingredients) ? item.ingredients.join(', ') : '');
+    setAllergenInput(Array.isArray(item.allergens) ? item.allergens.join(', ') : '');
+    setTagInput(Array.isArray(item.tags) ? item.tags.join(', ') : '');
+    
     setShowEditModal(true);
   };
 
@@ -307,6 +315,11 @@ export default function MenuManagement() {
       // Include variants and addons in the update data (filter out empty entries)
       const updateData = {
         ...formData,
+        // Validate discount price
+        discountPrice: formData.discountPrice && 
+                      formData.discountPrice > 0 && 
+                      formData.price &&
+                      formData.discountPrice < formData.price ? formData.discountPrice : undefined,
         variants: variants.filter(v => v.name.trim() && v.price > 0) || [],
         addons: addons.filter(a => a.name.trim() && a.price > 0) || [],
         ...(imagePublicId && { imagePublicId }), // Only include if imagePublicId exists
@@ -329,6 +342,9 @@ export default function MenuManagement() {
         setAddons([]);
         setImagePublicId('');
         setVideoPublicId('');
+        setIngredientInput('');
+        setAllergenInput('');
+        setTagInput('');
       } else {
         setError(result.error || 'Failed to update item');
       }
@@ -369,28 +385,30 @@ export default function MenuManagement() {
         description: formData.description || '',
         category: formData.category || 'main-course', // Store default category ID
         image: formData.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&h=200&fit=crop&crop=center',
-        tags: formData.tags || [],
+        tags: tagInput ? processCommaSeparatedInput(tagInput) : [],
 
         // Pricing
         price: formData.price,
-        discountPrice: formData.discountPrice || undefined,
+        discountPrice: formData.discountPrice && 
+                      formData.discountPrice > 0 && 
+                      formData.price &&
+                      formData.discountPrice < formData.price ? formData.discountPrice : undefined,
         currency: formData.currency || 'INR',
         isAvailable: formData.isAvailable !== undefined ? formData.isAvailable : true,
         available: formData.isAvailable !== undefined ? formData.isAvailable : true,
         // Details
         spiceLevel: formData.spiceLevel || 'mild',
         preparationTime: formData.preparationTime || 15,
-        calories: formData.calories || 0,
+        calories: formData.nutritionalInfo?.calories || 0,
 
         // Dietary Info
         isVegetarian: formData.isVegetarian || false,
         isVegan: formData.isVegan || false,
         isGlutenFree: formData.isGlutenFree || false,
-        allergens: formData.allergens || [],
+        allergens: allergenInput ? processCommaSeparatedInput(allergenInput) : [],
 
         // Ingredients
-        ingredients: Array.isArray(formData.ingredients) ? formData.ingredients :
-          (formData.ingredients ? formData.ingredients.split(',').map(i => i.trim()) : []),
+        ingredients: ingredientInput ? processCommaSeparatedInput(ingredientInput) : [],
 
         // Nutritional Information (only include if provided and has valid values)
         ...(cleanedNutritionalInfo && { nutritionalInfo: cleanedNutritionalInfo }),
@@ -431,6 +449,9 @@ export default function MenuManagement() {
         setAddons([]);
         setImagePublicId('');
         setVideoPublicId('');
+        setIngredientInput('');
+        setAllergenInput('');
+        setTagInput('');
       } else {
         setError(result.error || 'Failed to add item');
       }
@@ -472,6 +493,9 @@ export default function MenuManagement() {
                   setAddons([]);
                   setImagePublicId('');
                   setVideoPublicId('');
+                  setIngredientInput('');
+                  setAllergenInput('');
+                  setTagInput('');
                   setShowAddModal(true);
                 }}
                 className="cursor-pointer flex items-center px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
@@ -933,6 +957,9 @@ export default function MenuManagement() {
                     setAddons([]);
                     setImagePublicId('');
                     setVideoPublicId('');
+                    setIngredientInput('');
+                    setAllergenInput('');
+                    setTagInput('');
                     setError(null);
                   }}
                   className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-all"
@@ -985,20 +1012,40 @@ export default function MenuManagement() {
                         />
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        <Percent className="h-4 w-4 inline mr-1" />
-                        Discount Price
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={formData.discountPrice || ''}
-                        onChange={(e) => setFormData({ ...formData, discountPrice: parseFloat(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        placeholder="Optional discount price"
-                      />
-                    </div>
+                  </div>
+
+                  {/* Discount Price */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <Percent className="h-4 w-4 inline mr-1" />
+                      Discount Price (Optional)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.discountPrice || ''}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        const regularPrice = formData.price || 0;
+                        // Only set if it's a valid number and less than regular price
+                        if (!e.target.value || (value > 0 && regularPrice > 0 && value < regularPrice)) {
+                          setFormData({ ...formData, discountPrice: value || undefined });
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      placeholder="Enter discounted price (leave empty for no discount)"
+                    />
+                    {formData.price && formData.discountPrice && formData.discountPrice < formData.price && (
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                        {Math.round(((formData.price - formData.discountPrice) / formData.price) * 100)}% discount
+                      </p>
+                    )}
+                    {formData.discountPrice && formData.price && formData.discountPrice >= formData.price && (
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                        Discount price must be less than regular price
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -1015,7 +1062,7 @@ export default function MenuManagement() {
                   </div>
 
                   {/* Category and Time */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Category
@@ -1058,22 +1105,10 @@ export default function MenuManagement() {
                         placeholder="15"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Calories
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.calories || ''}
-                        onChange={(e) => setFormData({ ...formData, calories: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        placeholder="500"
-                      />
-                    </div>
                   </div>
 
-                  {/* Spice Level and Dietary */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Spice Level */}
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Spice Level
@@ -1089,20 +1124,6 @@ export default function MenuManagement() {
                         <option value="hot">Hot 🌶️🌶️🌶️</option>
                         <option value="very-hot">Very Hot 🌶️🌶️🌶️🌶️</option>
                       </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Discount (%)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={formData.discount || ''}
-                        onChange={(e) => setFormData({ ...formData, discount: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        placeholder="0"
-                      />
                     </div>
                   </div>
 
@@ -1216,15 +1237,13 @@ export default function MenuManagement() {
                     </label>
                     <input
                       type="text"
-                      value={Array.isArray(formData.ingredients) ? formData.ingredients.join(', ') : formData.ingredients || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setFormData({ ...formData, ingredients: value });
-                      }}
+                      value={ingredientInput}
+                      onChange={(e) => setIngredientInput(e.target.value)}
                       onBlur={(e) => {
-                        // Capitalize on blur
+                        // Process and capitalize on blur
                         const processed = processCommaSeparatedInput(e.target.value);
-                        setFormData({ ...formData, ingredients: processed.join(', ') });
+                        setFormData({ ...formData, ingredients: processed });
+                        setIngredientInput(processed.join(', '));
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       placeholder="Tomato, Cheese, Basil"
@@ -1238,16 +1257,13 @@ export default function MenuManagement() {
                     </label>
                     <input
                       type="text"
-                      value={formData.allergens?.join(', ') || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Allow typing commas freely
-                        setFormData({ ...formData, allergens: value.split(',').map(a => a.trim()).filter(a => a) });
-                      }}
+                      value={allergenInput}
+                      onChange={(e) => setAllergenInput(e.target.value)}
                       onBlur={(e) => {
-                        // Capitalize on blur
+                        // Process and capitalize on blur
                         const processed = processCommaSeparatedInput(e.target.value);
                         setFormData({ ...formData, allergens: processed });
+                        setAllergenInput(processed.join(', '));
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       placeholder="Gluten, Dairy, Nuts"
@@ -1262,16 +1278,13 @@ export default function MenuManagement() {
                     </label>
                     <input
                       type="text"
-                      value={formData.tags?.join(', ') || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Allow typing commas freely
-                        setFormData({ ...formData, tags: value.split(',').map(t => t.trim()).filter(t => t) });
-                      }}
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
                       onBlur={(e) => {
-                        // Capitalize on blur
+                        // Process and capitalize on blur
                         const processed = processCommaSeparatedInput(e.target.value);
                         setFormData({ ...formData, tags: processed });
+                        setTagInput(processed.join(', '));
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       placeholder="Popular, Spicy, Healthy"
@@ -1617,6 +1630,9 @@ export default function MenuManagement() {
                         setAddons([]);
                         setImagePublicId('');
                         setVideoPublicId('');
+                        setIngredientInput('');
+                        setAllergenInput('');
+                        setTagInput('');
                         setError(null);
                       }}
                       className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"

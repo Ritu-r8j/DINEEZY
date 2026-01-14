@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { User, Settings, LogOut, ChevronDown, Bell, Menu, X } from 'lucide-react';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import ThemeToggle from './ThemeToggle';
+import { useBusinessType } from '@/app/(utils)/useFeatures';
 
 interface AdminHeaderProps {
   currentPage?: 'dashboard' | 'menu' | 'orders' | 'customers' | 'payments' | 'reservations' | 'reviews' | 'settings';
@@ -14,6 +15,7 @@ interface AdminHeaderProps {
 export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderProps) {
   const router = useRouter();
   const { user, userProfile, signOut } = useAuth();
+  const { isRESTO } = useBusinessType();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -45,10 +47,18 @@ export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderPr
     { name: 'Orders', href: '/admin/orders', key: 'orders' },
     { name: 'Customers', href: '/admin/customers', key: 'customers' },
     { name: 'Payments', href: '/admin/payments', key: 'payments' },
-    { name: 'Reservations', href: '/admin/reservations', key: 'reservations' },
+    { name: 'Reservations', href: '/admin/reservations', key: 'reservations', requiresRESTO: true },
     { name: 'Reviews', href: '/admin/reviews', key: 'reviews' },
     { name: 'Settings', href: '/admin/settings', key: 'settings' },
   ];
+
+  // Filter navigation items based on business type
+  const visibleNavItems = navItems.filter(item => {
+    if (item.requiresRESTO) {
+      return isRESTO();
+    }
+    return true;
+  });
 
   return (
     <header className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md shadow-sm border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-50 transition-all duration-300 ease-in-out">
@@ -68,7 +78,7 @@ export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderPr
 
           {/* Navigation - Hidden on mobile */}
           <nav className="hidden lg:flex items-center gap-6">
-            {navItems.map((item, index) => (
+            {visibleNavItems.map((item, index) => (
               <Link
                 key={item.key}
                 href={item.href}
@@ -183,7 +193,7 @@ export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderPr
           }`}>
           <div className="border-t border-gray-200 dark:border-gray-700 py-4">
             <nav className="flex flex-col space-y-1">
-              {navItems.map((item, index) => (
+              {visibleNavItems.map((item, index) => (
                 <Link
                   key={item.key}
                   href={item.href}

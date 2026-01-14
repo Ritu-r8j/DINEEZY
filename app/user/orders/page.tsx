@@ -6,6 +6,7 @@ import { getRestaurantSettings, subscribeToUserOrders, subscribeToGuestOrders, u
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { sendWaiterCallRequest } from '@/app/(utils)/notification';
 import { toast, Toaster } from 'sonner';
+import { BusinessTypeGate } from '@/app/(utils)/useFeatures';
 
 interface OrderItem {
   id: string;
@@ -349,6 +350,78 @@ export default function CustomerOrdersPage() {
     }
   }, []);
 
+  // Helper function to determine if Call Manager button should be visible
+  const shouldShowCallManager = useCallback((order: Order): boolean => {
+    // Don't show for delivered or cancelled orders
+    if (order.status === 'delivered' || order.status === 'cancelled') {
+      return false;
+    }
+
+    // For regular orders, show if it's an active order
+    if (order.orderType !== 'pre-order') {
+      return activeTab === 'active';
+    }
+
+    // For pre-orders, check if we're before the scheduled time
+    if (order.orderType === 'pre-order' && order.preOrderTime) {
+      try {
+        const now = new Date();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+        
+        // Parse the preOrderTime (could be formats like "2:30 PM", "14:30", "2:30PM", etc.)
+        const timeStr = order.preOrderTime.trim();
+        let scheduledTime = new Date(today);
+        
+        // Try to parse different time formats
+        if (timeStr.includes('AM') || timeStr.includes('PM')) {
+          // 12-hour format
+          const [time, period] = timeStr.split(/\s+/);
+          const [hours, minutes] = time.split(':').map(Number);
+          
+          let hour24 = hours;
+          if (period.toUpperCase() === 'PM' && hours !== 12) {
+            hour24 = hours + 12;
+          } else if (period.toUpperCase() === 'AM' && hours === 12) {
+            hour24 = 0;
+          }
+          
+          scheduledTime.setHours(hour24, minutes || 0, 0, 0);
+        } else if (timeStr.includes(':')) {
+          // 24-hour format or simple hour:minute
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          scheduledTime.setHours(hours, minutes || 0, 0, 0);
+        } else {
+          // If we can't parse the time format, default to showing the button
+          console.warn('Unable to parse pre-order time format:', timeStr);
+          return activeTab === 'active';
+        }
+        
+        // Show Call Manager if current time is before scheduled time
+        const shouldShow = now < scheduledTime && activeTab === 'active';
+        
+        // Debug logging (can be removed in production)
+        console.log('Pre-order time check:', {
+          orderType: order.orderType,
+          preOrderTime: order.preOrderTime,
+          currentTime: now.toLocaleTimeString(),
+          scheduledTime: scheduledTime.toLocaleTimeString(),
+          shouldShow,
+          activeTab
+        });
+        
+        return shouldShow;
+      } catch (error) {
+        console.error('Error parsing pre-order time:', error, 'Time string:', order.preOrderTime);
+        // If we can't parse the time, default to showing the button for active orders
+        return activeTab === 'active';
+      }
+    }
+
+    // Default: show for active orders
+    return activeTab === 'active';
+  }, [activeTab]);
+
   // Handle request bill - memoized
   const handleRequestBill = useCallback(async (order: Order) => {
     try {
@@ -631,17 +704,61 @@ export default function CustomerOrdersPage() {
                     </button>
                   )}
                   {activeTab === 'active' && order.orderType === 'dine-in' && (order.status === 'ready' || order.status === 'confirmed' || order.status === 'preparing') && (
-                    <button
-                      onClick={() => handleRequestBill(order)}
-                      className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Request Bill
-                    </button>
+                    <BusinessTypeGate businessType="RESTO" restaurantId={order.restaurantId}>
+                      <button
+                        onClick={() => handleRequestBill(order)}
+                        className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Request Bill
+                      </button>
+                    </BusinessTypeGate>
                   )}
                   {activeTab === 'active' && (
+                    <BusinessTypeGate businessType="RESTO" restaurantId={order.restaurantId}>
+                      <button
+                        onClick={async () => {
+                          try {
+                            // Get restaurant owner phone number
+                            const restaurantResult = await getRestaurantSettings(order.restaurantId);
+                            
+                            if (restaurantResult.success && restaurantResult.data?.phone) {
+                              // Send notification to restaurant owner
+                              await sendWaiterCallRequest(
+                                restaurantResult.data.phone,
+                                order.id,
+                                `${order.customerInfo.firstName} ${order.customerInfo.lastName}`,
+                                order.customerInfo.phone,
+                                undefined // tableNumber - can be added if available
+                              );
+                              
+                              toast.success('Waiter called successfully!', {
+                                description: 'The restaurant has been notified and will assist you shortly.',
+                              });
+                            } else {
+                              toast.error('Unable to contact restaurant', {
+                                description: 'Please try again or call the restaurant directly.',
+                              });
+                            }
+                          } catch (error) {
+                            console.error('Error calling waiter:', error);
+                            toast.error('Failed to call waiter', {
+                              description: 'An unexpected error occurred. Please try again.',
+                            });
+                          }
+                        }}
+                        className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L6.16 11.37a11.045 11.045 0 005.516 5.516l1.983-4.064a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        Call Waiter
+                      </button>
+                    </BusinessTypeGate>
+                  )}
+                  {shouldShowCallManager(order) && (
                     <button
                       onClick={async () => {
                         try {
@@ -649,36 +766,32 @@ export default function CustomerOrdersPage() {
                           const restaurantResult = await getRestaurantSettings(order.restaurantId);
                           
                           if (restaurantResult.success && restaurantResult.data?.phone) {
-                            // Send notification to restaurant owner
-                            await sendWaiterCallRequest(
-                              restaurantResult.data.phone,
-                              order.id,
-                              `${order.customerInfo.firstName} ${order.customerInfo.lastName}`,
-                              order.customerInfo.phone,
-                              undefined // tableNumber - can be added if available
-                            );
+                            // Direct phone call to restaurant
+                            const phoneNumber = restaurantResult.data.phone;
+                            const telUrl = `tel:${phoneNumber}`;
+                            window.location.href = telUrl;
                             
-                            toast.success('Waiter called successfully!', {
-                              description: 'The restaurant has been notified and will assist you shortly.',
+                            toast.success('Calling manager...', {
+                              description: `Dialing ${phoneNumber}`,
                             });
                           } else {
-                            toast.error('Unable to contact restaurant', {
-                              description: 'Please try again or call the restaurant directly.',
+                            toast.error('Phone number not available', {
+                              description: 'Restaurant contact information is not available.',
                             });
                           }
                         } catch (error) {
-                          console.error('Error calling waiter:', error);
-                          toast.error('Failed to call waiter', {
+                          console.error('Error calling manager:', error);
+                          toast.error('Failed to call manager', {
                             description: 'An unexpected error occurred. Please try again.',
                           });
                         }
                       }}
-                      className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="cursor-pointer px-6 py-2 border border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg font-medium transition-colors flex items-center gap-2"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L6.16 11.37a11.045 11.045 0 005.516 5.516l1.983-4.064a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
-                      Call Waiter
+                      Call Manager
                     </button>
                   )}
                   <button
@@ -963,6 +1076,44 @@ export default function CustomerOrdersPage() {
 
                     {/* Actions */}
                     <div className="space-y-3">
+                      {/* Call Manager Button - Available for both QSR and RESTO with time restrictions for pre-orders */}
+                      {shouldShowCallManager(selectedOrder) && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              // Get restaurant owner phone number
+                              const restaurantResult = await getRestaurantSettings(selectedOrder.restaurantId);
+                              
+                              if (restaurantResult.success && restaurantResult.data?.phone) {
+                                // Direct phone call to restaurant
+                                const phoneNumber = restaurantResult.data.phone;
+                                const telUrl = `tel:${phoneNumber}`;
+                                window.location.href = telUrl;
+                                
+                                toast.success('Calling manager...', {
+                                  description: `Dialing ${phoneNumber}`,
+                                });
+                              } else {
+                                toast.error('Phone number not available', {
+                                  description: 'Restaurant contact information is not available.',
+                                });
+                              }
+                            } catch (error) {
+                              console.error('Error calling manager:', error);
+                              toast.error('Failed to call manager', {
+                                description: 'An unexpected error occurred. Please try again.',
+                              });
+                            }
+                          }}
+                          className="w-full px-6 py-3 border-2 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L6.16 11.37a11.045 11.045 0 005.516 5.516l1.983-4.064a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                          Call Manager
+                        </button>
+                      )}
+                      
                       {selectedOrder.status === 'pending' && (
                         <button
                           onClick={() => {

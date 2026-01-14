@@ -14,7 +14,9 @@ import {
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { 
     updatePayoutRequestStatus,
-    PayoutRequest
+    PayoutRequest,
+    getAllPaymentDetails,
+    PaymentDetails
 } from '@/app/(utils)/firebaseOperations';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '@/app/(utils)/firebase';
@@ -23,6 +25,7 @@ export default function SuperAdminPayoutsPage() {
     const { user } = useAuth();
     const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
     const [filteredRequests, setFilteredRequests] = useState<PayoutRequest[]>([]);
+    const [paymentDetails, setPaymentDetails] = useState<PaymentDetails[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'paid' | 'rejected'>('all');
     const [isLoading, setIsLoading] = useState(true);
@@ -56,6 +59,22 @@ export default function SuperAdminPayoutsPage() {
 
         return () => unsubscribe();
     }, [user]);
+
+    // Load payment details
+    useEffect(() => {
+        const loadPaymentDetails = async () => {
+            try {
+                const result = await getAllPaymentDetails();
+                if (result.success && result.data) {
+                    setPaymentDetails(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading payment details:', error);
+            }
+        };
+
+        loadPaymentDetails();
+    }, []);
 
     // Filter payout requests
     useEffect(() => {
@@ -153,6 +172,11 @@ export default function SuperAdminPayoutsPage() {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    // Get payment details for a restaurant
+    const getRestaurantPaymentDetails = (restaurantId: string) => {
+        return paymentDetails.find(pd => pd.restaurantId === restaurantId);
     };
 
     // Loading state
@@ -424,6 +448,80 @@ export default function SuperAdminPayoutsPage() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Restaurant Payment Details */}
+                                {(() => {
+                                    const restaurantPaymentDetails = getRestaurantPaymentDetails(selectedPayout.restaurantId);
+                                    return restaurantPaymentDetails ? (
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <h4 className="font-medium text-blue-800 dark:text-blue-200">Restaurant Payment Details</h4>
+                                                {restaurantPaymentDetails.isVerified ? (
+                                                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Verified</span>
+                                                ) : (
+                                                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Unverified</span>
+                                                )}
+                                            </div>
+                                            
+                                            {restaurantPaymentDetails.preferredMethod === 'bank' && restaurantPaymentDetails.bankDetails && (
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <span className="text-blue-700 dark:text-blue-300">Account Holder:</span>
+                                                            <p className="font-medium text-blue-900 dark:text-blue-100">
+                                                                {restaurantPaymentDetails.bankDetails.accountHolderName}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-blue-700 dark:text-blue-300">Bank:</span>
+                                                            <p className="font-medium text-blue-900 dark:text-blue-100">
+                                                                {restaurantPaymentDetails.bankDetails.bankName}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-blue-700 dark:text-blue-300">Account Number:</span>
+                                                            <p className="font-mono text-blue-900 dark:text-blue-100">
+                                                                {restaurantPaymentDetails.bankDetails.accountNumber}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-blue-700 dark:text-blue-300">IFSC Code:</span>
+                                                            <p className="font-mono text-blue-900 dark:text-blue-100">
+                                                                {restaurantPaymentDetails.bankDetails.ifscCode}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {restaurantPaymentDetails.preferredMethod === 'upi' && restaurantPaymentDetails.upiDetails && (
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <span className="text-blue-700 dark:text-blue-300">UPI ID:</span>
+                                                            <p className="font-mono text-blue-900 dark:text-blue-100">
+                                                                {restaurantPaymentDetails.upiDetails.upiId}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-blue-700 dark:text-blue-300">Name:</span>
+                                                            <p className="font-medium text-blue-900 dark:text-blue-100">
+                                                                {restaurantPaymentDetails.upiDetails.upiName}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                                            <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">⚠️ No Payment Details</h4>
+                                            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                                                This restaurant hasn't configured their payment details yet. Ask them to add bank account or UPI details in their settings.
+                                            </p>
+                                        </div>
+                                    );
+                                })()}
 
                                 <div>
                                     <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Transaction Count</label>

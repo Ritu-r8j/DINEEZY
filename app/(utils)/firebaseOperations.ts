@@ -15,6 +15,7 @@ import {
   limitToLast
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { sendNotification } from './notification';
 
 export interface UserData {
   uid: string;
@@ -286,6 +287,17 @@ export interface RestaurantSettings {
   }>;
   // Next Visit Coupon Settings
   nextVisitCouponDiscount?: number; // Discount percentage for next visit coupons (default: 10%)
+  
+  // Business Type Configuration
+  businessType?: 'QSR' | 'RESTO'; // Quick Service Restaurant or Restaurant
+  
+  // Special Instructions Configuration
+  specialInstructions?: Array<{
+    id: string;
+    label: string;
+    category: 'spice' | 'preparation' | 'dietary' | 'packaging' | 'other';
+    active: boolean;
+  }>;
 }
 
 export const saveRestaurantSettings = async (
@@ -835,8 +847,6 @@ export const getTransactionsByDateRange = async (
     const startTimestamp = Timestamp.fromDate(startDate);
     const endTimestamp = Timestamp.fromDate(endDate);
     
-    console.log('Querying transactions between:', startDate, 'and', endDate);
-    
     const q = query(
       transactionsRef,
       where('restaurantId', '==', restaurantId),
@@ -852,7 +862,6 @@ export const getTransactionsByDateRange = async (
       transactions.push(doc.data() as Transaction);
     });
 
-    console.log('Found transactions in date range:', transactions.length);
     return { success: true, data: transactions };
   } catch (error: any) {
     console.error('Error getting transactions by date range:', error);
@@ -863,13 +872,8 @@ export const getTransactionsByDateRange = async (
 // Get day-wise transaction analytics with payout request filtering
 export const getDayWiseTransactionAnalytics = async (restaurantId: string, days: number = 30) => {
   try {
-    console.log('=== STARTING DAY-WISE ANALYTICS ===');
-    console.log('Restaurant ID:', restaurantId, 'Days:', days);
-    
-    // For "Today" filter, use the force calculation logic that works
+    // For "Today" filter, use optimized calculation
     if (days === 1) {
-      console.log('Using direct calculation for TODAY filter');
-      
       // Get all transactions
       const transactionsRef = collection(db, 'transactions');
       const q = query(
@@ -897,8 +901,6 @@ export const getDayWiseTransactionAnalytics = async (restaurantId: string, days:
         return transactionDateString === todayString && t.paymentStatus === 'completed';
       });
 
-      console.log('Today completed transactions found:', todayCompletedTransactions.length);
-
       // Get existing payout requests to exclude already requested transactions
       const payoutRequestsResult = await getRestaurantPayoutRequests(restaurantId);
       let excludedTransactionIds: string[] = [];
@@ -910,21 +912,21 @@ export const getDayWiseTransactionAnalytics = async (restaurantId: string, days:
         );
         
         excludedTransactionIds = processedPayouts.flatMap(p => p.transactionIds || []);
-        console.log('Excluded transaction IDs from pending/approved/paid payouts:', excludedTransactionIds);
       }
 
       // Filter out transactions that are already in pending/approved payout requests
+      // AND filter out cash/pay-later transactions (restaurant already has the money)
       const availableTransactions = todayCompletedTransactions.filter(t => 
-        !excludedTransactionIds.includes(t.id)
+        !excludedTransactionIds.includes(t.id) && 
+        t.paymentMethod !== 'cash' && 
+        t.paymentMethod !== 'pay-later'
       );
 
-      console.log('Available transactions for payout:', availableTransactions.length);
-
-      // Calculate totals directly - NO PLATFORM COMMISSION
+      // Calculate totals (only for online payments)
       const totalRevenue = availableTransactions.reduce((sum, t) => sum + t.amount, 0);
       const totalProcessingFees = availableTransactions.reduce((sum, t) => sum + (t.processingFee || 0), 0);
       const totalNetRevenue = availableTransactions.reduce((sum, t) => sum + (t.netAmount || t.amount), 0);
-      const payoutAmount = totalNetRevenue; // Full net revenue, no platform commission
+      const payoutAmount = totalNetRevenue;
 
       // Create day-wise data structure
       const dayWiseData = [{
@@ -935,7 +937,7 @@ export const getDayWiseTransactionAnalytics = async (restaurantId: string, days:
         processingFees: totalProcessingFees,
         netRevenue: totalNetRevenue,
         onlineTransactions: availableTransactions.filter(t => t.paymentMethod === 'online' || t.paymentMethod === 'card').length,
-        cashTransactions: availableTransactions.filter(t => t.paymentMethod === 'cash').length,
+        cashTransactions: 0, // Cash transactions are not included in payouts
         payoutAmount: payoutAmount
       }];
 
@@ -950,8 +952,6 @@ export const getDayWiseTransactionAnalytics = async (restaurantId: string, days:
         excludedTransactionIds: excludedTransactionIds
       };
 
-      console.log('TODAY ANALYTICS RESULT:', { dayWiseData, totals });
-
       return { 
         success: true, 
         data: {
@@ -962,15 +962,13 @@ export const getDayWiseTransactionAnalytics = async (restaurantId: string, days:
       };
     }
     
-    // For other periods (week/month), use the original logic
+    // For other periods (week/month)
     const endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
     
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days + 1);
     startDate.setHours(0, 0, 0, 0);
-
-    console.log('Date range for analytics:', { startDate, endDate, days });
 
     const transactionsResult = await getTransactionsByDateRange(restaurantId, startDate, endDate);
     
@@ -980,8 +978,6 @@ export const getDayWiseTransactionAnalytics = async (restaurantId: string, days:
 
     const transactions = transactionsResult.data;
     const completedTransactions = transactions.filter(t => t.paymentStatus === 'completed');
-
-    console.log('Transactions found:', transactions.length, 'Completed:', completedTransactions.length);
 
     // Get existing payout requests to exclude already requested transactions
     const payoutRequestsResult = await getRestaurantPayoutRequests(restaurantId);
@@ -994,15 +990,15 @@ export const getDayWiseTransactionAnalytics = async (restaurantId: string, days:
       );
       
       excludedTransactionIds = processedPayouts.flatMap(p => p.transactionIds || []);
-      console.log('Excluded transaction IDs from pending/approved/paid payouts:', excludedTransactionIds);
     }
 
     // Filter out transactions that are already in pending/approved/paid payout requests
+    // AND filter out cash/pay-later transactions (restaurant already has the money)
     const availableTransactions = completedTransactions.filter(t => 
-      !excludedTransactionIds.includes(t.id)
+      !excludedTransactionIds.includes(t.id) &&
+      t.paymentMethod !== 'cash' && 
+      t.paymentMethod !== 'pay-later'
     );
-
-    console.log('Available transactions for payout (multi-day):', availableTransactions.length, 'out of', completedTransactions.length);
 
     // Group transactions by day
     const dayWiseData: { [key: string]: {
@@ -1059,14 +1055,11 @@ export const getDayWiseTransactionAnalytics = async (restaurantId: string, days:
         dayData.processingFees += transaction.processingFee || 0;
         dayData.netRevenue += transaction.netAmount || transaction.amount;
         
-        if (transaction.paymentMethod === 'online' || transaction.paymentMethod === 'card') {
-          dayData.onlineTransactions += 1;
-        } else {
-          dayData.cashTransactions += 1;
-        }
+        // All transactions in availableTransactions are online (cash is filtered out)
+        dayData.onlineTransactions += 1;
         
-        // Calculate payout amount - NO PLATFORM COMMISSION
-        dayData.payoutAmount = dayData.netRevenue; // Full net revenue, no platform commission
+        // Calculate payout amount
+        dayData.payoutAmount = dayData.netRevenue;
       }
     });
 
@@ -1088,13 +1081,6 @@ export const getDayWiseTransactionAnalytics = async (restaurantId: string, days:
       hasAvailableTransactions: availableTransactions.length > 0,
       excludedTransactionIds: excludedTransactionIds
     };
-
-    console.log('MULTI-DAY ANALYTICS RESULT:', { 
-      totalTransactions: completedTransactions.length,
-      availableTransactions: availableTransactions.length,
-      excludedCount: excludedTransactionIds.length,
-      totals 
-    });
 
     return { 
       success: true, 
@@ -1501,10 +1487,48 @@ export const getUserOrders = async (userId: string) => {
 export const updateOrderStatus = async (orderId: string, status: OrderData['status']) => {
   try {
     const orderRef = doc(db, 'orders', orderId);
-    await updateDoc(orderRef, {
+    
+    // Prepare update data
+    const updateData: any = {
       status,
       updatedAt: serverTimestamp(),
-    });
+    };
+    
+    // Update order status
+    if (status === 'delivered') {
+      // Get the order to check payment method
+      const orderSnap = await getDoc(orderRef);
+      if (orderSnap.exists()) {
+        const orderData = orderSnap.data();
+        
+        // If payment method is cash or pay-later and payment is still pending, mark as completed
+        if ((orderData.paymentMethod === 'cash' || orderData.paymentMethod === 'pay-later') && 
+            orderData.paymentStatus === 'pending') {
+          updateData.paymentStatus = 'completed';
+          
+          // Also update the corresponding transaction status
+          try {
+            const transactionsRef = collection(db, 'transactions');
+            const q = query(transactionsRef, where('orderId', '==', orderId));
+            const transactionSnap = await getDocs(q);
+            
+            if (!transactionSnap.empty) {
+              const transactionDoc = transactionSnap.docs[0];
+              await updateDoc(doc(db, 'transactions', transactionDoc.id), {
+                paymentStatus: 'completed',
+                updatedAt: serverTimestamp(),
+                completedAt: serverTimestamp()
+              });
+            }
+          } catch (transactionError) {
+            console.error('Error updating transaction status:', transactionError);
+            // Don't fail the order update if transaction update fails
+          }
+        }
+      }
+    }
+    
+    await updateDoc(orderRef, updateData);
     return { success: true };
   } catch (error: any) {
     console.error('Error updating order status:', error);
@@ -3417,3 +3441,334 @@ export const canUserGetCouponToday = async (userId: string, restaurantId: string
     return { success: false, error: error.message };
   }
 };
+
+// Cron Job Functions
+// Cancel old pending orders (runs every 30 minutes)
+export const cancelOldPendingOrders = async () => {
+  try {
+    console.log('🔍 Searching for old pending orders...');
+    
+    // Calculate 30 minutes ago
+    const thirtyMinutesAgo = new Date();
+    thirtyMinutesAgo.setMinutes(thirtyMinutesAgo.getMinutes() - 30);
+    const cutoffTimestamp = Timestamp.fromDate(thirtyMinutesAgo);
+    
+    // Query for pending orders older than 30 minutes that are NOT reservation orders
+    const ordersRef = collection(db, 'orders');
+    const q = query(
+      ordersRef,
+      where('status', '==', 'pending'),
+      where('createdAt', '<', cutoffTimestamp)
+    );
+
+    const querySnapshot = await getDocs(q);
+    const ordersToCancel: OrderData[] = [];
+    
+    // Filter out reservation orders (orders with reservationId)
+    querySnapshot.forEach((doc) => {
+      const orderData = doc.data() as OrderData;
+      // Only include normal orders (no reservationId or reservationId is null/undefined)
+      if (!orderData.reservationId) {
+        ordersToCancel.push(orderData);
+      }
+    });
+
+    console.log(`📋 Found ${ordersToCancel.length} old pending orders to cancel`);
+
+    if (ordersToCancel.length === 0) {
+      return {
+        success: true,
+        cancelledCount: 0,
+        cancelledOrders: [],
+        message: 'No old pending orders found'
+      };
+    }
+
+    const cancelledOrders: string[] = [];
+    const notificationPromises: Promise<any>[] = [];
+
+    // Cancel each order and send notifications
+    for (const order of ordersToCancel) {
+      try {
+        // Update order status to cancelled
+        const orderRef = doc(db, 'orders', order.orderId);
+        await updateDoc(orderRef, {
+          status: 'cancelled',
+          cancelledAt: serverTimestamp(),
+          cancelledBy: 'system',
+          cancelReason: 'Auto-cancelled: No restaurant response within 30 minutes'
+        });
+
+        cancelledOrders.push(order.orderId);
+        console.log(`❌ Cancelled order: ${order.orderId}`);
+
+        // Get restaurant info for notifications
+        const restaurantResult = await getRestaurantSettings(order.restaurantId);
+        const restaurantName = restaurantResult.success && restaurantResult.data 
+          ? restaurantResult.data.name 
+          : 'Restaurant';
+
+        // Send notification to customer
+        if (order.userId && order.customerInfo.phone) {
+          // For registered users with phone numbers
+          notificationPromises.push(
+            sendNotification(
+              'ORDER_CANCELED',
+              order.customerInfo.phone,
+              {
+                name: order.customerInfo.firstName,
+                orderId: order.orderId,
+                reason: 'No restaurant response within 30 minutes'
+              }
+            )
+          );
+        }
+
+        // Send notification to restaurant admin
+        // Get restaurant settings to find admin phone
+        if (restaurantResult.success && restaurantResult.data && restaurantResult.data.phone) {
+          notificationPromises.push(
+            sendNotification(
+              'ORDER_CANCELED',
+              restaurantResult.data.phone,
+              {
+                name: `Admin (${restaurantName})`,
+                orderId: order.orderId,
+                reason: `Auto-cancelled: Order from ${order.customerInfo.firstName} ${order.customerInfo.lastName} was not confirmed within 30 minutes`
+              }
+            )
+          );
+        }
+
+      } catch (orderError: any) {
+        console.error(`❌ Error cancelling order ${order.orderId}:`, orderError);
+      }
+    }
+
+    // Send all notifications
+    try {
+      await Promise.allSettled(notificationPromises);
+      console.log('📧 Notifications sent for cancelled orders');
+    } catch (notificationError: any) {
+      console.error('❌ Error sending notifications:', notificationError);
+    }
+
+    return {
+      success: true,
+      cancelledCount: cancelledOrders.length,
+      cancelledOrders,
+      message: `Successfully cancelled ${cancelledOrders.length} old pending orders`
+    };
+
+  } catch (error: any) {
+    console.error('❌ Error in cancelOldPendingOrders:', error);
+    return {
+      success: false,
+      error: error.message,
+      cancelledCount: 0,
+      cancelledOrders: []
+    };
+  }
+};
+// Payment Details Management
+export interface PaymentDetails {
+  id: string;
+  restaurantId: string;
+  restaurantName: string;
+  // Bank Details
+  bankDetails?: {
+    accountHolderName: string;
+    accountNumber: string;
+    ifscCode: string;
+    bankName: string;
+    branchName?: string;
+  };
+  // UPI Details
+  upiDetails?: {
+    upiId: string;
+    upiName: string; // Name associated with UPI
+  };
+  // Preferred payment method
+  preferredMethod: 'bank' | 'upi';
+  // Verification status
+  isVerified: boolean;
+  verifiedAt?: any;
+  verifiedBy?: string; // Super admin who verified
+  // Metadata
+  createdAt: any;
+  updatedAt: any;
+}
+
+// Save or update restaurant payment details
+export const savePaymentDetails = async (restaurantId: string, paymentDetails: Omit<PaymentDetails, 'id' | 'createdAt' | 'updatedAt'>) => {
+  try {
+    const paymentRef = doc(db, 'paymentDetails', restaurantId);
+    
+    // Check if payment details already exist
+    const existingDoc = await getDoc(paymentRef);
+    
+    // Clean the data to remove undefined values
+    const cleanPaymentData: any = {
+      restaurantId,
+      restaurantName: paymentDetails.restaurantName,
+      preferredMethod: paymentDetails.preferredMethod,
+      isVerified: paymentDetails.isVerified || false,
+      updatedAt: serverTimestamp(),
+      ...(existingDoc.exists() ? {} : { createdAt: serverTimestamp() })
+    };
+
+    // Only add the relevant payment details based on preferred method
+    if (paymentDetails.preferredMethod === 'bank' && paymentDetails.bankDetails) {
+      cleanPaymentData.bankDetails = {
+        accountHolderName: paymentDetails.bankDetails.accountHolderName,
+        accountNumber: paymentDetails.bankDetails.accountNumber,
+        ifscCode: paymentDetails.bankDetails.ifscCode,
+        bankName: paymentDetails.bankDetails.bankName,
+        ...(paymentDetails.bankDetails.branchName && { branchName: paymentDetails.bankDetails.branchName })
+      };
+    } else if (paymentDetails.preferredMethod === 'upi' && paymentDetails.upiDetails) {
+      cleanPaymentData.upiDetails = {
+        upiId: paymentDetails.upiDetails.upiId,
+        upiName: paymentDetails.upiDetails.upiName
+      };
+    }
+
+    // Add verification details if they exist
+    if (paymentDetails.verifiedAt) cleanPaymentData.verifiedAt = paymentDetails.verifiedAt;
+    if (paymentDetails.verifiedBy) cleanPaymentData.verifiedBy = paymentDetails.verifiedBy;
+
+    cleanPaymentData.id = restaurantId;
+
+    await setDoc(paymentRef, cleanPaymentData, { merge: true });
+    
+    return { 
+      success: true, 
+      message: 'Payment details saved successfully',
+      data: cleanPaymentData
+    };
+  } catch (error: any) {
+    console.error('Error saving payment details:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+};
+
+// Get restaurant payment details
+export const getPaymentDetails = async (restaurantId: string) => {
+  try {
+    const paymentRef = doc(db, 'paymentDetails', restaurantId);
+    const paymentSnap = await getDoc(paymentRef);
+    
+    if (paymentSnap.exists()) {
+      return { 
+        success: true, 
+        data: paymentSnap.data() as PaymentDetails 
+      };
+    } else {
+      return { 
+        success: false, 
+        error: 'Payment details not found' 
+      };
+    }
+  } catch (error: any) {
+    console.error('Error getting payment details:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+};
+
+// Get all payment details (for super admin)
+export const getAllPaymentDetails = async () => {
+  try {
+    const paymentDetailsRef = collection(db, 'paymentDetails');
+    const querySnapshot = await getDocs(paymentDetailsRef);
+    
+    const paymentDetails: PaymentDetails[] = [];
+    querySnapshot.forEach((doc) => {
+      paymentDetails.push(doc.data() as PaymentDetails);
+    });
+
+    return { 
+      success: true, 
+      data: paymentDetails 
+    };
+  } catch (error: any) {
+    console.error('Error getting all payment details:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+};
+
+// Verify payment details (super admin only)
+export const verifyPaymentDetails = async (restaurantId: string, verifiedBy: string) => {
+  try {
+    const paymentRef = doc(db, 'paymentDetails', restaurantId);
+    
+    await updateDoc(paymentRef, {
+      isVerified: true,
+      verifiedAt: serverTimestamp(),
+      verifiedBy,
+      updatedAt: serverTimestamp()
+    });
+
+    return { 
+      success: true, 
+      message: 'Payment details verified successfully' 
+    };
+  } catch (error: any) {
+    console.error('Error verifying payment details:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+};
+
+// Update payout request with payment details (for super admin)
+export const updatePayoutWithPayment = async (
+  payoutId: string, 
+  paymentDetails: {
+    utrNumber?: string;
+    transactionId?: string;
+    paymentMethod: 'bank' | 'upi';
+    paidAmount: number;
+    paymentDate: Date;
+    notes?: string;
+  },
+  updatedBy: string
+) => {
+  try {
+    const payoutRef = doc(db, 'payoutRequests', payoutId);
+    
+    await updateDoc(payoutRef, {
+      status: 'paid',
+      paymentDetails: {
+        ...paymentDetails,
+        paidAt: serverTimestamp(),
+        paidBy: updatedBy
+      },
+      processedAt: serverTimestamp(),
+      processedBy: updatedBy,
+      updatedAt: serverTimestamp()
+    });
+
+    return { 
+      success: true, 
+      message: 'Payout marked as paid successfully' 
+    };
+  } catch (error: any) {
+    console.error('Error updating payout payment:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+};
+
+

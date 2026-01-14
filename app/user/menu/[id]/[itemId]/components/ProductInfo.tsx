@@ -60,6 +60,29 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
             <div className="grid lg:grid-cols-2 gap-4 xs:gap-6 lg:gap-8 animate-fade-in">
                 {/* Enhanced Product Image */}
                 <div className="relative group space-y-4">
+                    {/* Video Section - Moved to top if present */}
+                    {menuItem.video && (
+                        <div className="aspect-video rounded-2xl xs:rounded-3xl overflow-hidden shadow-xl bg-card relative">
+                            <video
+                                src={menuItem.video}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover rounded-2xl xs:rounded-3xl"
+                                poster={menuItem.image}
+                                preload="auto"
+                            >
+                                Your browser does not support the video tag.
+                            </video>
+                            {/* Video Badge */}
+                            <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                Video Preview
+                            </div>
+                        </div>
+                    )}
+
                     {/* Main Image */}
                     <div className="aspect-square rounded-2xl xs:rounded-3xl overflow-hidden shadow-xl bg-card relative">
                         <Image
@@ -73,26 +96,6 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
                         {/* Enhanced Gradient Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl xs:rounded-3xl"></div>
                     </div>
-
-                    {/* Video Section */}
-                    {menuItem.video && (
-                        <div className="aspect-video rounded-2xl xs:rounded-3xl overflow-hidden shadow-xl bg-card relative">
-                            <video
-                                src={menuItem.video}
-                                controls
-                                className="w-full h-full object-cover rounded-2xl xs:rounded-3xl"
-                                poster={menuItem.image}
-                                preload="metadata"
-                            >
-                                Your browser does not support the video tag.
-                            </video>
-                            {/* Video Badge */}
-                            <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
-                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                                Video Preview
-                            </div>
-                        </div>
-                    )}
 
                     {/* Enhanced Badges Container */}
                     <div className="absolute top-3 xs:top-4 right-3 xs:right-4 flex flex-col gap-2">
@@ -250,6 +253,62 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
                             )}
                         </div>
                     </div>
+
+                    {/* Allergens */}
+                    {menuItem.allergens && menuItem.allergens.length > 0 && (
+                        <div className="space-y-3">
+                            <h3 className="text-sm xs:text-base font-bold text-foreground flex items-center gap-2">
+                                <div className="w-1 h-3 xs:h-4 bg-gradient-to-b from-orange-400 to-red-500 rounded-full"></div>
+                                Allergen Information
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                                {(Array.isArray(menuItem.allergens)
+                                    ? menuItem.allergens
+                                    : (menuItem.allergens as string).split(',')
+                                ).map((allergen: string, index: number) => {
+                                    const trimmedAllergen = allergen.trim();
+                                    if (!trimmedAllergen) return null;
+
+                                    return (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-semibold bg-orange-100/80 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200/50 dark:border-orange-700/50 shadow-sm hover:shadow-md transition-all hover:scale-105"
+                                        >
+                                            {trimmedAllergen}
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tags */}
+                    {menuItem.tags && menuItem.tags.length > 0 && (
+                        <div className="space-y-3">
+                            <h3 className="text-sm xs:text-base font-bold text-foreground flex items-center gap-2">
+                                <div className="w-1 h-3 xs:h-4 bg-gradient-to-b from-blue-400 to-purple-500 rounded-full"></div>
+                                Tags
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                                {(Array.isArray(menuItem.tags)
+                                    ? menuItem.tags
+                                    : (menuItem.tags as string).split(',')
+                                ).map((tag: string, index: number) => {
+                                    const trimmedTag = tag.trim();
+                                    if (!trimmedTag) return null;
+
+                                    return (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-semibold bg-blue-100/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-700/50 shadow-sm hover:shadow-md transition-all hover:scale-105"
+                                        >
+                                            {trimmedTag}
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Enhanced Nutritional Information */}
                     {menuItem.nutritionalInfo && Object.values(menuItem.nutritionalInfo).some(value => value !== undefined && value !== null) && (

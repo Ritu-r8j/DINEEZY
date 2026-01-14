@@ -31,9 +31,11 @@ import {
 } from "@/components/ui/chart";
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { getRestaurantOrders } from '@/app/(utils)/firebaseOperations';
+import { useBusinessType } from '@/app/(utils)/useFeatures';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { getBusinessType, isQSR, isRESTO } = useBusinessType();
   const [timeRange, setTimeRange] = useState('today');
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);

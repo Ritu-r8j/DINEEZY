@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Loader2, ChevronLeft, ChevronRight, Check, ChevronUp, ChevronDown, CircleCheck } from 'lucide-react';
@@ -23,6 +23,7 @@ import { useAuth } from '@/app/(contexts)/AuthContext';
 import { toast } from 'sonner';
 import { sendNotification } from '@/app/(utils)/notification';
 import RazorpayPayment from '@/app/(components)/RazorpayPayment';
+import { useBusinessType } from '@/app/(utils)/useFeatures';
 
 // Use CartMenuItem from cartUtils instead of local interface
 
@@ -54,6 +55,16 @@ export default function Checkout() {
     const [currentStep, setCurrentStep] = useState(1);
     const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
 
+    // Get restaurant ID for business type checking - use state to avoid SSR issues
+    const [restaurantId, setRestaurantId] = useState<string | null>(null);
+    const { getBusinessType, businessType } = useBusinessType(restaurantId || undefined);
+
+    // Initialize restaurantId on client side only
+    useEffect(() => {
+        const id = CartManager.getRestaurantId();
+        setRestaurantId(id);
+    }, []);
+
     // Customer information form state
     const [customerInfo, setCustomerInfo] = useState({
         firstName: '',
@@ -61,12 +72,31 @@ export default function Checkout() {
         phone: ''
     });
 
-    const [orderTypes, setOrderTypes] = useState<OrderType[]>([
-        { id: 'dine-in', name: 'Dine In', description: 'Eat at the restaurant', icon: '🍽️', selected: true },
-        { id: 'takeaway', name: 'Takeaway', description: 'Pick up in 20-30 min', icon: '🥡', selected: false },
-        { id: 'pre-order', name: 'Pre-order', description: 'Schedule for later today', icon: '⏰', selected: false },
-        // { id: 'delivery', name: 'Delivery', description: 'Deliver to your address', icon: '🚚', selected: false }
-    ]);
+    // Initialize order types based on business type
+    const getAvailableOrderTypes = useCallback((): OrderType[] => {
+        const businessType = getBusinessType();
+        const allOrderTypes = [
+            { id: 'dine-in', name: 'Dine In', description: 'Eat at the restaurant', icon: '🍽️', selected: true },
+            { id: 'takeaway', name: 'Takeaway', description: 'Pick up in 20-30 min', icon: '🥡', selected: false },
+            { id: 'pre-order', name: 'Pre-order', description: 'Schedule for later today', icon: '⏰', selected: false },
+            // { id: 'delivery', name: 'Delivery', description: 'Deliver to your address', icon: '🚚', selected: false }
+        ];
+
+        // For QSR restaurants, exclude dine-in option
+        if (businessType === 'QSR') {
+            const qsrOrderTypes = allOrderTypes.filter(type => type.id !== 'dine-in');
+            // Set takeaway as default selected for QSR
+            return qsrOrderTypes.map(type => ({
+                ...type,
+                selected: type.id === 'takeaway'
+            }));
+        }
+
+        // For RESTO restaurants or unknown business type, show all options
+        return allOrderTypes;
+    }, [businessType, restaurantId]);
+
+    const [orderTypes, setOrderTypes] = useState<OrderType[]>(getAvailableOrderTypes());
 
     const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([
         { id: 'standard', name: 'Standard Delivery', description: '30-45 min', time: '30-45 min', price: 3.99, selected: true },
@@ -75,6 +105,7 @@ export default function Checkout() {
     ]);
 
     const [specialInstructions, setSpecialInstructions] = useState('');
+    const [dynamicSpecialInstructions, setDynamicSpecialInstructions] = useState<any[]>([]);
     const [tablePreference, setTablePreference] = useState('');
     const [diningPreferences, setDiningPreferences] = useState({
         windowSeat: false,
@@ -130,6 +161,18 @@ export default function Checkout() {
         
         return slots;
     };
+
+    // Helper function to get category icons
+    const getCategoryIcon = (category: string) => {
+        const iconMap: { [key: string]: string } = {
+            'spice': '🌶️',
+            'preparation': '👨‍🍳',
+            'dietary': '🥗',
+            'packaging': '📦',
+            'other': '📝'
+        };
+        return iconMap[category] || '📝';
+    };
     
     // Initialize time slots when component mounts
     useEffect(() => {
@@ -139,6 +182,15 @@ export default function Checkout() {
     // Razorpay payment state
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentProcessing, setPaymentProcessing] = useState(false);
+    const [generatedOrderId, setGeneratedOrderId] = useState<string | null>(null);
+
+    // Update order types when restaurant info is loaded
+    useEffect(() => {
+        if (restaurantInfo) {
+            const availableOrderTypes = getAvailableOrderTypes();
+            setOrderTypes(availableOrderTypes);
+        }
+    }, [restaurantInfo, getAvailableOrderTypes]);
 
     // Load cart items and restaurant info on component mount
     useEffect(() => {
@@ -158,6 +210,18 @@ export default function Checkout() {
                     const restaurantResult = await getRestaurantSettings(restaurantId);
                     if (restaurantResult.success && restaurantResult.data) {
                         setRestaurantInfo(restaurantResult.data);
+                        
+                        // Load dynamic special instructions
+                        const activeInstructions = (restaurantResult.data.specialInstructions || [])
+                            .filter((inst: any) => inst.active)
+                            .map((inst: any) => ({
+                                id: inst.id,
+                                text: inst.label,
+                                category: inst.category,
+                                icon: getCategoryIcon(inst.category)
+                            }));
+                        
+                        setDynamicSpecialInstructions(activeInstructions);
                     }
                 }
 
@@ -392,6 +456,22 @@ export default function Checkout() {
             return;
         }
 
+        // Generate order ID once
+        const generateOrderId = () => {
+            const now = new Date();
+            const year = now.getFullYear().toString().slice(-2);
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hour = now.getHours().toString().padStart(2, '0');
+            const minute = now.getMinutes().toString().padStart(2, '0');
+            const randomSuffix = Math.random().toString(36).substr(2, 4).toUpperCase();
+
+            return `ORD${year}${month}${day}${hour}${minute}${randomSuffix}`;
+        };
+
+        const orderId = generateOrderId();
+        setGeneratedOrderId(orderId);
+
         // Check if this is a dine-in order with "pay later" option
         const isDineInPayLater = selectedOrderType?.id === 'dine-in' && paymentTiming === 'later';
 
@@ -402,11 +482,11 @@ export default function Checkout() {
         }
 
         // Process order directly for pay later only
-        await processOrder(null);
+        await processOrder(null, orderId);
     };
 
     // Process order after payment or for cash/pay later orders
-    const processOrder = async (paymentResult: any) => {
+    const processOrder = async (paymentResult: any, preGeneratedOrderId?: string) => {
         setIsPlacingOrder(true);
         setError(null);
 
@@ -417,8 +497,8 @@ export default function Checkout() {
                 throw new Error('Restaurant ID not found');
             }
 
-            // Generate meaningful order ID
-            const generateOrderId = () => {
+            // Use pre-generated order ID if provided, otherwise generate new one
+            const orderId = preGeneratedOrderId || generatedOrderId || (() => {
                 const now = new Date();
                 const year = now.getFullYear().toString().slice(-2);
                 const month = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -428,7 +508,7 @@ export default function Checkout() {
                 const randomSuffix = Math.random().toString(36).substr(2, 4).toUpperCase();
 
                 return `ORD${year}${month}${day}${hour}${minute}${randomSuffix}`;
-            };
+            })();
 
             // Generate or get guest session ID for guest users
             let guestSessionId = null;
@@ -440,7 +520,6 @@ export default function Checkout() {
                 }
             }
 
-            const orderId = generateOrderId();
             const isDineInPayLater = selectedOrderType?.id === 'dine-in' && paymentTiming === 'later';
 
             // Determine payment status and method
@@ -448,17 +527,18 @@ export default function Checkout() {
             let finalPaymentMethod = 'online'; // Default to online
 
             if (paymentResult) {
-                // Online payment completed
-                paymentStatus = 'completed';
-                finalPaymentMethod = 'online'; // Always online for Razorpay payments
+                // Check if it's online payment or cash on delivery
+                if (paymentResult.method === 'online') {
+                    paymentStatus = 'completed';
+                    finalPaymentMethod = 'online';
+                } else if (paymentResult.method === 'cash') {
+                    paymentStatus = 'pending'; // Cash payments are pending until delivery
+                    finalPaymentMethod = 'cash';
+                }
             } else if (isDineInPayLater) {
                 // Pay later at restaurant
                 paymentStatus = 'pending';
                 finalPaymentMethod = 'pay-later';
-            } else {
-                // Default case - should not reach here as payment modal handles this
-                paymentStatus = 'pending';
-                finalPaymentMethod = 'online';
             }
 
             // Create order data for database
@@ -501,12 +581,21 @@ export default function Checkout() {
                 ...(guestSessionId && { guestSessionId }),
                 isGuest: !user,
                 ...(selectedReservation && { reservationId: selectedReservation }),
-                ...(paymentResult && {
+                ...(paymentResult && paymentResult.method === 'online' && {
                     paymentDetails: {
                         razorpayOrderId: paymentResult.orderId,
                         razorpayPaymentId: paymentResult.paymentId,
                         razorpaySignature: paymentResult.signature,
                         processingFee: paymentResult.processingFee || 0,
+                        totalAmount: paymentResult.totalAmount || total,
+                        paidAt: new Date()
+                    }
+                }),
+                ...(paymentResult && paymentResult.method === 'cash' && {
+                    paymentDetails: {
+                        paymentMethod: 'cash',
+                        paymentId: paymentResult.paymentId,
+                        processingFee: 0,
                         totalAmount: paymentResult.totalAmount || total,
                         paidAt: new Date()
                     }
@@ -521,6 +610,7 @@ export default function Checkout() {
             }
 
             // Create transaction record for pay-later payments only (online payments already have transactions from verification)
+            // Cash on delivery transactions are already created in the payment modal
             if (finalPaymentMethod === 'pay-later') {
                 await createTransaction({
                     orderId,
@@ -628,7 +718,7 @@ export default function Checkout() {
     // Handle successful payment
     const handlePaymentSuccess = (paymentResult: any) => {
         setShowPaymentModal(false);
-        processOrder(paymentResult);
+        processOrder(paymentResult, generatedOrderId || undefined);
     };
 
     // Handle payment error
@@ -931,54 +1021,62 @@ export default function Checkout() {
                                                 </div>
                                             )}
                                             
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
                                                 {orderTypes.map((type) => (
                                                     <div
                                                         key={type.id}
                                                         onClick={() => selectOrderType(type.id)}
-                                                        className={`${styles.orderTypeCard} p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border-2 transition-all ${
+                                                        className={`${styles.orderTypeCard} p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border-2 transition-all relative ${
                                                             isReservationPreOrder 
                                                                 ? 'cursor-not-allowed opacity-60' 
                                                                 : 'cursor-pointer'
                                                         } ${type.selected
-                                                            ? 'border-gray-900 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/50 shadow-lg'
-                                                            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                                            ? 'border-gray-900 dark:border-gray-400 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 shadow-2xl ring-4 ring-gray-900/30 dark:ring-gray-400/30 scale-105'
+                                                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:shadow-lg'
                                                             } ${isReservationPreOrder && !type.selected ? 'bg-gray-100 dark:bg-gray-800/30' : ''}`}
                                                     >
+                                                        {/* Checkmark indicator for selected state */}
+                                                        {type.selected && (
+                                                            <div className="absolute top-3 right-3 w-7 h-7 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center shadow-xl ring-2 ring-white/50 dark:ring-gray-900/50">
+                                                                <svg className="w-5 h-5 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </div>
+                                                        )}
                                                         <div className="text-center">
-                                                            <div className="mb-2 sm:mb-3 flex items-center justify-center">
+                                                            <div className="mb-3 sm:mb-4 flex items-center justify-center">
                                                                 {type.id === 'dine-in' && (
-                                                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <svg className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 ${type.selected ? 'text-white dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'} transition-all`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 7h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4-4v4M8 3v4m8-4v4" />
                                                                         <circle cx="12" cy="12" r="3" strokeWidth="1.2" />
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M10.5 12h3M12 10.5v3" />
                                                                     </svg>
                                                                 )}
                                                                 {type.id === 'takeaway' && (
-                                                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <svg className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 ${type.selected ? 'text-white dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'} transition-all`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                                                     </svg>
                                                                 )}
                                                                 {type.id === 'pre-order' && (
-                                                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <svg className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 ${type.selected ? 'text-white dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'} transition-all`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                     </svg>
                                                                 )}
                                                                 {type.id === 'delivery' && (
-                                                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <svg className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 ${type.selected ? 'text-white dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'} transition-all`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 17l4 4 4-4m-4-5v9m5-5v2a2 2 0 11-4 0v-2m0 0V7a2 2 0 114 0v10a2 2 0 01-2 2H6a2 2 0 01-2-2z" />
                                                                     </svg>
                                                                 )}
                                                             </div>
-                                                            <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white mb-1">
+                                                            <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-2 ${type.selected ? 'text-white dark:text-gray-100' : 'text-gray-900 dark:text-white'} transition-all`}>
                                                                 {type.name}
                                                                 {isReservationPreOrder && type.selected && (
-                                                                    <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
+                                                                    <span className="ml-2 text-xs bg-white/20 dark:bg-gray-900/30 text-white dark:text-gray-100 px-2 py-1 rounded-full">
                                                                         Selected
                                                                     </span>
                                                                 )}
                                                             </h3>
-                                                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                            <p className={`text-xs sm:text-sm ${type.selected ? 'text-white/90 dark:text-gray-100/90' : 'text-gray-600 dark:text-gray-400'} transition-all`}>
                                                                 {isReservationPreOrder && type.selected 
                                                                     ? 'Linked to your reservation' 
                                                                     : type.description
@@ -1201,36 +1299,35 @@ export default function Checkout() {
                                             <div className="mb-4">
                                                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">Quick select (tap to add):</p>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {[
-                                                        { icon: '🌶️', text: 'Less spicy' },
-                                                        { icon: '🔥', text: 'Extra spicy' },
-                                                        { icon: '🧂', text: 'Less salt' },
-                                                        { icon: '🧈', text: 'No butter' },
-                                                        { icon: '🥜', text: 'No nuts' },
-                                                        { icon: '🧄', text: 'No onion/garlic' },
-                                                        { icon: '🌿', text: 'Extra veggies' },
-                                                        { icon: '🍖', text: 'Well done' },
-                                                        { icon: '🥗', text: 'Dressing on side' },
-                                                        { icon: '🍴', text: 'Extra cutlery' },
-                                                        { icon: '📦', text: 'Separate packaging' },
-                                                        { icon: '♻️', text: 'Eco-friendly packaging' }
-                                                    ].map((option, index) => (
-                                                        <button
-                                                            key={index}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const currentText = specialInstructions.trim();
-                                                                const newText = currentText 
-                                                                    ? `${currentText}, ${option.text}` 
-                                                                    : option.text;
-                                                                setSpecialInstructions(newText);
-                                                            }}
-                                                            className="px-3 py-2 text-xs sm:text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:shadow-md"
-                                                        >
-                                                            <span>{option.icon}</span>
-                                                            <span className="text-gray-700 dark:text-gray-300">{option.text}</span>
-                                                        </button>
-                                                    ))}
+                                                    {dynamicSpecialInstructions.length > 0 ? (
+                                                        dynamicSpecialInstructions.map((option) => (
+                                                            <button
+                                                                key={option.id}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const currentText = specialInstructions.trim();
+                                                                    const newText = currentText 
+                                                                        ? `${currentText}, ${option.text}` 
+                                                                        : option.text;
+                                                                    setSpecialInstructions(newText);
+                                                                }}
+                                                                className="px-3 py-2 text-xs sm:text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:shadow-md"
+                                                            >
+                                                                <span>{option.icon}</span>
+                                                                <span className="text-gray-700 dark:text-gray-300">{option.text}</span>
+                                                            </button>
+                                                        ))
+                                                    ) : (
+                                                        // Show a message that admin needs to configure instructions
+                                                        <div className="w-full p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                                            <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                                                                <strong>No custom instructions available</strong>
+                                                            </p>
+                                                            <p className="text-xs text-blue-600 dark:text-blue-400">
+                                                                The restaurant hasn't configured special instruction options yet. You can still type your custom instructions in the text area below.
+                                                            </p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -1541,22 +1638,27 @@ export default function Checkout() {
 
                     {/* Right Column - Order Summary (Desktop Only) */}
                     <div className="hidden xl:block xl:col-span-1">
-                        <div className={`bg-white dark:bg-background/70 rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-gray-200 dark:border-foreground/5 p-4 sm:p-6 sticky top-20 dark:hover:border-primary/20 transition-all duration-300 ${styles.staggerIn}`}>
-                            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Order Summary</h2>
+                        <div className={`${styles.summaryCard} bg-gradient-to-br from-white to-gray-50 dark:from-gray-800/90 dark:to-gray-900/90 rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 p-6 sticky top-20 backdrop-blur-sm dark:hover:border-primary/30 transition-all duration-300 ${styles.staggerIn}`}>
+                            <div className="flex items-center justify-between mb-5">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Order Summary</h2>
+                                <div className="w-10 h-10 bg-gradient-to-br from-gray-900 to-gray-700 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <span className="text-white text-sm font-bold">{cartItems.length}</span>
+                                </div>
+                            </div>
 
                             {/* Cart Items */}
-                            <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4">
+                            <div className="space-y-3 mb-5 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                                 {cartItems.map((item) => (
-                                    <div key={item.id} className="flex items-center gap-2 sm:gap-3">
+                                    <div key={item.id} className={`${styles.interactiveCard} flex items-center gap-3 p-3 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700`}>
                                         <Image
                                             src={item.image}
                                             alt={item.name}
-                                            width={40}
-                                            height={40}
-                                            className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
+                                            width={50}
+                                            height={50}
+                                            className="w-12 h-12 object-cover rounded-lg flex-shrink-0 ring-2 ring-gray-200 dark:ring-gray-700"
                                         />
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                            <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                                                 {item.name}
                                                 {item.selectedVariant && (
                                                     <span className="text-xs text-gray-500 ml-1">({item.selectedVariant.name})</span>
@@ -1569,53 +1671,53 @@ export default function Checkout() {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white">
                                                 ₹{((item.customPrice || item.price) * (item.quantity || 1)).toFixed(2)}
                                             </p>
-                                            <p className="text-xs text-gray-600 dark:text-gray-400">Qty: {item.quantity || 1}</p>
+                                            <p className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full inline-block">Qty: {item.quantity || 1}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Price Breakdown */}
-                            <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-                                <div className="flex justify-between text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
-                                    <span>Subtotal</span>
-                                    <span>₹{subtotal.toFixed(2)}</span>
+                            <div className="space-y-3 mb-5 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                                <div className="flex justify-between text-gray-700 dark:text-gray-300 text-sm">
+                                    <span className="font-medium">Subtotal</span>
+                                    <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
                                 </div>
                                 {selectedOrderType?.id === 'delivery' && (
-                                    <div className="flex justify-between text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
-                                        <span>Delivery Fee</span>
-                                        <span>₹{deliveryFee.toFixed(2)}</span>
+                                    <div className="flex justify-between text-gray-700 dark:text-gray-300 text-sm">
+                                        <span className="font-medium">Delivery Fee</span>
+                                        <span className="font-semibold">₹{deliveryFee.toFixed(2)}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
-                                    <span>Tax (0%)</span>
-                                    <span>₹{tax.toFixed(2)}</span>
+                                <div className="flex justify-between text-gray-700 dark:text-gray-300 text-sm">
+                                    <span className="font-medium">Tax (0%)</span>
+                                    <span className="font-semibold">₹{tax.toFixed(2)}</span>
                                 </div>
                                 {convenienceFee > 0 && (
-                                    <div className="flex justify-between text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
-                                        <span>Convenience Fee</span>
-                                        <span>₹{convenienceFee.toFixed(2)}</span>
+                                    <div className="flex justify-between text-gray-700 dark:text-gray-300 text-sm">
+                                        <span className="font-medium">Convenience Fee</span>
+                                        <span className="font-semibold">₹{convenienceFee.toFixed(2)}</span>
                                     </div>
                                 )}
                                 {selectedCoupon && (
-                                    <div className="flex justify-between text-green-600 dark:text-green-400 text-xs sm:text-sm">
-                                        <span>Coupon Discount ({selectedCoupon.discountPercentage}%)</span>
-                                        <span>-₹{couponDiscount.toFixed(2)}</span>
+                                    <div className="flex justify-between text-green-600 dark:text-green-400 text-sm">
+                                        <span className="font-medium">Coupon Discount ({selectedCoupon.discountPercentage}%)</span>
+                                        <span className="font-semibold">-₹{couponDiscount.toFixed(2)}</span>
                                     </div>
                                 )}
                                 {promoCode && (
-                                    <div className="flex justify-between text-green-600 dark:text-green-400 text-xs sm:text-sm">
-                                        <span>Promo Discount</span>
-                                        <span>-₹{promoDiscount.toFixed(2)}</span>
+                                    <div className="flex justify-between text-green-600 dark:text-green-400 text-sm">
+                                        <span className="font-medium">Promo Discount</span>
+                                        <span className="font-semibold">-₹{promoDiscount.toFixed(2)}</span>
                                     </div>
                                 )}
-                                <div className="border-t border-gray-300 dark:border-gray-600 pt-2 sm:pt-3">
-                                    <div className="flex justify-between font-bold text-sm sm:text-lg text-gray-900 dark:text-white">
+                                <div className="border-t-2 border-gray-300 dark:border-gray-600 pt-3 mt-3">
+                                    <div className="flex justify-between font-bold text-lg text-gray-900 dark:text-white">
                                         <span>Total</span>
-                                        <span>₹{total.toFixed(2)}</span>
+                                        <span className="text-xl">₹{total.toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1881,7 +1983,7 @@ export default function Checkout() {
                             
                             <RazorpayPayment
                                 amount={total}
-                                orderId={`ORD${Date.now()}`}
+                                orderId={generatedOrderId || `ORD${Date.now()}`}
                                 customerInfo={customerInfo}
                                 restaurantInfo={{
                                     name: restaurantInfo?.name || 'Restaurant',

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/(contexts)/AuthContext';
-import { User, LogOut, ShoppingBag, Calendar, Settings, DollarSign } from 'lucide-react';
+import { User, LogOut, ShoppingBag, Calendar, Settings, DollarSign, UserLock, IndianRupee } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
 
@@ -193,10 +193,26 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                     onClick={() => setIsOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200  text-muted-foreground hover:text-foreground"
                   >
-                    <DollarSign className="w-4 h-4" />
+                    <IndianRupee className="w-4 h-4" />
                     Claim Cashback
                   </Link>
                 </motion.div>
+                  {
+                    user?.userType == "admin" &&
+                    <motion.div variants={{
+                      open: { opacity: 1, y: 0, scale: 1 },
+                      closed: { opacity: 0, y: -10, scale: 0.95 }
+                    }} transition={{ duration: 0.3, ease: "easeOut" }}>
+                  <Link
+                    href="/admin"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200  text-muted-foreground hover:text-foreground"
+                    >
+                    <UserLock className="w-4 h-4" />
+                    Admin
+                  </Link>
+                </motion.div> 
+                }
 
                 <motion.div variants={{
                   open: { opacity: 1, y: 0, scale: 1 },
@@ -214,19 +230,7 @@ export default function ProfileDropdown({ className = "" }: ProfileDropdownProps
                   </div>
                 </motion.div>
 
-                <motion.div variants={{
-                  open: { opacity: 1, y: 0, scale: 1 },
-                  closed: { opacity: 0, y: -10, scale: 0.95 }
-                }} transition={{ duration: 0.3, ease: "easeOut" }}>
-                  <Link
-                    href="/user/profile"
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200  text-muted-foreground hover:text-foreground"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Settings
-                  </Link>
-                </motion.div>
+              
               </motion.div>
 
               {/* Logout Button */}

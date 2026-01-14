@@ -211,7 +211,10 @@ export default function Menu() {
 
     // Helper functions for enhanced display
     const hasDiscount = (item: EnhancedMenuItem) => {
-        return !!(item.discountPrice && item.discountPrice < item.price);
+        return !!(item.discountPrice && 
+                 typeof item.discountPrice === 'number' && 
+                 item.discountPrice > 0 && 
+                 item.discountPrice < item.price);
     };
 
     const getDiscountPercentage = (item: EnhancedMenuItem) => {
@@ -263,17 +266,26 @@ export default function Menu() {
 
                     if (menuResult.success && menuResult.data) {
                         // Transform menu items to include enhanced fields
-                        const enhancedItems: EnhancedMenuItem[] = menuResult.data.map((item: MenuItem) => ({
-                            ...item,
-                            discountPrice: (item as any).discountPrice,
-                            currency: (item as any).currency || 'INR',
-                            isBestSeller: (item as any).isBestSeller || false,
-                            isRecommended: (item as any).isRecommended || false,
-                            totalRatings: (item as any).totalRatings || 0,
-                            totalOrders: (item as any).totalOrders || 0,
-                            viewCount: (item as any).viewCount || 0,
-                            orderCount: (item as any).orderCount || 0,
-                        }));
+                        const enhancedItems: EnhancedMenuItem[] = menuResult.data.map((item: MenuItem) => {
+                            // Properly validate discount price
+                            const rawDiscountPrice = (item as any).discountPrice;
+                            const validDiscountPrice = rawDiscountPrice && 
+                                                     typeof rawDiscountPrice === 'number' && 
+                                                     rawDiscountPrice > 0 && 
+                                                     rawDiscountPrice < item.price ? rawDiscountPrice : undefined;
+
+                            return {
+                                ...item,
+                                discountPrice: validDiscountPrice,
+                                currency: (item as any).currency || 'INR',
+                                isBestSeller: (item as any).isBestSeller || false,
+                                isRecommended: (item as any).isRecommended || false,
+                                totalRatings: (item as any).totalRatings || 0,
+                                totalOrders: (item as any).totalOrders || 0,
+                                viewCount: (item as any).viewCount || 0,
+                                orderCount: (item as any).orderCount || 0,
+                            };
+                        });
                         setMenuItems(enhancedItems);
                     } else {
                         setError(menuResult.error || 'Failed to load menu items');
@@ -581,6 +593,66 @@ export default function Menu() {
                                                             </div>
                                                         </a>
                                                     )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Fallback Social Media Icons - Always show if no social media configured */}
+                            {(!restaurantInfo?.socialMedia?.facebook && !restaurantInfo?.socialMedia?.instagram && !restaurantInfo?.socialMedia?.twitter) && (
+                                <div className="absolute top-3 xs:top-4 sm:top-6 left-3 xs:left-4 sm:left-6 z-10">
+                                    <div className="relative social-media-popup">
+                                        <button
+                                            onClick={() => setShowSocialMedia(!showSocialMedia)}
+                                            className="w-8 h-8 xs:w-9 xs:h-9 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50"
+                                            aria-label="Social Media"
+                                        >
+                                            <svg className="w-4 h-4 xs:w-4.5 xs:h-4.5 text-gray-700 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                                            </svg>
+                                        </button>
+
+                                        {/* Default Social Media Links Popup */}
+                                        {showSocialMedia && (
+                                            <div className="absolute top-full left-0 mt-2 animate-fade-in">
+                                                <div className="flex flex-col gap-2 p-1.5">
+                                                    <a
+                                                        href="#"
+                                                        onClick={(e) => e.preventDefault()}
+                                                        className="group relative w-8 h-8 flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg transition-all hover:scale-110 shadow-lg hover:shadow-xl animate-slide-up"
+                                                        style={{ animationDelay: '0.05s' }}
+                                                    >
+                                                        <Facebook className="w-4 h-4 text-white" />
+                                                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                            Facebook
+                                                        </div>
+                                                    </a>
+
+                                                    <a
+                                                        href="#"
+                                                        onClick={(e) => e.preventDefault()}
+                                                        className="group relative w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600 rounded-lg transition-all hover:scale-110 shadow-lg hover:shadow-xl animate-slide-up"
+                                                        style={{ animationDelay: '0.1s' }}
+                                                    >
+                                                        <Instagram className="w-4 h-4 text-white" />
+                                                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                            Instagram
+                                                        </div>
+                                                    </a>
+
+                                                    <a
+                                                        href="#"
+                                                        onClick={(e) => e.preventDefault()}
+                                                        className="group relative w-8 h-8 flex items-center justify-center bg-gradient-to-br from-sky-400 to-sky-600 hover:from-sky-500 hover:to-sky-700 rounded-lg transition-all hover:scale-110 shadow-lg hover:shadow-xl animate-slide-up"
+                                                        style={{ animationDelay: '0.15s' }}
+                                                    >
+                                                        <Twitter className="w-4 h-4 text-white" />
+                                                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                            Twitter
+                                                        </div>
+                                                    </a>
                                                 </div>
                                             </div>
                                         )}
@@ -1065,50 +1137,40 @@ export default function Menu() {
                                                         className="object-cover rounded-md"
                                                         priority={index < 4}
                                                     />
-                                                    {/* Enhanced Mobile Badges - Right side, mobile optimized */}
-                                                    <div className="absolute -top-1 -right-1 flex flex-col gap-1 items-end">
-                                                        {/* Discount Badge */}
+                                                    {/* Enhanced Mobile Badges - Simplified and repositioned */}
+                                                    <div className="absolute -top-1 -right-1 flex flex-col gap-0.5 items-end">
+                                                        {/* Discount Badge - Highest Priority */}
                                                         {hasDiscount(item) && (
                                                             <div className="bg-red-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold shadow-lg">
                                                                 {getDiscountPercentage(item)}% OFF
                                                             </div>
                                                         )}
 
-                                                        {/* Best Seller Badge */}
-                                                        {item.isBestSeller && (
+                                                        {/* Best Seller Badge - Only if no discount */}
+                                                        {item.isBestSeller && !hasDiscount(item) && (
                                                             <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg shadow-md border border-amber-400/30">
-                                                                {/* Mobile: Icon only */}
-                                                                <div className="flex items-center px-1 py-0.5 xs:hidden">
+                                                                <div className="flex items-center px-1 py-0.5">
                                                                     <Award className="w-2.5 h-2.5" />
-                                                                </div>
-                                                                {/* Tablet and up: Icon + Text */}
-                                                                <div className="hidden xs:flex items-center gap-1 px-2 py-0.5 text-xs font-semibold">
-                                                                    <Award className="w-3 h-3" />
-                                                                    <span>Best Seller</span>
                                                                 </div>
                                                             </div>
                                                         )}
+                                                    </div>
 
+                                                    {/* Secondary badges on left side for mobile */}
+                                                    <div className="absolute -top-1 -left-1 flex flex-col gap-0.5 items-start">
                                                         {/* Recommended Badge */}
                                                         {item.isRecommended && (
                                                             <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg shadow-md border border-emerald-400/30">
-                                                                {/* Mobile: Icon only */}
-                                                                <div className="flex items-center px-1 py-0.5 xs:hidden">
+                                                                <div className="flex items-center px-1 py-0.5">
                                                                     <Heart className="w-2.5 h-2.5 fill-current" />
-                                                                </div>
-                                                                {/* Tablet and up: Icon + Text */}
-                                                                <div className="hidden xs:flex items-center gap-1 px-2 py-0.5 text-xs font-semibold">
-                                                                    <Heart className="w-3 h-3 fill-current" />
-                                                                    <span>Recommended</span>
                                                                 </div>
                                                             </div>
                                                         )}
 
-                                                        {/* Popular Badge (fallback) */}
+                                                        {/* Popular Badge - Only if not best seller or recommended */}
                                                         {!item.isBestSeller && !item.isRecommended && item.tags?.includes('Popular') && (
                                                             <div className="bg-primary text-white px-1.5 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                                                                <Sparkles className="w-2 h-2 inline mr-1" />
-                                                                Popular
+                                                                <Sparkles className="w-2 h-2" />
                                                             </div>
                                                         )}
                                                     </div>
@@ -1231,30 +1293,33 @@ export default function Menu() {
                                                 {/* Enhanced Gradient Overlay */}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
 
-                                                {/* Enhanced Top Right Badges Container */}
-                                                <div className="absolute top-2 xs:top-3 right-2 xs:right-3 flex flex-col gap-1.5 xs:gap-2">
-                                                    {/* Discount Badge */}
+                                                {/* Enhanced Top Right Badges Container - Simplified */}
+                                                <div className="absolute top-2 xs:top-3 right-2 xs:right-3 flex flex-col gap-1 xs:gap-1.5">
+                                                    {/* Discount Badge - Highest Priority */}
                                                     {hasDiscount(item) && (
                                                         <div className="bg-red-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">
                                                             {getDiscountPercentage(item)}% OFF
                                                         </div>
                                                     )}
 
-                                                    {/* Best Seller Badge */}
-                                                    {item.isBestSeller && (
-                                                        <div className="w-fit flex self-end bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg shadow-md animate-fade-in backdrop-blur-sm border border-amber-400/30 group-hover:badge-glow transition-all duration-300">
+                                                    {/* Best Seller Badge - Only if no discount */}
+                                                    {item.isBestSeller && !hasDiscount(item) && (
+                                                        <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg shadow-md animate-fade-in backdrop-blur-sm border border-amber-400/30">
                                                             {/* Mobile: Icon only */}
-                                                            <div className="w-fit flex  px-1.5 py-0.5 xs:hidden">
+                                                            <div className="flex items-center px-1.5 py-0.5 xs:hidden">
                                                                 <Award className="w-3 h-3" />
                                                             </div>
                                                             {/* Tablet and up: Icon + Text */}
-                                                            <div className="w-fit hidden xs:flex items-center gap-1 px-2.5 py-1 text-xs font-semibold">
+                                                            <div className="hidden xs:flex items-center gap-1 px-2.5 py-1 text-xs font-semibold">
                                                                 <Award className="w-3 h-3" />
                                                                 <span>Best Seller</span>
                                                             </div>
                                                         </div>
                                                     )}
+                                                </div>
 
+                                                {/* Top Left Badges - Secondary Priority */}
+                                                <div className="absolute top-2 xs:top-3 left-2 xs:left-3 flex flex-col gap-1 xs:gap-1.5">
                                                     {/* Recommended Badge */}
                                                     {item.isRecommended && (
                                                         <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg shadow-md animate-fade-in backdrop-blur-sm border border-emerald-400/30">
@@ -1270,9 +1335,9 @@ export default function Menu() {
                                                         </div>
                                                     )}
 
-                                                    {/* Popular Badge (fallback) */}
+                                                    {/* Popular Badge - Only if not best seller or recommended */}
                                                     {!item.isBestSeller && !item.isRecommended && item.tags?.includes('Popular') && (
-                                                        <div className="bg-gradient-to-r from-primary to-primary/80 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-semibold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20 group-hover:badge-glow transition-all duration-300">
+                                                        <div className="bg-gradient-to-r from-primary to-primary/80 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-semibold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">
                                                             <Sparkles className="w-2.5 xs:w-3 h-2.5 xs:h-3 inline mr-1" />
                                                             Popular
                                                         </div>
@@ -1335,8 +1400,16 @@ export default function Menu() {
                                                     </p>
                                                 </div>
 
-                                                {/* Enhanced Info Pills */}
-                                                <div className="flex flex-wrap items-center gap-2 xs:gap-3">
+                                                {/* Enhanced Info Pills - Reorganized for better mobile UX */}
+                                                <div className="flex flex-wrap items-center gap-1.5 xs:gap-2">
+                                                    {/* Priority badges first */}
+                                                    {hasDiscount(item) && (
+                                                        <div className="flex items-center gap-1 bg-red-50 dark:bg-red-900/20 rounded-full px-2 py-1">
+                                                            <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                                                            <span className="text-xs font-medium text-red-600 dark:text-red-400">{getDiscountPercentage(item)}% OFF</span>
+                                                        </div>
+                                                    )}
+
                                                     {/* Calories */}
                                                     <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
                                                         <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
@@ -1349,7 +1422,7 @@ export default function Menu() {
                                                         <span className="text-xs xs:text-sm font-medium text-primary">{getCategoryDisplayName(item.category, categoryMappings, customCategories)}</span>
                                                     </div>
 
-                                                    {/* Vegetarian/Non-Veg */}
+                                                    {/* Vegetarian/Non-Veg - Only show one */}
                                                     {item.tags?.includes('Vegetarian') && (
                                                         <div className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/20 rounded-full px-3 py-1.5">
                                                             <span className="text-green-600 dark:text-green-400 text-xs">🟢</span>
@@ -1357,10 +1430,25 @@ export default function Menu() {
                                                         </div>
                                                     )}
 
-                                                    {item.tags?.includes('Non-Vegetarian') && (
+                                                    {item.tags?.includes('Non-Vegetarian') && !item.tags?.includes('Vegetarian') && (
                                                         <div className="flex items-center gap-1.5 bg-red-100 dark:bg-red-900/20 rounded-full px-3 py-1.5">
                                                             <span className="text-red-600 dark:text-red-400 text-xs">🔴</span>
                                                             <span className="text-xs xs:text-sm font-medium text-red-600 dark:text-red-400">Non-Veg</span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Special badges - Only show if space allows */}
+                                                    {item.isBestSeller && (
+                                                        <div className="hidden sm:flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 rounded-full px-2 py-1">
+                                                            <Award className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                                                            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Best Seller</span>
+                                                        </div>
+                                                    )}
+
+                                                    {item.isRecommended && (
+                                                        <div className="hidden sm:flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full px-2 py-1">
+                                                            <Heart className="w-3 h-3 text-emerald-600 dark:text-emerald-400 fill-current" />
+                                                            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Recommended</span>
                                                         </div>
                                                     )}
                                                 </div>

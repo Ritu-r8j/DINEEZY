@@ -726,54 +726,53 @@ export default function HomePage() {
 
 
       <main className="relative z-10">
-        <div className="mx-auto w-full max-w-7xl px-4  mt-3 sm:px-6 lg:px-8 lg:pt-3">
+        <div className="mx-auto w-full max-w-7xl px-3 mt-2 sm:px-6 lg:px-8 lg:pt-3">
           <motion.header
             id="home"
-            className="flex flex-col gap-8"
+            className="flex flex-col gap-6 sm:gap-8"
             initial={{ opacity: 0, y: -40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9 }}
           >
-            <div className="flex flex-wrap items-center justify-between  rounded-3xl bg-muted/10 shadow-sm backdrop-blur lg:flex-nowrap relative z-50">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 rounded-2xl sm:rounded-3xl bg-muted/10 shadow-sm backdrop-blur relative z-50">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <img
                   src="logo.png"
                   alt="Dineezy Logo"
-                  className={`w-24 h-24 object-cover object-center ${isDarkMode ? "invert" : ""}`}
+                  className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 object-cover object-center ${isDarkMode ? "invert" : ""}`}
                 />
-                <div className="ml-[-2rem]">
-                  <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Dineezy</p>
+                <div className="ml-[-1rem] sm:ml-[-1.5rem] lg:ml-[-2rem]">
+                  <p className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-muted-foreground">Dineezy</p>
                 </div>
               </div>
-              <div className= "flex items-center gap-1 md:gap-3 pr-[30px]">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {user ? (
                   <Link href="/user/menu">
-                  <button className=" hidden md:block rounded-[8px]  font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-4 py-2 text-sm">
-                    Order Now
-                  </button>
-                </Link>
+                    <button className="hidden sm:block rounded-[8px] font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-3 py-2 text-xs sm:px-4 sm:text-sm">
+                      Order Now
+                    </button>
+                  </Link>
                 ) : (
                   // User is not logged in - show login/signup
                   <>
                     <Link href="/user/phone-login">
-                      <button className="hidden rounded-[8px] border border-foreground/10 px-5 py-2 text-sm font-medium transition hover:border-primary/60 hover:text-primary lg:block cursor-pointer">
+                      <button className="hidden sm:block rounded-[8px] border border-foreground/10 px-4 py-2 text-xs sm:text-sm font-medium transition hover:border-primary/60 hover:text-primary cursor-pointer">
                         Log in
                       </button>
                     </Link>
                   </>
                 )}
 
-
                 {/* Mobile Menu Button */}
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className={`md:hidden ml-1 sm:ml-2 flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 ${isMobileMenuOpen ? 'bg-gray-100 dark:bg-gray-700' : ''
+                  className={`sm:hidden flex h-9 w-9 items-center justify-center rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 ${isMobileMenuOpen ? 'bg-gray-100 dark:bg-gray-700' : ''
                     }`}
                   aria-label="Toggle mobile menu"
                 >
-                  <div className="relative w-6 h-6">
+                  <div className="relative w-5 h-5">
                     <svg
-                      className={`absolute inset-0 w-6 h-6 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-180 opacity-0' : 'rotate-0 opacity-100'
+                      className={`absolute inset-0 w-5 h-5 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-180 opacity-0' : 'rotate-0 opacity-100'
                         }`}
                       fill="none"
                       stroke="currentColor"
@@ -782,7 +781,7 @@ export default function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                     <svg
-                      className={`absolute inset-0 w-6 h-6 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-0 opacity-100' : 'rotate-180 opacity-0'
+                      className={`absolute inset-0 w-5 h-5 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-0 opacity-100' : 'rotate-180 opacity-0'
                         }`}
                       fill="none"
                       stroke="currentColor"
@@ -793,15 +792,13 @@ export default function HomePage() {
                   </div>
                 </button>
 
-               
-
               </div>
             </div>
 
             {/* Mobile Navigation */}
-            <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-[32rem] opacity-100' : 'max-h-0 opacity-0'
+            <div className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-[32rem] opacity-100' : 'max-h-0 opacity-0'
               }`}>
-              <div className="border-t border-gray-200 dark:border-gray-700 py-4 pb-6 px-2 sm:px-4">
+              <div className="border-t border-gray-200 dark:border-gray-700 py-3 px-3">
                 {/* User Profile Section in Mobile Menu */}
                 {user && (
                   <div
@@ -828,13 +825,13 @@ export default function HomePage() {
                   </div>
                 )}
 
-                <nav className="flex flex-col space-y-2">
+                <nav className="flex flex-col space-y-1.5">
                   {navItems.map((item, index) => (
                     <Link
                       key={item.name}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 ${item.href.startsWith('#')
+                      className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 ${item.href.startsWith('#')
                         ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                         }`}
@@ -848,7 +845,7 @@ export default function HomePage() {
                     </Link>
                   ))}
                   <div
-                    className="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                    className="flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
                     style={{
                       animationDelay: `${(navItems.length + (user ? 1 : 0)) * 0.1}s`,
                       transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
@@ -877,7 +874,7 @@ export default function HomePage() {
                           signOut();
                           setIsMobileMenuOpen(false);
                         }}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                           <path d="m16 17 5-5-5-5" />
@@ -897,7 +894,7 @@ export default function HomePage() {
                       }}
                     >
                       <Link href="/user/phone-login" onClick={() => setIsMobileMenuOpen(false)}>
-                        <button className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90">
+                        <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90">
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
                             <path d="M10 17l5-5-5-5" />
@@ -913,7 +910,7 @@ export default function HomePage() {
             </div>
 
 
-            <div className="relative h-[50vh] lg:h-[60vh] -mx-4 sm:-mx-6 lg:mx-0 lg:rounded-3xl lg:overflow-hidden">
+            <div className="relative h-[45vh] sm:h-[50vh] lg:h-[60vh] -mx-3 sm:-mx-6 lg:mx-0 lg:rounded-3xl lg:overflow-hidden">
               <Image
                 src="https://images.unsplash.com/photo-1543353071-873f17a7a088?q=80&w=1600&auto=format&fit=crop"
                 alt="Restaurant interior"
@@ -922,41 +919,36 @@ export default function HomePage() {
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/20" />
-              <div className="relative z-10 flex h-full flex-col justify-center px-6 py-16 sm:px-8 md:px-12 lg:mx-auto lg:max-w-3xl lg:px-6 lg:py-20 lg:text-center lg:sm:px-12 lg:md:py-28 lg:lg:px-24">
+              <div className="relative z-10 flex h-full flex-col justify-center px-4 py-12 sm:px-6 sm:py-16 md:px-8 lg:mx-auto lg:max-w-3xl lg:px-6 lg:py-20 lg:text-center">
                 <motion.div
-                  className="space-y-6 lg:space-y-6"
+                  className="space-y-4 sm:space-y-6"
                   initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3, duration: 1 }}
                 >
-                  <span className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-white/10 px-3 py-2 text-xs font-medium uppercase tracking-widest text-white sm:px-4 sm:text-sm">
-                    <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" /> Premier dining, zero friction
+                  <span className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-[8px] bg-white/10 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-medium uppercase tracking-widest text-white">
+                    <Sparkles className="h-3 w-3" /> Premier dining, zero friction
                   </span>
-                  <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl lg:text-6xl lg:text-center">
-
-
+                  <h1 className="text-2xl font-semibold leading-tight text-white sm:text-3xl md:text-4xl lg:text-6xl lg:text-center">
                     Welcome back, {userProfile?.displayName?.split(' ')[0]
                       ? userProfile.displayName.split(' ')[0]
                       : (user?.displayName?.split(' ')[0]
                         ? user?.displayName?.split(' ')[0]
                         : "Foodie")
                     }!<br className="lg:hidden" /> Ready to dine?
-
                   </h1>
-                  <p className="text-base leading-relaxed text-white sm:text-lg lg:text-xl lg:text-center">
-
+                  <p className="text-sm leading-relaxed text-white sm:text-base lg:text-xl lg:text-center">
                     Continue your culinary journey with personalized recommendations, quick reorders, and seamless reservations tailored just for you.
-
                   </p>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 lg:justify-center lg:gap-4">
+                  <div className="flex flex-col gap-2.5 sm:gap-3 sm:flex-row lg:justify-center lg:gap-4">
                     <Link href="/user/reservation">
-                      <button className="cursor-pointer w-full rounded-[8px] bg-white px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-neutral-100 sm:w-auto sm:px-8 lg:group lg:inline-flex lg:items-center lg:gap-2 ">
+                      <button className="cursor-pointer w-full rounded-[8px] bg-white px-5 py-2.5 sm:px-6 sm:py-3 text-sm font-semibold text-slate-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-neutral-100 sm:w-auto lg:group lg:inline-flex lg:items-center lg:gap-2">
                         Reserve Table
                         <span aria-hidden className="hidden transition group-hover:translate-x-1 lg:inline-block">→</span>
                       </button>
                     </Link>
                     <Link href="/user/menu">
-                      <button className="cursor-pointer w-full rounded-[8px] border border-white/60 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto sm:px-8">
+                      <button className="cursor-pointer w-full rounded-[8px] border border-white/60 px-5 py-2.5 sm:px-6 sm:py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto">
                         Pre-Order Now
                       </button>
                     </Link>
@@ -966,14 +958,13 @@ export default function HomePage() {
             </div>
           </motion.header>
 
-          <motion.section id="dishes" className="mt-24" {...sectionMotion}>
-            <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+          <motion.section id="dishes" className="mt-16 sm:mt-20 lg:mt-24" {...sectionMotion}>
+            <div className="flex flex-col items-start justify-between gap-4 sm:gap-6 md:flex-row md:items-center">
               <div>
                 <p className="text-sm uppercase tracking-[0.4em] text-muted-foreground">Signature Picks</p>
-                <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">Top 15 Best-Selling Dishes</h2>
-
+                <h2 className="mt-2 text-2xl font-semibold sm:text-3xl lg:text-4xl">Top 15 Best-Selling Dishes</h2>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 {locationPermission === 'denied' && (
                   <button
                     onClick={async () => {
@@ -1018,16 +1009,16 @@ export default function HomePage() {
                         setLocationPermission('denied');
                       }
                     }}
-                    className="rounded-[8px] border border-foreground/10 px-4 py-2 text-sm font-medium transition hover:border-primary/60 hover:text-primary flex items-center gap-2 cursor-pointer"
+                    className="rounded-[8px] border border-foreground/10 px-3 py-2 text-xs sm:text-sm font-medium transition hover:border-primary/60 hover:text-primary flex items-center gap-2 cursor-pointer"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                     Enable Location
                   </button>
                 )}
                 <Link href="/user/menu">
-                  <button className="rounded-[8px] border border-foreground/10 px-5 py-2 text-sm font-medium transition hover:border-primary/60 hover:text-primary cursor-pointer">
+                  <button className="rounded-[8px] border border-foreground/10 px-4 py-2 text-xs sm:text-sm font-medium transition hover:border-primary/60 hover:text-primary cursor-pointer">
                     Explore full menu
                   </button>
                 </Link>

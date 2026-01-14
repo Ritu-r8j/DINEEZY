@@ -55,6 +55,8 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
         { name: "Orders", href: "/user/orders", key: "orders" },
         { name: "Reservation", href: "/user/my-reservations", key: "reservation" },
         { name: "Profile", href: "/user/profile", key: "profile" },
+     
+
     ] : [
         { name: "Home", href: "/", key: "home" },
         { name: "Menu", href: "/user/menu", key: "menu" },
