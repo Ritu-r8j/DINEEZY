@@ -1241,13 +1241,19 @@ export const addMenuItem = async (adminId: string, menuItem: Omit<MenuItem, 'id'
   try {
     const menuItemsRef = collection(db, 'menuItems');
     const newMenuItemRef = doc(menuItemsRef);
+    
+    // Remove undefined fields to prevent Firestore errors
+    const cleanedMenuItem = Object.fromEntries(
+      Object.entries(menuItem).filter(([_, value]) => value !== undefined)
+    );
+    
     const menuItemData: MenuItem = {
-      ...menuItem,
+      ...cleanedMenuItem,
       id: newMenuItemRef.id,
       adminId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    };
+    } as MenuItem;
 
     await setDoc(newMenuItemRef, menuItemData);
     return { success: true, data: menuItemData };
@@ -1283,8 +1289,14 @@ export const getMenuItems = async (adminId: string) => {
 export const updateMenuItem = async (itemId: string, updateData: Partial<MenuItem>) => {
   try {
     const menuItemRef = doc(db, 'menuItems', itemId);
+    
+    // Remove undefined fields to prevent Firestore errors
+    const cleanedUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+    );
+    
     await updateDoc(menuItemRef, {
-      ...updateData,
+      ...cleanedUpdateData,
       updatedAt: serverTimestamp(),
     });
     return { success: true };

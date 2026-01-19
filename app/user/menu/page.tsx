@@ -1036,7 +1036,7 @@ export default function MenuPage() {
                   />
                   {restaurant.offer && (
                     <div className="absolute top-2 left-2 bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] text-slate-900 px-2 py-0.5 text-xs font-semibold rounded shadow-lg border border-white/30">
-                      {restaurant.offer}
+                      {restaurant.offer} % Off
                     </div>
                   )}
                   <button

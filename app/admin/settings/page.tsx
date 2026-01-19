@@ -151,7 +151,7 @@ function cx(...parts: Array<string | undefined | null | false>) {
 
 function SectionCard(props: { title: string; children: React.ReactNode; className?: string; icon?: React.ReactNode }) {
   return (
-    <section className={cx('bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300 group', props.className)}>
+    <section className={cx('bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300 group mt-5', props.className)}>
       <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-gray-700">
         <div className="flex items-center gap-2 sm:gap-3">
           {props.icon && <div className="text-gray-600 dark:text-gray-400 group-hover:scale-105 transition-transform duration-300 flex-shrink-0">{props.icon}</div>}
