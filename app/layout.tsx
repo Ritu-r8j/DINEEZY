@@ -26,16 +26,36 @@ export const metadata: Metadata = {
   creator: "Dineezy",
   publisher: "Dineezy",
   robots: "index, follow",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" },
+    ],
+    shortcut: "/favicon.ico",
+  },
+  manifest: "/manifest.json",
   openGraph: {
     title: "Dineezy - Restaurant Management Platform",
     description: "Transform your restaurant with QR code ordering, reservations, and digital management tools.",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/logo.png",
+        width: 512,
+        height: 512,
+        alt: "Dineezy Logo",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Dineezy - Restaurant Management Platform",
     description: "Transform your restaurant with QR code ordering, reservations, and digital management tools.",
+    images: ["/logo.png"],
   },
 };
 
@@ -56,10 +76,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
-          <Toaster/>
+          <Toaster />
           <AuthProviderWrapper>
             <CartProvider>
-              <ScrollRestorationFix/>
+              <ScrollRestorationFix />
               {children}
             </CartProvider>
           </AuthProviderWrapper>
