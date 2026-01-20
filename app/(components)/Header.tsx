@@ -9,7 +9,7 @@ import ProfileDropdown from './ProfileDropdown';
 import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
-    currentPage?: 'home' | 'menu' | 'orders' | 'reservation' | 'profile'| '';
+    currentPage?: 'home' | 'menu' | 'orders' | 'reservation' | 'profile' | '';
 }
 
 interface NavItem {
@@ -55,7 +55,7 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
         { name: "Orders", href: "/user/orders", key: "orders" },
         { name: "Reservation", href: "/user/my-reservations", key: "reservation" },
         { name: "Profile", href: "/user/profile", key: "profile" },
-     
+
 
     ] : [
         { name: "Home", href: "/", key: "home" },
@@ -119,8 +119,9 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+                        <ThemeToggle />
 
-                    
+
 
 
                         {/* Notifications - Hidden on small screens */}

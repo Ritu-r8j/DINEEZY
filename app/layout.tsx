@@ -6,6 +6,7 @@ import { CartProvider } from "./(contexts)/CartContext";
 import { ThemeProvider } from "./(contexts)/ThemeContext";
 import { Toaster } from "sonner";
 import ScrollRestorationFix from "./(components)/ScrollRestore";
+import { Analytics } from "@vercel/analytics/react";
 
 
 const geistSans = Geist({
@@ -81,6 +82,7 @@ export default function RootLayout({
             <CartProvider>
               <ScrollRestorationFix />
               {children}
+              <Analytics />
             </CartProvider>
           </AuthProviderWrapper>
         </ThemeProvider>

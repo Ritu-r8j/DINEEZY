@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.7",
+    "@vercel/analytics": "^1.6.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",

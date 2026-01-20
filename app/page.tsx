@@ -433,8 +433,8 @@ export default function HomePage() {
     }
 
     // Check if item has variants or add-ons
-    if ((dish.variants && Array.isArray(dish.variants) && dish.variants.length > 0) || 
-        (dish.addons && Array.isArray(dish.addons) && dish.addons.length > 0)) {
+    if ((dish.variants && Array.isArray(dish.variants) && dish.variants.length > 0) ||
+      (dish.addons && Array.isArray(dish.addons) && dish.addons.length > 0)) {
       // Open cart with customization
       openCustomization(dish, dish.adminId);
     } else {
@@ -746,6 +746,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
+                <ThemeToggle />
                 {user ? (
                   <Link href="/user/menu">
                     <button className="hidden sm:block rounded-[8px] font-semibold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer bg-black text-white dark:bg-white dark:text-black hover:bg-primary/90 dark:hover:bg-white/90 px-3 py-2 text-xs sm:px-4 sm:text-sm">
@@ -1107,7 +1108,7 @@ export default function HomePage() {
                                   className="object-cover transition-all duration-500 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                
+
                                 {/* Enhanced Badges */}
                                 <div className="absolute top-2 right-2 flex flex-col gap-1">
                                   {/* Discount Badge */}
@@ -1116,7 +1117,7 @@ export default function HomePage() {
                                       {getDiscountPercentage(dish)}% OFF
                                     </div>
                                   )}
-                                  
+
                                   {/* Best Seller Badge */}
                                   {dish.isBestSeller && (
                                     <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md flex items-center gap-1 border border-amber-400/30">
@@ -1124,7 +1125,7 @@ export default function HomePage() {
                                       <span>Best Seller</span>
                                     </div>
                                   )}
-                                  
+
                                   {/* Recommended Badge */}
                                   {dish.isRecommended && (
                                     <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md flex items-center gap-1 border border-emerald-400/30">
@@ -1173,7 +1174,7 @@ export default function HomePage() {
                                         {formatCurrency(dish.price, dish.currency)}
                                       </span>
                                     )}
-                                    
+
                                     {/* Total Orders */}
                                     {(dish.totalOrders || 0) > 0 && (
                                       <span className="text-xs text-muted-foreground">
@@ -1181,7 +1182,7 @@ export default function HomePage() {
                                       </span>
                                     )}
                                   </div>
-                                  
+
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
