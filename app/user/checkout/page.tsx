@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { sendNotification } from '@/app/(utils)/notification';
 import RazorpayPayment from '@/app/(components)/RazorpayPayment';
 import { useBusinessType } from '@/app/(utils)/useFeatures';
+import CarDineInForm from './components/CarDineInForm';
 
 // Use CartMenuItem from cartUtils instead of local interface
 
@@ -79,6 +80,7 @@ export default function Checkout() {
         const allOrderTypes = [
             { id: 'dine-in', name: 'Dine In', description: 'Eat at the restaurant', icon: '🍽️', selected: true },
             { id: 'takeaway', name: 'Takeaway', description: 'Pick up in 20-30 min', icon: '🥡', selected: false },
+            { id: 'car-dine-in', name: 'Car Dine-In', description: 'Dine in your car', icon: '🚗', selected: false },
             { id: 'pre-order', name: 'Pre-order', description: 'Schedule for later today', icon: '⏰', selected: false },
             // { id: 'delivery', name: 'Delivery', description: 'Deliver to your address', icon: '🚚', selected: false }
         ];
@@ -127,6 +129,14 @@ export default function Checkout() {
     // Pre-order time selection state
     const [preOrderTime, setPreOrderTime] = useState('');
     const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+    
+    // Car Dine-In state
+    const [carDetails, setCarDetails] = useState({
+        model: '',
+        number: ''
+    });
+    const [carServiceMode, setCarServiceMode] = useState<'EAT_IN_CAR' | 'TAKEAWAY'>('EAT_IN_CAR');
+    const [carScheduledTime, setCarScheduledTime] = useState('');
     
     // Reservation selection state
     const [userReservations, setUserReservations] = useState<any[]>([]);
@@ -405,6 +415,7 @@ export default function Checkout() {
     const estimatedTime = selectedOrderType?.id === 'takeaway' ? '20-30 minutes' :
         selectedOrderType?.id === 'delivery' ? selectedDeliveryOption?.time || '30-45 minutes' :
         selectedOrderType?.id === 'pre-order' ? `Ready at ${preOrderTime}` :
+        selectedOrderType?.id === 'car-dine-in' ? `Ready at ${carScheduledTime}` :
             'Ready when you arrive';
 
     // Step validation functions
@@ -419,6 +430,15 @@ export default function Checkout() {
         if (isPreOrderSelected && !preOrderTime) {
             return false;
         }
+        
+        // If car dine-in is selected, validate car details
+        const isCarDineInSelected = orderTypes.find(type => type.id === 'car-dine-in')?.selected;
+        if (isCarDineInSelected) {
+            if (!carScheduledTime || !carDetails.model.trim() || !carDetails.number.trim()) {
+                return false;
+            }
+        }
+        
         return true; // Special instructions are optional
     };
 
@@ -572,6 +592,15 @@ export default function Checkout() {
                 ...(selectedOrderType?.id === 'pre-order' && preOrderTime && {
                     preOrderTime,
                     scheduledFor: preOrderTime
+                }),
+                ...(selectedOrderType?.id === 'car-dine-in' && {
+                    diningType: 'CAR_DINE_IN',
+                    scheduledTime: carScheduledTime,
+                    carDetails: {
+                        model: carDetails.model,
+                        number: carDetails.number
+                    },
+                    serviceMode: carServiceMode
                 }),
                 ...(selectedOrderType?.id === 'dine-in' && {
                     tablePreference,
@@ -1077,6 +1106,12 @@ export default function Checkout() {
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                     </svg>
                                                                 )}
+                                                                {type.id === 'car-dine-in' && (
+                                                                    <svg className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 ${type.selected ? 'text-white dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'} transition-all`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-4-1a1 1 0 001 1h3M9 17h4" />
+                                                                    </svg>
+                                                                )}
                                                                 {type.id === 'delivery' && (
                                                                     <svg className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 ${type.selected ? 'text-white dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'} transition-all`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 17l4 4 4-4m-4-5v9m5-5v2a2 2 0 11-4 0v-2m0 0V7a2 2 0 114 0v10a2 2 0 01-2 2H6a2 2 0 01-2-2z" />
@@ -1136,7 +1171,18 @@ export default function Checkout() {
                                             </div>
                                         )}
 
-                                      
+                                        {/* Car Dine-In Form (only show if car-dine-in is selected) */}
+                                        {orderTypes.find(type => type.id === 'car-dine-in')?.selected && (
+                                            <CarDineInForm
+                                                carDetails={carDetails}
+                                                serviceMode={carServiceMode}
+                                                scheduledTime={carScheduledTime}
+                                                availableTimeSlots={availableTimeSlots}
+                                                onCarDetailsChange={setCarDetails}
+                                                onServiceModeChange={setCarServiceMode}
+                                                onScheduledTimeChange={setCarScheduledTime}
+                                            />
+                                        )}
 
                                         {/* Reservation Selection (only show if user is logged in and has reservations) */}
                                         {user && userReservations.length > 0 && (

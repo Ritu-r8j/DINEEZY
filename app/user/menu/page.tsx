@@ -1157,7 +1157,11 @@ export default function MenuPage() {
                   </div>
                   <div id={`menu-items-${categoryId}`} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                     {items.map((item) => (
-                      <div key={item.id} className="group w-48 flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20">
+                      <div 
+                        key={item.id} 
+                        onClick={() => router.push(`/user/menu/${item.adminId}/${item.id}`)}
+                        className="group w-48 flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 cursor-pointer"
+                      >
                         <div className="relative">
                           <img
                             src={item.image}
@@ -1355,7 +1359,10 @@ export default function MenuPage() {
                             </div>
 
                             <button
-                              onClick={() => addToCart(item)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                addToCart(item);
+                              }}
                               disabled={!item.available}
                               className="px-3 py-1.5 rounded-lg font-bold transition-all text-xs hover:scale-105 active:scale-95 shadow-md bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:shadow-lg hover:from-primary/90 hover:to-primary disabled:opacity-60 disabled:cursor-not-allowed"
                             >

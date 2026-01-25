@@ -38,7 +38,7 @@ export default function OrderManagement() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'active' | 'completed'>('all');
-  const [activeOrderTypeFilter, setActiveOrderTypeFilter] = useState<'all' | 'pre-order' | 'dine-in' | 'takeaway' | 'delivery'>('all');
+  const [activeOrderTypeFilter, setActiveOrderTypeFilter] = useState<'all' | 'pre-order' | 'dine-in' | 'takeaway' | 'delivery' | 'car-dine-in'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
@@ -489,6 +489,7 @@ export default function OrderManagement() {
                 { key: 'pre-order', label: 'Pre-order', count: orders.filter(o => o.orderType === 'pre-order').length, icon: '⏰' },
                 { key: 'dine-in', label: 'Dine-in', count: orders.filter(o => o.orderType === 'dine-in').length, icon: '🍽️' },
                 { key: 'takeaway', label: 'Pickup', count: orders.filter(o => o.orderType === 'takeaway').length, icon: '🥡' },
+                { key: 'car-dine-in', label: 'Car Dine-In', count: orders.filter(o => o.orderType === 'car-dine-in').length, icon: '🚗' },
                 { key: 'delivery', label: 'Delivery', count: orders.filter(o => o.orderType === 'delivery').length, icon: '🚚' }
               ].map((filter) => (
                 <button
@@ -689,14 +690,34 @@ export default function OrderManagement() {
                   </button>
                 )}
                 {order.status === 'ready' && (
-                  <button
-                    onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
-                    disabled={isUpdating === order.id}
-                    className="w-full px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-                  >
-                    {isUpdating === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-                    <span>Complete Order</span>
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
+                      disabled={isUpdating === order.id}
+                      className="w-full px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                    >
+                      {isUpdating === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                      <span>Complete Order</span>
+                    </button>
+                    
+                    {/* Car Dine-In Service Actions - Only show for EAT_IN_CAR mode */}
+                    {order.orderType === 'car-dine-in' && (order as any).serviceMode === 'EAT_IN_CAR' && (
+                      <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <p className="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-2">🚗 Car Service Actions</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors">
+                            💧 Water
+                          </button>
+                          <button className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors">
+                            🤝 Assist
+                          </button>
+                          <button className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors col-span-2">
+                            🍽️ Pickup Tray
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Time Update */}
@@ -794,6 +815,28 @@ export default function OrderManagement() {
                         <span className="text-gray-600 dark:text-gray-400">Scheduled For:</span>
                         <span className="font-medium text-blue-600 dark:text-blue-400">{selectedOrder.preOrderTime}</span>
                       </div>
+                    )}
+                    {selectedOrder.orderType === 'car-dine-in' && (selectedOrder as any).carDetails && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Scheduled Time:</span>
+                          <span className="font-medium text-blue-600 dark:text-blue-400">{(selectedOrder as any).scheduledTime}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Car Model:</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{(selectedOrder as any).carDetails.model}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Car Number:</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{(selectedOrder as any).carDetails.number}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Service Mode:</span>
+                          <span className={`font-medium ${(selectedOrder as any).serviceMode === 'EAT_IN_CAR' ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                            {(selectedOrder as any).serviceMode === 'EAT_IN_CAR' ? '🍽️ Eat in Car (Full Service)' : '🥡 Takeaway (No Service)'}
+                          </span>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
