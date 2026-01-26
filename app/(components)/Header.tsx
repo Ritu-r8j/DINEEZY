@@ -227,6 +227,21 @@ export default function Header({ currentPage = 'home' }: HeaderProps) {
                                     {item.name}
                                 </Link>
                             ))}
+                            {/* Admin Link - Only visible for admin users */}
+                            {user?.userType === "admin" && (
+                                <Link
+                                    href="/admin"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
+                                    style={{
+                                        animationDelay: `${(navItems.length + (user ? 1 : 0)) * 0.1}s`,
+                                        transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)',
+                                        transition: `all 0.3s ease-in-out ${(navItems.length + (user ? 1 : 0)) * 0.1}s`
+                                    }}
+                                >
+                                    Admin
+                                </Link>
+                            )}
                             <div className="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground"
                                 style={{
                                     animationDelay: `${(navItems.length + (user ? 1 : 0)) * 0.1}s`,
