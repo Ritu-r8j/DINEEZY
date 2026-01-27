@@ -835,23 +835,25 @@ export default function Menu() {
                                     )}
 
                                     {/* Rating */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex items-center">
-                                            {[...Array(5)].map((_, i) => {
-                                                const rating = parseFloat(getAverageRating());
-                                                return (
-                                                    <Star
-                                                        key={i}
-                                                        className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
-                                                    />
-                                                );
-                                            })}
+                                    {getTotalReviews() > 0 && (
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center">
+                                                {[...Array(5)].map((_, i) => {
+                                                    const rating = parseFloat(getAverageRating());
+                                                    return (
+                                                        <Star
+                                                            key={i}
+                                                            className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                            <span className="font-bold text-foreground">{getAverageRating()}</span>
+                                            <span className="text-sm text-muted-foreground">
+                                                ({getTotalReviews()} {getTotalReviews() === 1 ? 'review' : 'reviews'})
+                                            </span>
                                         </div>
-                                        <span className="font-bold text-foreground">{getAverageRating()}</span>
-                                        <span className="text-sm text-muted-foreground">
-                                            ({getTotalReviews()} {getTotalReviews() === 1 ? 'review' : 'reviews'})
-                                        </span>
-                                    </div>
+                                    )}
 
                                     {/* Action Buttons */}
                                     <div className="flex items-center gap-3 pt-2 flex-nowrap">
@@ -913,23 +915,25 @@ export default function Menu() {
                                 )}
 
                                 {/* Mobile Ratings Section */}
-                                <div className="flex items-center justify-center gap-2">
-                                    <div className="flex items-center">
-                                        {[...Array(5)].map((_, i) => {
-                                            const rating = parseFloat(getAverageRating());
-                                            return (
-                                                <Star
-                                                    key={i}
-                                                    className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
-                                                />
-                                            );
-                                        })}
+                                {getTotalReviews() > 0 && (
+                                    <div className="flex items-center justify-center gap-2">
+                                        <div className="flex items-center">
+                                            {[...Array(5)].map((_, i) => {
+                                                const rating = parseFloat(getAverageRating());
+                                                return (
+                                                    <Star
+                                                        key={i}
+                                                        className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                        <span className="font-bold text-foreground text-sm">{getAverageRating()}</span>
+                                        <span className="text-muted-foreground text-xs">
+                                            ({getTotalReviews()} {getTotalReviews() === 1 ? 'review' : 'reviews'})
+                                        </span>
                                     </div>
-                                    <span className="font-bold text-foreground text-sm">{getAverageRating()}</span>
-                                    <span className="text-muted-foreground text-xs">
-                                        ({getTotalReviews()} {getTotalReviews() === 1 ? 'review' : 'reviews'})
-                                    </span>
-                                </div>
+                                )}
 
                                 {/* Action Buttons */}
                                 <div className="flex items-center justify-center gap-3 flex-nowrap">
@@ -1191,7 +1195,8 @@ export default function Menu() {
 
                                                         {/* Rating and Status */}
                                                         <div className="flex items-center gap-2">
-                                                            {item.rating && item.rating > 0 && (
+                                                          
+                                                            {Number(item.rating) > 0 && (
                                                                 <div className="flex items-center gap-1">
                                                                     <GradientStar size={12} />
                                                                     <span className="text-sm font-semibold text-foreground">{item.rating.toFixed(1)}</span>
@@ -1212,10 +1217,10 @@ export default function Menu() {
 
                                                         {/* Details */}
                                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                            {item.calories && item.calories > 0 && (
+                                                            {Number(item.calories) > 0 && (
                                                                 <span>{item.calories} cal</span>
                                                             )}
-                                                            {item.preparationTime && (
+                                                            {item.preparationTime && item.preparationTime > 0 && (
                                                                 <span className="flex items-center gap-1">
                                                                     <Clock className="w-2.5 h-2.5" />
                                                                     {item.preparationTime}m
@@ -1350,13 +1355,13 @@ export default function Menu() {
                                                 <div className="absolute bottom-2 xs:bottom-3 left-2 xs:left-3 right-2 xs:right-3">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-1.5 xs:gap-2">
-                                                            {item.rating && item.rating > 0 && (
+                                                            {Number(item.rating) > 0 && (
                                                                 <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 xs:px-3 py-1">
                                                                     <GradientStar size={12} className="xs:w-4 xs:h-4" />
                                                                     <span className="text-white text-xs xs:text-sm font-semibold">{item.rating.toFixed(1)}</span>
                                                                 </div>
                                                             )}
-                                                            {item.preparationTime && (
+                                                            {item.preparationTime && item.preparationTime > 0 && (
                                                                 <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 xs:px-3 py-1">
                                                                     <Clock className="w-3 xs:w-4 h-3 xs:h-4 text-white" />
                                                                     <span className="text-white text-xs xs:text-sm font-semibold">{item.preparationTime}m</span>
@@ -1413,7 +1418,8 @@ export default function Menu() {
                                                     )}
 
                                                     {/* Calories */}
-                                                    {item.calories && item.calories > 0 && (
+                                                     
+                                                    {Number(item.calories) > 0 && (
                                                         <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
                                                             <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                                                             <span className="text-xs xs:text-sm font-medium text-foreground">{item.calories} cal</span>
