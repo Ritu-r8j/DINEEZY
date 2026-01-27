@@ -101,9 +101,6 @@ export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderPr
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Theme Toggle */}
             <ThemeToggle />
-            
-            {/* Notifications */}
-            <AdminNotifications />
 
             {/* Profile Dropdown */}
             <div className="relative" ref={profileRef}>
