@@ -287,6 +287,7 @@ export interface RestaurantSettings {
   }>;
   // Next Visit Coupon Settings
   nextVisitCouponDiscount?: number; // Discount percentage for next visit coupons (default: 10%)
+  nextVisitCouponEnabled?: boolean; // Whether next visit coupons are enabled (default: true)
   
   // Business Type Configuration
   businessType?: 'QSR' | 'RESTO'; // Quick Service Restaurant or Restaurant
@@ -3396,14 +3397,18 @@ export const useCoupon = async (couponId: string, orderId: string): Promise<{ su
 };
 
 // Get restaurant's coupon settings (discount percentage)
-export const getRestaurantCouponSettings = async (restaurantId: string): Promise<{ success: boolean; discountPercentage?: number; error?: string }> => {
+export const getRestaurantCouponSettings = async (restaurantId: string): Promise<{ success: boolean; discountPercentage?: number; enabled?: boolean; error?: string }> => {
   try {
     const restaurantRef = doc(db, 'restaurants', restaurantId);
     const docSnap = await getDoc(restaurantRef);
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-      return { success: true, discountPercentage: data.nextVisitCouponDiscount || 10 }; // Default 10%
+      return { 
+        success: true, 
+        discountPercentage: data.nextVisitCouponDiscount || 10, // Default 10%
+        enabled: data.nextVisitCouponEnabled !== undefined ? data.nextVisitCouponEnabled : true // Default enabled
+      };
     } else {
       return { success: false, error: 'Restaurant not found' };
     }

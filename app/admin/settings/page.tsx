@@ -114,6 +114,7 @@ type SettingsState = {
   mapDirectionsLink?: string;
   // Next Visit Coupon Settings
   nextVisitCouponDiscount?: number;
+  nextVisitCouponEnabled?: boolean;
   // Business Type Configuration
   businessType?: 'QSR' | 'RESTO';
   // Special Instructions
@@ -199,6 +200,7 @@ export default function AdminSettingsPage() {
     mapDirectionsLink: '',
     // Next Visit Coupon Settings
     nextVisitCouponDiscount: 10, // Default 10% discount
+    nextVisitCouponEnabled: true, // Default enabled
     // Business Type Configuration
     businessType: 'QSR', // Default to QSR for simpler setup
     // Default Special Instructions
@@ -548,6 +550,7 @@ export default function AdminSettingsPage() {
           mapDirectionsLink: data.mapDirectionsLink || '',
           // Next Visit Coupon Settings
           nextVisitCouponDiscount: data.nextVisitCouponDiscount || 10,
+          nextVisitCouponEnabled: data.nextVisitCouponEnabled !== undefined ? data.nextVisitCouponEnabled : true,
           // Business Type Configuration
           businessType: data.businessType || 'QSR',
           // Special Instructions Configuration
@@ -1617,56 +1620,97 @@ export default function AdminSettingsPage() {
           {/* Next Visit Coupon Settings */}
           <SectionCard title="Next Visit Coupon Settings" icon={<Star className="h-6 w-6" />}>
             <div className="space-y-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Configure the discount percentage for next visit coupons. Customers get one coupon per day after completing an order.
-              </p>
-
-              {/* Coupon Discount Percentage */}
-              <div>
-                <label htmlFor="couponDiscount" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                  Discount Percentage
-                </label>
-                <div className="flex items-center gap-3">
+              {/* Enable/Disable Toggle */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                    Enable Next Visit Coupons
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Turn on/off the next visit coupon feature for your customers
+                  </p>
+                </div>
+                <label className="inline-flex items-center cursor-pointer">
                   <input
-                    id="couponDiscount"
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={state.nextVisitCouponDiscount || 10}
-                    onChange={(e) => {
-                      const value = Math.min(50, Math.max(1, parseInt(e.target.value) || 10));
-                      setField('nextVisitCouponDiscount', value);
-                    }}
-                    className="w-24 form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    type="checkbox"
+                    checked={state.nextVisitCouponEnabled !== false}
+                    onChange={(e) => setField('nextVisitCouponEnabled', e.target.checked)}
+                    className="sr-only peer"
                   />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">% off</span>
-                </div>
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Customers will receive a {state.nextVisitCouponDiscount || 10}% discount coupon for their next visit. Range: 1-50%
-                </p>
+                  <div className="relative w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300">
+                    <div className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full transition-transform duration-300 ${
+                      state.nextVisitCouponEnabled !== false ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </div>
+                </label>
               </div>
 
-              {/* Coupon Info */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 mt-0.5">
-                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
+              {state.nextVisitCouponEnabled !== false && (
+                <>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Configure the discount percentage for next visit coupons. Customers get one coupon per day after completing an order.
+                  </p>
+
+                  {/* Coupon Discount Percentage */}
                   <div>
-                    <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-1">
-                      How Next Visit Coupons Work
-                    </h4>
-                    <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                      <li>• Customers get 1 coupon per day after completing an order</li>
-                      <li>• Coupons are valid for 30 days from issue date</li>
-                      <li>• Customers can view and use coupons from their profile</li>
-                      <li>• Coupons are automatically applied during checkout</li>
-                    </ul>
+                    <label htmlFor="couponDiscount" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      Discount Percentage
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        id="couponDiscount"
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={state.nextVisitCouponDiscount || 10}
+                        onChange={(e) => {
+                          const value = Math.min(50, Math.max(1, parseInt(e.target.value) || 10));
+                          setField('nextVisitCouponDiscount', value);
+                        }}
+                        className="w-24 form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">% off</span>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Customers will receive a {state.nextVisitCouponDiscount || 10}% discount coupon for their next visit. Range: 1-50%
+                    </p>
                   </div>
+
+                  {/* Coupon Info */}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                          How Next Visit Coupons Work
+                        </h4>
+                        <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                          <li>• Customers get 1 coupon per day after completing an order</li>
+                          <li>• Coupons are valid for 30 days from issue date</li>
+                          <li>• Customers can view and use coupons from their profile</li>
+                          <li>• Coupons are automatically applied during checkout</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {state.nextVisitCouponEnabled === false && (
+                <div className="text-center py-8 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="w-12 h-12 text-gray-400 mx-auto mb-3 flex items-center justify-center">
+                    <Star className="h-8 w-8" />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Next Visit Coupons Disabled</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    Enable the toggle above to start offering next visit coupons to your customers
+                  </p>
                 </div>
-              </div>
+              )}
             </div>
           </SectionCard>
         </div>

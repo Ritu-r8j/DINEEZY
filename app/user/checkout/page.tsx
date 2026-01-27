@@ -125,6 +125,7 @@ export default function Checkout() {
     const [availableCoupons, setAvailableCoupons] = useState<NextVisitCoupon[]>([]);
     const [selectedCoupon, setSelectedCoupon] = useState<NextVisitCoupon | null>(null);
     const [couponsLoading, setCouponsLoading] = useState(false);
+    const [couponsEnabled, setCouponsEnabled] = useState(true);
     
     // Pre-order time selection state
     const [preOrderTime, setPreOrderTime] = useState('');
@@ -221,6 +222,9 @@ export default function Checkout() {
                     const restaurantResult = await getRestaurantSettings(restaurantId);
                     if (restaurantResult.success && restaurantResult.data) {
                         setRestaurantInfo(restaurantResult.data);
+                        
+                        // Set coupon enabled state
+                        setCouponsEnabled(restaurantResult.data.nextVisitCouponEnabled !== false);
                         
                         // Load dynamic special instructions
                         const activeInstructions = (restaurantResult.data.specialInstructions || [])
@@ -680,8 +684,8 @@ export default function Checkout() {
                 }
             }
 
-            // Create next visit coupon for the user (only if logged in and not a guest)
-            if (user && restaurantInfo) {
+            // Create next visit coupon for the user (only if logged in, not a guest, and coupons are enabled)
+            if (user && restaurantInfo && couponsEnabled) {
                 try {
                     const { createNextVisitCoupon, getRestaurantCouponSettings, canUserGetCouponToday } = await import('@/app/(utils)/firebaseOperations');
                     
@@ -690,7 +694,7 @@ export default function Checkout() {
                     if (canGetCoupon.success && canGetCoupon.canGet) {
                         const couponSettings = await getRestaurantCouponSettings(restaurantId);
                         
-                        if (couponSettings.success && couponSettings.discountPercentage) {
+                        if (couponSettings.success && couponSettings.discountPercentage && couponSettings.enabled) {
                             await createNextVisitCoupon(
                                 user.uid,
                                 restaurantId,
@@ -1567,8 +1571,8 @@ export default function Checkout() {
                                             </div>
                                         )}
 
-                                        {/* Next Visit Coupons - Only show for logged-in users */}
-                                        {user && (
+                                        {/* Next Visit Coupons - Only show for logged-in users and when enabled */}
+                                        {user && couponsEnabled && (
                                             <div className="mb-6 sm:mb-8">
                                                 <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Next Visit Coupons</h3>
                                                 
