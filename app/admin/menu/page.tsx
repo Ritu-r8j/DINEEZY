@@ -780,9 +780,11 @@ export default function MenuManagement() {
                       <Clock className="h-3 w-3 text-gray-500" />
                       <span className="text-gray-700 dark:text-gray-300 font-medium">{item.preparationTime}m</span>
                     </div>
-                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded-full">
-                      <span className="text-gray-700 dark:text-gray-300 font-medium">{item.calories} cal</span>
-                    </div>
+                    {item.calories && item.calories > 0 && (
+                      <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded-full">
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">{item.calories} cal</span>
+                      </div>
+                    )}
                     {/* Nutritional Info Indicator */}
                     {item.nutritionalInfo && Object.values(item.nutritionalInfo).some(value => value !== undefined && value !== null) && (
                       <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">

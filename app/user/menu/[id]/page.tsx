@@ -1212,7 +1212,9 @@ export default function Menu() {
 
                                                         {/* Details */}
                                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                            <span>{item.calories} cal</span>
+                                                            {item.calories && item.calories > 0 && (
+                                                                <span>{item.calories} cal</span>
+                                                            )}
                                                             {item.preparationTime && (
                                                                 <span className="flex items-center gap-1">
                                                                     <Clock className="w-2.5 h-2.5" />
@@ -1411,10 +1413,12 @@ export default function Menu() {
                                                     )}
 
                                                     {/* Calories */}
-                                                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
-                                                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                                        <span className="text-xs xs:text-sm font-medium text-foreground">{item.calories} cal</span>
-                                                    </div>
+                                                    {item.calories && item.calories > 0 && (
+                                                        <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
+                                                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                                            <span className="text-xs xs:text-sm font-medium text-foreground">{item.calories} cal</span>
+                                                        </div>
+                                                    )}
 
                                                     {/* Category */}
                                                     <div className="flex items-center gap-1.5 bg-primary/10 rounded-full px-3 py-1.5">
