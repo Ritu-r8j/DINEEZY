@@ -1172,7 +1172,7 @@ export default function MenuPage() {
                                 img.src = item.image;
                                 img.alt = item.name;
                                 img.className = "w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300";
-                                img.onError = () => {
+                                img.onerror = () => {
                                   img.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
                                 };
                                 target.parentNode?.replaceChild(img, target);
