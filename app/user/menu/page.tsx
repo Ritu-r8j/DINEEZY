@@ -1164,6 +1164,9 @@ export default function MenuPage() {
                               loop
                               muted
                               playsInline
+                              controls={false}
+                              disablePictureInPicture
+                              disableRemotePlayback
                               className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
                                 const target = e.target as HTMLVideoElement;
@@ -1192,13 +1195,7 @@ export default function MenuPage() {
 
                           {/* Enhanced Badges - Moved to right side */}
                           <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
-                            {/* Video Badge */}
-                            {item.video && (
-                              <div className="bg-black/70 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
-                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                                <span>Video</span>
-                              </div>
-                            )}
+                          
 
                             {/* Discount Badge */}
                             {hasDiscount(item) && (

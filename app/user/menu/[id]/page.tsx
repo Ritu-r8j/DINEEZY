@@ -513,6 +513,9 @@ export default function Menu() {
                                         muted
                                         loop
                                         playsInline
+                                        controls={false}
+                                        disablePictureInPicture
+                                        disableRemotePlayback
                                         className="absolute inset-0 w-full h-full object-cover"
                                         onError={(e) => {
                                             // Fallback to image if video fails to load
@@ -749,6 +752,9 @@ export default function Menu() {
                                                     muted
                                                     loop
                                                     playsInline
+                                                    controls={false}
+                                                    disablePictureInPicture
+                                                    disableRemotePlayback
                                                     className="absolute inset-0 w-full h-full object-cover rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-500"
                                                 />
                                             </>
@@ -1170,18 +1176,44 @@ export default function Menu() {
                                             className="sm:hidden border border-border/70 rounded-2xl overflow-hidden dark:shadow-2xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:border-primary/30 mb-4 "
                                         >
                                             <div className="flex items-center ml-5"> {/* <-- add items-center here */}
-                                                {/* Mobile Image - Left Side */}
+                                                {/* Mobile Image/Video - Left Side */}
                                                 <div className="relative w-24 h-24 flex-shrink-0 flex items-center">
-                                                    <Image
-                                                        src={item.image}
-                                                        alt={item.name}
-                                                        fill
-                                                        sizes="96px"
-                                                        className="object-cover rounded-md"
-                                                        priority={index < 4}
-                                                    />
+                                                    {item.video ? (
+                                                        <video
+                                                            src={item.video}
+                                                            poster={item.image}
+                                                            autoPlay
+                                                            loop
+                                                            muted
+                                                            playsInline
+                                                            controls={false}
+                                                            disablePictureInPicture
+                                                            disableRemotePlayback
+                                                            className="w-full h-full object-cover rounded-md"
+                                                            onError={(e) => {
+                                                                const target = e.target as HTMLVideoElement;
+                                                                // Fallback to image if video fails
+                                                                const img = document.createElement('img');
+                                                                img.src = item.image;
+                                                                img.alt = item.name;
+                                                                img.className = "w-full h-full object-cover rounded-md";
+                                                                target.parentNode?.replaceChild(img, target);
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <Image
+                                                            src={item.image}
+                                                            alt={item.name}
+                                                            fill
+                                                            sizes="96px"
+                                                            className="object-cover rounded-md"
+                                                            priority={index < 4}
+                                                        />
+                                                    )}
                                                     {/* Enhanced Mobile Badges - Simplified and repositioned */}
                                                     <div className="absolute -top-1 -right-1 flex flex-col gap-0.5 items-end">
+                                                      
+
                                                         {/* Discount Badge - Highest Priority */}
                                                         {hasDiscount(item) && (
                                                             <div className="bg-red-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold shadow-lg">
@@ -1325,22 +1357,48 @@ export default function Menu() {
                                             onClick={() => router.push(`/user/menu/${restaurantId}/${item.id}`)}
                                             className="hidden sm:block h-full bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer hover:border-primary/50"
                                         >
-                                            {/* Enhanced Item Image with Better Layout */}
+                                            {/* Enhanced Item Image/Video with Better Layout */}
                                             <div className="relative h-44 overflow-hidden rounded-t-xl">
-                                                <Image
-                                                    src={item.image}
-                                                    alt={item.name}
-                                                    fill
-                                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                                                    className="object-cover transition-all duration-700 group-hover:image-zoom"
-                                                    priority={index < 4}
-                                                />
+                                                {item.video ? (
+                                                    <video
+                                                        src={item.video}
+                                                        poster={item.image}
+                                                        autoPlay
+                                                        loop
+                                                        muted
+                                                        playsInline
+                                                        controls={false}
+                                                        disablePictureInPicture
+                                                        disableRemotePlayback
+                                                        className="w-full h-full object-cover transition-all duration-700 group-hover:image-zoom"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLVideoElement;
+                                                            // Fallback to image if video fails
+                                                            const img = document.createElement('img');
+                                                            img.src = item.image;
+                                                            img.alt = item.name;
+                                                            img.className = "w-full h-full object-cover transition-all duration-700 group-hover:image-zoom";
+                                                            target.parentNode?.replaceChild(img, target);
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <Image
+                                                        src={item.image}
+                                                        alt={item.name}
+                                                        fill
+                                                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                                        className="object-cover transition-all duration-700 group-hover:image-zoom"
+                                                        priority={index < 4}
+                                                    />
+                                                )}
 
                                                 {/* Enhanced Gradient Overlay */}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
 
                                                 {/* Enhanced Top Right Badges Container - Simplified */}
                                                 <div className="absolute top-2 xs:top-3 right-2 xs:right-3 flex flex-col gap-1 xs:gap-1.5">
+                                                  
+
                                                     {/* Discount Badge - Highest Priority */}
                                                     {hasDiscount(item) && (
                                                         <div className="bg-red-500 text-white px-2 xs:px-3 py-1 xs:py-1.5 rounded-full text-xs font-bold shadow-lg animate-fade-in backdrop-blur-sm border border-white/20">

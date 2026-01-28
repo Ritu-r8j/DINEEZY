@@ -69,6 +69,9 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
                                 loop
                                 muted
                                 playsInline
+                                controls={false}
+                                disablePictureInPicture
+                                disableRemotePlayback
                                 className="w-full h-full object-cover rounded-2xl xs:rounded-3xl"
                                 poster={menuItem.image}
                                 preload="auto"

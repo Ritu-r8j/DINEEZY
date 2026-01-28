@@ -36,7 +36,7 @@ import { CartManager } from "./(utils)/cartUtils";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/app/(contexts)/CartContext";
 import { sendNotification } from "./(utils)/notification";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import UnifiedCart from "./(components)/UnifiedCart";
 
 // Enhanced MenuItem interface
@@ -49,6 +49,7 @@ interface EnhancedMenuItem extends MenuItem {
   totalOrders?: number;
   viewCount?: number;
   orderCount?: number;
+  video?: string;
 }
 
 const services = [
@@ -582,6 +583,7 @@ export default function HomePage() {
             totalOrders: (dish as any).totalOrders || 0,
             viewCount: (dish as any).viewCount || 0,
             orderCount: (dish as any).orderCount || 0,
+            video: (dish as any).video,
           }));
 
           // Apply location filter if available
@@ -1100,17 +1102,43 @@ export default function HomePage() {
                               className="group flex w-[280px] shrink-0 flex-col overflow-hidden rounded-2xl border border-foreground/5 bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/20 md:w-[320px] lg:w-[350px] cursor-pointer"
                             >
                               <div className="relative h-40 sm:h-44 w-full overflow-hidden">
-                                <Image
-                                  src={dish.image}
-                                  alt={dish.name}
-                                  fill
-                                  sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, 350px"
-                                  className="object-cover transition-all duration-500 group-hover:scale-105"
-                                />
+                                {dish.video ? (
+                                  <video
+                                    src={dish.video}
+                                    poster={dish.image}
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                    controls={false}
+                                    disablePictureInPicture
+                                    disableRemotePlayback
+                                    className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLVideoElement;
+                                      // Fallback to image if video fails
+                                      const img = document.createElement('img');
+                                      img.src = dish.image;
+                                      img.alt = dish.name;
+                                      img.className = "w-full h-full object-cover transition-all duration-500 group-hover:scale-105";
+                                      target.parentNode?.replaceChild(img, target);
+                                    }}
+                                  />
+                                ) : (
+                                  <Image
+                                    src={dish.image}
+                                    alt={dish.name}
+                                    fill
+                                    sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, 350px"
+                                    className="object-cover transition-all duration-500 group-hover:scale-105"
+                                  />
+                                )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                                 {/* Enhanced Badges */}
                                 <div className="absolute top-2 right-2 flex flex-col gap-1">
+                               
+
                                   {/* Discount Badge */}
                                   {hasDiscount(dish) && (
                                     <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
@@ -1278,18 +1306,50 @@ export default function HomePage() {
                         onClick={() => router.push(`/user/menu/${restaurant.id}`)}
                       >
                         <div className="relative h-48 sm:h-52 w-full overflow-hidden">
-                          <Image
-                            src={restaurant.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop"}
-                            alt={restaurant.name}
-                            fill
-                            sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, (max-width: 1280px) 380px, 400px"
-                            className="object-cover transition-all duration-500 group-hover:scale-105"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop";
-                            }}
-                          />
+                          {restaurant.video ? (
+                            <video
+                              src={restaurant.video}
+                              poster={restaurant.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop"}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              controls={false}
+                              disablePictureInPicture
+                              disableRemotePlayback
+                              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                              onError={(e) => {
+                                const target = e.target as HTMLVideoElement;
+                                // Fallback to image if video fails
+                                const img = document.createElement('img');
+                                img.src = restaurant.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop";
+                                img.alt = restaurant.name;
+                                img.className = "w-full h-full object-cover transition-all duration-500 group-hover:scale-105";
+                                target.parentNode?.replaceChild(img, target);
+                              }}
+                            />
+                          ) : (
+                            <Image
+                              src={restaurant.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop"}
+                              alt={restaurant.name}
+                              fill
+                              sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, (max-width: 1280px) 380px, 400px"
+                              className="object-cover transition-all duration-500 group-hover:scale-105"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop";
+                              }}
+                            />
+                          )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          
+                          {/* Video Badge for Restaurants */}
+                          {restaurant.video && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg border border-white/20">
+                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                              <span>Video</span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
