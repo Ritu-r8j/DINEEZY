@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/app/(utils)/firebase';
@@ -22,7 +22,7 @@ const inputClasses = (hasError?: boolean) =>
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { user, authReady, setUser } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -32,6 +32,17 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (user && authReady) {
+      if ((user as any).userType === 'admin') {
+        router.replace("/admin");
+      } else {
+        router.replace("/user");
+      }
+    }
+  }, [user, authReady, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -81,15 +92,20 @@ export default function LoginPage() {
       if (userResult.success && userResult.data) {
         const enhancedUser = {
           ...user,
-          phoneNumber: userResult.data.phoneNumber || user.phoneNumber
+          phoneNumber: userResult.data.phoneNumber || user.phoneNumber,
+          userType: 'user' // Ensure user type is set for user login
         };
         setUser(enhancedUser as any);
       } else {
-        setUser(user as any);
+        const enhancedUser = {
+          ...user,
+          userType: 'user' // Default to user type
+        };
+        setUser(enhancedUser as any);
       }
 
       toast.success('Login successful!');
-      router.push('/user');
+      // Let AuthContext handle the redirect
     } catch (error: any) {
       console.error('Login error:', error);
       if (error.code === 'auth/user-not-found') {
@@ -136,15 +152,20 @@ export default function LoginPage() {
       if (userProfile.success && userProfile.data) {
         const enhancedUser = {
           ...user,
-          phoneNumber: userProfile.data.phoneNumber || user.phoneNumber
+          phoneNumber: userProfile.data.phoneNumber || user.phoneNumber,
+          userType: 'user' // Ensure user type is set
         };
         setUser(enhancedUser as any);
       } else {
-        setUser(user as any);
+        const enhancedUser = {
+          ...user,
+          userType: 'user' // Default to user type
+        };
+        setUser(enhancedUser as any);
       }
 
       toast.success('Login successful!');
-      router.push('/user/menu');
+      // Let AuthContext handle the redirect
     } catch (error: any) {
       console.error('Google login error:', error);
       setErrors({ general: 'Google login failed. Please try again.' });

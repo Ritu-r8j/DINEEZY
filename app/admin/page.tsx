@@ -256,7 +256,7 @@ export default function AdminDashboard() {
   // Helper function to format percentage change
   const formatPercentageChange = (change: number) => {
     const isPositive = change >= 0;
-    const formattedChange = Math.abs(change).toFixed(1);
+    const formattedChange = Math.abs(change).toFixed(2);
     return {
       text: `${isPositive ? '+' : '-'}${formattedChange}%`,
       color: isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
@@ -453,6 +453,54 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Recent Orders - Next to Orders Section */}
+      <div className="mb-8 animate-slide-in-from-right">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Orders</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Showing {recentOrders.length} of {filteredOrders.length} orders from {timeRange === 'today' ? 'today' : `this ${timeRange}`}
+                </p>
+              </div>
+              <Link href="/admin/orders" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                View all
+              </Link>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {recentOrders.length > 0 ? (
+                recentOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      {getStatusIcon(order.status)}
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{order.customer}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">#{order.id} • {order.time}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900 dark:text-white">₹{order.amount.toFixed(2)}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{order.status}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <ShoppingBag className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No orders found for the selected period</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                    Try selecting a different time range
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Analytics Charts */}
       <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Orders Chart */}
@@ -616,54 +664,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Orders */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Orders</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Showing {recentOrders.length} of {filteredOrders.length} orders from {timeRange === 'today' ? 'today' : `this ${timeRange}`}
-                </p>
-              </div>
-              <Link href="/admin/orders" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                View all
-              </Link>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {recentOrders.length > 0 ? (
-                recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      {getStatusIcon(order.status)}
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{order.customer}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">#{order.id} • {order.time}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">₹{order.amount.toFixed(2)}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{order.status}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <ShoppingBag className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">No orders found for the selected period</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                    Try selecting a different time range
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Performance Metrics */}
+      <div className="mb-8">
+        {/* Performance Metrics - Full Width */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Performance Metrics</h3>
@@ -673,7 +675,7 @@ export default function AdminDashboard() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Order Completion Rate</span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.completionRate.toFixed(1)}%</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.completionRate.toFixed(2)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
                   <div
@@ -702,7 +704,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Customer Satisfaction</span>
                   <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {filteredOrders.length > 0 ? '4.8/5' : 'N/A'}
+                    {filteredOrders.length > 0 ? '4.80/5' : 'N/A'}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
@@ -721,7 +723,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {filteredOrders.length > 0 ? '4.2' : 'N/A'}
+                      {filteredOrders.length > 0 ? '4.20' : 'N/A'}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Avg Rating</p>
                   </div>
@@ -729,50 +731,6 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-          <Link
-            href="/admin/orders"
-            className="flex items-center justify-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-          >
-            <ShoppingBag className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
-            <span className="text-blue-700 dark:text-blue-300 font-medium">View Orders</span>
-          </Link>
-          <Link
-            href="/admin/menu"
-            className="flex items-center justify-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-          >
-            <span className="text-green-700 dark:text-green-300 font-medium">Manage Menu</span>
-          </Link>
-          <Link
-            href="/admin/reviews"
-            className="flex items-center justify-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors"
-          >
-            <span className="text-yellow-700 dark:text-yellow-300 font-medium">View Reviews</span>
-          </Link>
-          <Link
-            href="/admin/reservations"
-            className="flex items-center justify-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
-          >
-            <span className="text-purple-700 dark:text-purple-300 font-medium">Reservations</span>
-          </Link>
-          <Link
-            href="/admin/payments"
-            className="flex items-center justify-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
-          >
-            <span className="text-indigo-700 dark:text-indigo-300 font-medium">View Payments</span>
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/30 transition-colors"
-          >
-            <span className="text-gray-700 dark:text-gray-300 font-medium">Settings</span>
-          </Link>
         </div>
       </div>
     </div>

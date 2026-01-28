@@ -1,5 +1,3 @@
-[-] Fix 10% off
-[-] Fix best seller and recommend in menu page
 [+] Next visit coupon - COMPLETED
 [+] Fix nutritional information
 [+] Fix restaurent menu page 
@@ -15,6 +13,11 @@
 [+] Display admin instructions on user reservation page when confirmed - COMPLETED
 [+] Auto-confirm linked pre-orders when admin confirms reservation - COMPLETED
 [+] Video in food page
+[+]  Fix cash on delivery 
 
+## 29/01/2026
 
-[-]  Fix cash on delivery 
+[-] Work on reservation system 
+[-] Work on payout system 
+[-] Complete Car dine in
+[-] Simplify admin order system 

@@ -29,7 +29,9 @@ export function Footer() {
               {/* Social links */}
               <div className="flex gap-4">
                 <a 
-                  href="#" 
+                  href="https://instagram.com/dineezy.in" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all duration-300"
                   aria-label="Instagram"
                 >

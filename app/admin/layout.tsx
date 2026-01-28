@@ -13,37 +13,30 @@ interface AdminLayoutProps {
 
 // Custom authentication wrapper for admin routes
 function AdminAuthWrapper({ children }: { children: ReactNode }) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, authReady, isAdmin } = useAuth();
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Wait for auth to finish loading
-    if (loading) return;
+    // Wait for auth to be ready (all async operations completed)
+    if (!authReady || loading) return;
 
-    // Small delay to prevent flashing
-    const timer = setTimeout(() => {
-      if (!user) {
-        // No user, redirect to admin login
-        router.replace('/admin/login');
-        return;
-      }
+    if (!user) {
+      // No user, redirect to admin login
+      router.replace('/admin/login');
+      return;
+    }
 
-      if (!isAdmin) {
-        // User exists but not admin, redirect to user area
-        router.replace('/user');
-        return;
-      }
+    if (!isAdmin) {
+      // User exists but not admin, redirect to user area
+      router.replace('/user');
+      return;
+    }
 
-      // User is admin, stop checking
-      setIsChecking(false);
-    }, 1000); // Small delay to smooth the transition
-
-    return () => clearTimeout(timer);
-  }, [user, loading, isAdmin, router]);
+    // User is admin and auth is ready - no redirect needed
+  }, [user, loading, authReady, isAdmin, router]);
 
   // Show loading screen while checking authentication
-  if (loading || isChecking) {
+  if (loading || !authReady) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">

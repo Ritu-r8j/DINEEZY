@@ -179,7 +179,7 @@ export default function Menu() {
         if (itemsWithRatings.length === 0) return '4.5'; // Default fallback
 
         const sum = itemsWithRatings.reduce((acc, item) => acc + (item.rating || 0), 0);
-        return (sum / itemsWithRatings.length).toFixed(1);
+        return (sum / itemsWithRatings.length).toFixed(2);
     };
 
     // Calculate total reviews from menu items
@@ -191,21 +191,13 @@ export default function Menu() {
 
     // Get minimum order value from restaurant settings
     const getMinOrderValue = () => {
-        // You can add a minOrder field to restaurant settings
-        // For now, we'll parse it from priceRange or use a default
-        return restaurantInfo?.priceRange ? `₹${restaurantInfo.priceRange}` : '₹299';
+        // Default minimum order value
+        return '₹299';
     };
 
     // Get free delivery threshold
     const getFreeDeliveryThreshold = () => {
-        // Parse from offer field or use default
-        if (restaurantInfo?.offer) {
-            // If offer is a percentage, calculate threshold
-            const offerValue = parseInt(restaurantInfo.offer);
-            if (offerValue > 0) {
-                return `₹${offerValue * 50}`; // Simple calculation
-            }
-        }
+        // Use default threshold
         return '₹499';
     };
 
@@ -224,7 +216,7 @@ export default function Menu() {
 
     const formatCurrency = (amount: number, currency: string = 'INR') => {
         const symbol = currency === 'INR' ? '₹' : '$';
-        return `${symbol}${amount.toFixed(0)}`;
+        return `${symbol}${amount.toFixed(2)}`;
     };
 
     const getSpiceCount = (spiceLevel?: string) => {
@@ -512,14 +504,51 @@ export default function Menu() {
                     {/* Mobile Hero Section - More compact sizing */}
                     <div className="lg:hidden relative w-full h-64 xs:h-72 sm:h-80">
                         <div className="relative w-full h-full animate-fade-in">
-                            <Image
-                                src={restaurantInfo?.logoDataUrl || '/placeholder-restaurant.jpg'}
-                                alt={restaurantInfo?.name || 'Restaurant'}
-                                fill
-                                className="object-cover"
-                                sizes="100vw"
-                                priority
-                            />
+                            {/* Video Background for Mobile (when available) */}
+                            {restaurantInfo?.video ? (
+                                <>
+                                    <video
+                                        src={restaurantInfo.video}
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                        onError={(e) => {
+                                            // Fallback to image if video fails to load
+                                            const target = e.target as HTMLVideoElement;
+                                            target.style.display = 'none';
+                                        }}
+                                    />
+                                    {/* Fallback Image (hidden by default, shown if video fails) */}
+                                    <Image
+                                        src={restaurantInfo?.image || '/placeholder-restaurant.jpg'}
+                                        alt={restaurantInfo?.name || 'Restaurant'}
+                                        fill
+                                        className="object-cover"
+                                        sizes="100vw"
+                                        priority
+                                        style={{ display: 'none' }}
+                                        onLoad={(e) => {
+                                            // Show image if video is not available or failed
+                                            const video = e.currentTarget.parentElement?.querySelector('video');
+                                            if (!video || video.style.display === 'none') {
+                                                e.currentTarget.style.display = 'block';
+                                            }
+                                        }}
+                                    />
+                                </>
+                            ) : (
+                                /* Static Image when no video */
+                                <Image
+                                    src={restaurantInfo?.image || '/placeholder-restaurant.jpg'}
+                                    alt={restaurantInfo?.name || 'Restaurant'}
+                                    fill
+                                    className="object-cover"
+                                    sizes="100vw"
+                                    priority
+                                />
+                            )}
                             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/80" />
 
                             {/* Pure Veg Badge - Top Right Corner */}
@@ -705,12 +734,32 @@ export default function Menu() {
                                 {/* Restaurant Image */}
                                 <div className="relative group animate-fade-in flex-shrink-0">
                                     <div className="relative w-56 xl:w-64 h-56 xl:h-64">
-                                        <Image
-                                            src={restaurantInfo?.logoDataUrl || '/placeholder-restaurant.jpg'}
-                                            alt={restaurantInfo?.name || 'Restaurant'}
-                                            fill
-                                            className="object-cover rounded-2xl shadow-2xl group-hover:scale-105 transition-transform duration-500"
-                                        />
+                                        {/* Show video on hover for desktop, image by default */}
+                                        {restaurantInfo?.video ? (
+                                            <>
+                                                <Image
+                                                    src={restaurantInfo?.image || '/placeholder-restaurant.jpg'}
+                                                    alt={restaurantInfo?.name || 'Restaurant'}
+                                                    fill
+                                                    className="object-cover rounded-2xl shadow-2xl group-hover:opacity-0 transition-all duration-500"
+                                                />
+                                                <video
+                                                    src={restaurantInfo.video}
+                                                    autoPlay
+                                                    muted
+                                                    loop
+                                                    playsInline
+                                                    className="absolute inset-0 w-full h-full object-cover rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-500"
+                                                />
+                                            </>
+                                        ) : (
+                                            <Image
+                                                src={restaurantInfo?.image || '/placeholder-restaurant.jpg'}
+                                                alt={restaurantInfo?.name || 'Restaurant'}
+                                                fill
+                                                className="object-cover rounded-2xl shadow-2xl group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        )}
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl" />
                                     </div>
 
@@ -788,8 +837,6 @@ export default function Menu() {
                                         </span>
                                         <span>•</span>
                                         <span>{restaurantInfo?.cuisine || 'International Cuisine'}</span>
-                                        <span>•</span>
-                                        <span className="font-semibold">{restaurantInfo?.priceRange ? `₹${restaurantInfo.priceRange} for two` : '₹700 for two'}</span>
                                         <span>•</span>
                                         {isRestaurantOpen() ? (
                                             <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
@@ -991,14 +1038,6 @@ export default function Menu() {
 
 
 
-                                    {/* Offer Badge */}
-                                    {restaurantInfo?.offer && parseInt(restaurantInfo.offer) > 0 && (
-                                        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-2 rounded-lg text-center shadow-md">
-                                            <p className="text-lg font-bold">{restaurantInfo.offer}% OFF</p>
-                                            <p className="text-xs opacity-90">on your order</p>
-                                        </div>
-                                    )}
-                                   
                                 </div>
                             </div>
 
@@ -1199,7 +1238,7 @@ export default function Menu() {
                                                             {Number(item.rating) > 0 && (
                                                                 <div className="flex items-center gap-1">
                                                                     <GradientStar size={12} />
-                                                                    <span className="text-sm font-semibold text-foreground">{item.rating.toFixed(1)}</span>
+                                                                    <span className="text-sm font-semibold text-foreground">{item.rating.toFixed(2)}</span>
                                                                 </div>
                                                             )}
                                                             {item.available ? (
@@ -1358,7 +1397,7 @@ export default function Menu() {
                                                             {Number(item.rating) > 0 && (
                                                                 <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 xs:px-3 py-1">
                                                                     <GradientStar size={12} className="xs:w-4 xs:h-4" />
-                                                                    <span className="text-white text-xs xs:text-sm font-semibold">{item.rating.toFixed(1)}</span>
+                                                                    <span className="text-white text-xs xs:text-sm font-semibold">{item.rating.toFixed(2)}</span>
                                                                 </div>
                                                             )}
                                                             {item.preparationTime && item.preparationTime > 0 && (

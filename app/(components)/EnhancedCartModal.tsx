@@ -137,13 +137,34 @@ export default function EnhancedCartModal({
                         {/* Product Overview */}
                         <div className="flex items-start gap-4">
                             <div className="relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0">
-                                <Image
-                                    src={menuItem.image}
-                                    alt={menuItem.name}
-                                    fill
-                                    className="object-cover"
-                                    sizes="80px"
-                                />
+                                {menuItem.video ? (
+                                    <video
+                                        src={menuItem.video}
+                                        poster={menuItem.image}
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLVideoElement;
+                                            // Fallback to image if video fails
+                                            const img = document.createElement('img');
+                                            img.src = menuItem.image;
+                                            img.alt = menuItem.name;
+                                            img.className = "w-full h-full object-cover";
+                                            target.parentNode?.replaceChild(img, target);
+                                        }}
+                                    />
+                                ) : (
+                                    <Image
+                                        src={menuItem.image}
+                                        alt={menuItem.name}
+                                        fill
+                                        className="object-cover"
+                                        sizes="80px"
+                                    />
+                                )}
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">

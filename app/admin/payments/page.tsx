@@ -362,7 +362,7 @@ export default function PaymentsPage() {
                             {analytics?.totalRevenue && dayWiseData?.totals?.totalRevenue && 
                              analytics.totalRevenue !== dayWiseData.totals.totalRevenue && (
                                 <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                                    ₹{(analytics.totalRevenue - dayWiseData.totals.totalRevenue).toFixed(0)} in pending payouts
+                                    ₹{(analytics.totalRevenue - dayWiseData.totals.totalRevenue).toFixed(2)} in pending payouts
                                 </p>
                             )}
                         </div>
@@ -455,7 +455,7 @@ export default function PaymentsPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                             <p className="text-xs text-gray-600 dark:text-gray-400 truncate">Average Transaction</p>
-                            <p className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">₹{analytics?.averageTransaction?.toFixed(0) || '0'}</p>
+                            <p className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">₹{analytics?.averageTransaction?.toFixed(2) || '0.00'}</p>
                         </div>
                     </div>
                 </div>
@@ -467,7 +467,7 @@ export default function PaymentsPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                             <p className="text-xs text-gray-600 dark:text-gray-400 truncate">Processing Fees</p>
-                            <p className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">₹{analytics?.totalProcessingFees?.toFixed(0) || '0'}</p>
+                            <p className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">₹{analytics?.totalProcessingFees?.toFixed(2) || '0.00'}</p>
                         </div>
                     </div>
                 </div>

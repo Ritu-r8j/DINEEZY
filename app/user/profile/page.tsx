@@ -1206,16 +1206,16 @@ export default function ProfilePage() {
                       <div className="min-w-0 flex-1">
                         <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">Total Spent</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Avg: ₹{accountStats.averageOrderValue.toFixed(0)}
+                          Avg: ₹{accountStats.averageOrderValue.toFixed(2)}
                         </p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
                       <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white block">
-                        ₹{accountStats.totalSpentAmount.toFixed(0)}
+                        ₹{accountStats.totalSpentAmount.toFixed(2)}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        This month: ₹{accountStats.monthlySpending.toFixed(0)}
+                        This month: ₹{accountStats.monthlySpending.toFixed(2)}
                       </span>
                     </div>
                   </div>

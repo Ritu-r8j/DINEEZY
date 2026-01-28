@@ -1,4 +1,5 @@
 'use client';
+
 import LocationPicker from './components/LocationPicker';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -28,6 +29,7 @@ import {
   CreditCard,
   Building,
   Smartphone,
+  Video,
 } from 'lucide-react';
 import {
   saveRestaurantSettings,
@@ -37,6 +39,7 @@ import {
   getPaymentDetails,
   PaymentDetails
 } from '@/app/(utils)/firebaseOperations';
+import { uploadImageToCloudinary, uploadVideoToCloudinary, uploadToCloudinary } from '@/app/(utils)/cloudinary';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import {toast} from 'sonner';
 import { 
@@ -60,15 +63,6 @@ type DayHours = {
   to: string; // HH:mm
 };
 
-type StaffStatus = 'Active' | 'Inactive';
-
-type Staff = {
-  id: string;
-  name: string;
-  role: string;
-  status: StaffStatus;
-};
-
 type Table = {
   id: string;
   number: string;
@@ -80,7 +74,6 @@ type SettingsState = {
   name: string;
   phone: string;
   email: string;
-  offer: string;
   address: {
     street: string;
     city: string;
@@ -91,10 +84,9 @@ type SettingsState = {
     lat: number;
     lng: number;
   };
-  logoDataUrl?: string | null;
   image?: string | null;
+  video?: string | null; // Cloudinary video URL
   hours: Record<DayKey, DayHours>;
-  staff: Staff[];
   tables: Table[];
   // New restaurant details
   cuisine?: string;
@@ -136,18 +128,24 @@ const DEFAULT_HOURS: Record<DayKey, DayHours> = {
   Sunday: { open: false, from: '00:00', to: '00:00' },
 };
 
-const DEFAULT_STAFF: Staff[] = [
-  { id: 'stf-1', name: 'Ethan Carter', role: 'Manager', status: 'Active' },
-  { id: 'stf-2', name: 'Olivia Bennett', role: 'Chef', status: 'Active' },
-  { id: 'stf-3', name: 'Noah Thompson', role: 'Waiter', status: 'Inactive' },
-];
-
 function uid(prefix = 'id'): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 function cx(...parts: Array<string | undefined | null | false>) {
   return parts.filter(Boolean).join(' ');
+}
+
+// Helper function to count words
+function countWords(text: string): number {
+  return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+}
+
+// Helper function to limit text by word count
+function limitByWords(text: string, maxWords: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(' ');
 }
 
 function SectionCard(props: { title: string; children: React.ReactNode; className?: string; icon?: React.ReactNode }) {
@@ -168,19 +166,18 @@ export default function AdminSettingsPage() {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const restaurantImageInputRef = useRef<HTMLInputElement | null>(null);
+  const restaurantVideoInputRef = useRef<HTMLInputElement | null>(null);
   const days: DayKey[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const [state, setState] = useState<SettingsState>({
     name: '',
     phone: '',
     email: '',
-    offer: '',
     address: { street: '', city: '', postalCode: '', state: '' },
     location: undefined,
-    logoDataUrl: null,
     image: null,
+    video: null,
     hours: DEFAULT_HOURS,
-    staff: DEFAULT_STAFF,
     tables: [],
     // New restaurant details
     cuisine: '',
@@ -222,12 +219,10 @@ export default function AdminSettingsPage() {
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-
-  // Staff modal state
-  const [showStaffModal, setShowStaffModal] = useState(false);
-  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Staff | null>(null);
 
   // Table modal state
   const [showTableModal, setShowTableModal] = useState(false);
@@ -276,7 +271,6 @@ export default function AdminSettingsPage() {
             name: data.name || '',
             phone: data.phone || '',
             email: data.email || '',
-            offer: data.offer || '',
             address: {
               street: data.address?.street || '',
               city: data.address?.city || '',
@@ -284,10 +278,9 @@ export default function AdminSettingsPage() {
               state: data.address?.state || '',
             },
             location: data.location || undefined,
-            logoDataUrl: data.logoDataUrl || null,
             image: data.image || null,
+            video: data.video || null,
             hours: { ...DEFAULT_HOURS, ...(data.hours || {}) },
-            staff: Array.isArray(data.staff) ? data.staff : DEFAULT_STAFF,
             tables: Array.isArray(data.tables) ? data.tables.map(t => ({
               ...t,
               status: t.status || 'active'
@@ -406,25 +399,59 @@ export default function AdminSettingsPage() {
     setState((s) => ({ ...s, hours: { ...s.hours, [day]: { ...s.hours[day], [part]: value } } }));
   }
 
-  async function onLogoFile(file: File) {
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => setField('logoDataUrl', String(reader.result));
-    reader.readAsDataURL(file);
-  }
-
   async function onRestaurantImageFile(file: File) {
     if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => setField('image', String(reader.result));
-    reader.readAsDataURL(file);
+    
+    try {
+      setIsUploadingImage(true);
+      const result = await uploadImageToCloudinary(file);
+      
+      if (result.success && result.url) {
+        setField('image', result.url);
+        toast.success('Image uploaded successfully!');
+      } else {
+        toast.error(result.error || 'Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setIsUploadingImage(false);
+    }
   }
 
-  function onDrop(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    const f = e.dataTransfer.files?.[0];
-    if (f) onLogoFile(f);
+  async function onRestaurantVideoFile(file: File) {
+    if (!file || !file.type.startsWith('video/')) return;
+    
+    // Check file size (limit to 50MB)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      toast.error('Video file size must be less than 50MB');
+      return;
+    }
+
+    try {
+      setIsUploadingVideo(true);
+      setUploadProgress(0);
+      toast.info('Uploading video... This may take a moment.');
+      
+      const result = await uploadToCloudinary(
+        file, 
+        (progress) => {
+          setUploadProgress(progress);
+        }, 
+        'restaurant-videos'
+      );
+      
+      setField('video', result.secure_url);
+      toast.success('Video uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to upload video');
+    } finally {
+      setIsUploadingVideo(false);
+      setUploadProgress(0);
+    }
   }
 
   function onRestaurantImageDrop(e: React.DragEvent) {
@@ -432,6 +459,13 @@ export default function AdminSettingsPage() {
     e.stopPropagation();
     const f = e.dataTransfer.files?.[0];
     if (f) onRestaurantImageFile(f);
+  }
+
+  function onRestaurantVideoDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const f = e.dataTransfer.files?.[0];
+    if (f) onRestaurantVideoFile(f);
   }
 
   function validate(): string[] {
@@ -481,7 +515,13 @@ export default function AdminSettingsPage() {
         return obj;
       };
 
-      const cleanSettings = removeUndefined(state);
+      // Ensure discount percentage has a valid value before saving
+      const stateToSave = {
+        ...state,
+        nextVisitCouponDiscount: state.nextVisitCouponDiscount || 10
+      };
+
+      const cleanSettings = removeUndefined(stateToSave);
       
       const result = await saveRestaurantSettings(user.uid, cleanSettings);
 
@@ -516,7 +556,6 @@ export default function AdminSettingsPage() {
           name: data.name || '',
           phone: data.phone || '',
           email: data.email || '',
-          offer: data.offer || '',
           address: {
             street: data.address?.street || '',
             city: data.address?.city || '',
@@ -524,10 +563,9 @@ export default function AdminSettingsPage() {
             state: data.address?.state || '',
           },
           location: data.location || undefined,
-          logoDataUrl: data.logoDataUrl || null,
           image: data.image || null,
+          video: data.video || null,
           hours: { ...DEFAULT_HOURS, ...(data.hours || {}) },
-          staff: Array.isArray(data.staff) ? data.staff : DEFAULT_STAFF,
           tables: Array.isArray(data.tables) ? data.tables.map(t => ({
             ...t,
             status: t.status || 'active'
@@ -575,13 +613,11 @@ export default function AdminSettingsPage() {
           name: '',
           phone: '',
           email: '',
-          offer: '',
           address: { street: '', city: '', postalCode: '', state: '' },
           location: undefined,
-          logoDataUrl: null,
           image: null,
+          video: null,
           hours: DEFAULT_HOURS,
-          staff: DEFAULT_STAFF,
           tables: [],
           // New restaurant details
           cuisine: '',
@@ -606,37 +642,6 @@ export default function AdminSettingsPage() {
       console.error('Error discarding changes:', err);
       setError('Failed to discard changes. Please try again.');
     }
-  }
-
-  // Staff management
-  function openAddStaff() {
-    setEditingStaff(null);
-    setShowStaffModal(true);
-  }
-
-  function openEditStaff(s: Staff) {
-    setEditingStaff(s);
-    setShowStaffModal(true);
-  }
-
-  function upsertStaff(payload: Omit<Staff, 'id'> & { id?: string }) {
-    setState((s) => {
-      if (payload.id) {
-        return { ...s, staff: s.staff.map((it) => (it.id === payload.id ? { ...it, ...payload } : it)) };
-      }
-      return { ...s, staff: [...s.staff, { id: uid('stf'), ...payload }] };
-    });
-    setShowStaffModal(false);
-  }
-
-  function requestDeleteStaff(s: Staff) {
-    setDeleteTarget(s);
-  }
-
-  function confirmDeleteStaff() {
-    if (!deleteTarget) return;
-    setState((s) => ({ ...s, staff: s.staff.filter((it) => it.id !== deleteTarget.id) }));
-    setDeleteTarget(null);
   }
 
   // Table management
@@ -967,70 +972,6 @@ export default function AdminSettingsPage() {
             </div>
           </SectionCard>
 
-          {/* Logo */}
-          <SectionCard title="Logo" icon={<Star className="h-6 w-6" />}>
-            {state.logoDataUrl ? (
-              <div className="flex items-center gap-8">
-                <div className="relative group">
-                  <img
-                    src={state.logoDataUrl}
-                    alt="Logo"
-                    className="w-24 h-24 rounded-lg object-cover border border-gray-200 dark:border-gray-700 shadow-lg group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-all duration-300" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                  >
-                    <Upload className="h-4 w-4" /> Replace
-                  </button>
-                  <button
-                    onClick={() => setField('logoDataUrl', null)}
-                    className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                  >
-                    <Trash2 className="h-4 w-4" /> Remove
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div
-                onDrop={onDrop}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
-              >
-                <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
-                  <Upload className="h-10 w-10 text-gray-400" />
-                </div>
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
-                  Drag and drop or browse to upload your logo.
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Recommended size: 200x200px</p>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="bg-black text-white text-sm font-semibold py-2 px-4 rounded-lg hover:bg-gray-800 transition-all duration-200"
-                >
-                  Browse Files
-                </button>
-              </div>
-            )}
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onLogoFile(f);
-              }}
-            />
-          </SectionCard>
-
           {/* Restaurant Image */}
           <SectionCard title="Restaurant Image" icon={<Utensils className="h-6 w-6" />}>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -1098,6 +1039,124 @@ export default function AdminSettingsPage() {
             />
           </SectionCard>
 
+          {/* Restaurant Video */}
+          <SectionCard title="Restaurant Video (Optional)" icon={<Video className="h-6 w-6" />}>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Upload a short video of your restaurant. This will be displayed as a background video on mobile devices for an enhanced user experience. Maximum file size: 50MB.
+            </p>
+            {state.video ? (
+              <div className="flex flex-col sm:flex-row items-start gap-6">
+                <div className="relative group w-full sm:w-auto">
+                  <video
+                    src={state.video}
+                    className="w-full sm:w-64 h-48 rounded-lg object-cover border border-gray-200 dark:border-gray-700 shadow-lg"
+                    controls
+                    preload="metadata"
+                  >
+                    <source src={state.video} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+                <div className="flex flex-col gap-3 w-full sm:w-auto">
+                  <button
+                    onClick={() => restaurantVideoInputRef.current?.click()}
+                    disabled={isUploadingVideo}
+                    className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 disabled:opacity-50"
+                  >
+                    <Upload className="h-4 w-4" /> 
+                    {isUploadingVideo ? 'Uploading...' : 'Replace Video'}
+                  </button>
+                  <button
+                    onClick={() => setField('video', null)}
+                    disabled={isUploadingVideo}
+                    className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" /> Remove Video
+                  </button>
+                  {isUploadingVideo && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        Uploading video... {uploadProgress}%
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Video will be optimized for mobile viewing
+                  </p>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                    <p>✓ Click video to play/pause</p>
+                    <p>✓ Hover to show controls</p>
+                    <p>✓ Click fullscreen for better view</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                onDrop={onRestaurantVideoDrop}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
+              >
+                <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
+                  <Video className="h-10 w-10 text-gray-400" />
+                </div>
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+                  Drag and drop or browse to upload your restaurant video.
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                  Supported formats: MP4, MOV, AVI • Max size: 50MB
+                </p>
+                <button
+                  onClick={() => restaurantVideoInputRef.current?.click()}
+                  disabled={isUploadingVideo}
+                  className="bg-black text-white text-sm font-semibold py-2 px-4 rounded-lg hover:bg-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUploadingVideo ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Uploading...
+                    </div>
+                  ) : (
+                    'Browse Files'
+                  )}
+                </button>
+                {isUploadingVideo && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      Uploading... {uploadProgress}%
+                    </p>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <input
+              ref={restaurantVideoInputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onRestaurantVideoFile(f);
+              }}
+            />
+          </SectionCard>
+
           {/* Contact Information */}
           <SectionCard title="Contact Information" icon={<Phone className="h-6 w-6" />}>
             <div className="space-y-6">
@@ -1136,25 +1195,6 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
               </div>
-<div>
-                <label htmlFor="offer" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                  Special Offer
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                  id="offer"
-                    type="number"
-                  value={state.offer}
-                  onChange={(e) => setField('offer', e.target.value)}
-                    placeholder="20"
-                    min="0"
-                    max="100"
-
-                    className="w-20 form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">% Off</span>
-              </div>
-            </div>
             </div>
           </SectionCard>
 
@@ -1304,14 +1344,16 @@ export default function AdminSettingsPage() {
                   id="cuisine"
                   type="text"
                   value={state.cuisine || ''}
-                  onChange={(e) => setField('cuisine', e.target.value)}
+                  onChange={(e) => {
+                    const limitedText = limitByWords(e.target.value, 10);
+                    setField('cuisine', limitedText);
+                  }}
                   placeholder="e.g., Italian, Indian, Chinese, Mexican"
-                  maxLength={50}
                   className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200"
                 />
                 <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 text-right">
-                  {(state.cuisine || '').length}/50 characters
-              </div>
+                  {countWords(state.cuisine || '')}/10 words
+                </div>
               </div>
 
               {/* Restaurant Type */}
@@ -1348,15 +1390,16 @@ export default function AdminSettingsPage() {
                 <textarea
                   id="description"
                   value={state.description || ''}
-                  onChange={(e) => setField('description', e.target.value)}
+                  onChange={(e) => {
+                    const limitedText = limitByWords(e.target.value, 70);
+                    setField('description', limitedText);
+                  }}
                   placeholder="Tell customers about your restaurant, what makes it special..."
                   rows={3}
-                  minLength={50}
-                  maxLength={150}
                   className="w-full form-textarea bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200 resize-none"
                 />
                 <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 text-right">
-                  {(state.description || '').length}/150 characters
+                  {countWords(state.description || '')}/70 words
                 </div>
               </div>
               {/* Delivery Time */}
@@ -1662,11 +1705,20 @@ export default function AdminSettingsPage() {
                         type="number"
                         min="1"
                         max="50"
-                        value={state.nextVisitCouponDiscount || 10}
+                        value={state.nextVisitCouponDiscount || ''}
                         onChange={(e) => {
-                          const value = Math.min(50, Math.max(1, parseInt(e.target.value) || 10));
-                          setField('nextVisitCouponDiscount', value);
+                          const inputValue = e.target.value;
+                          if (inputValue === '') {
+                            setField('nextVisitCouponDiscount', undefined);
+                          } else {
+                            const numValue = parseInt(inputValue);
+                            if (!isNaN(numValue)) {
+                              const value = Math.min(50, Math.max(1, numValue));
+                              setField('nextVisitCouponDiscount', value);
+                            }
+                          }
                         }}
+                        placeholder="10"
                         className="w-24 form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-900 dark:text-gray-100 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">% off</span>
@@ -1714,24 +1766,6 @@ export default function AdminSettingsPage() {
             </div>
           </SectionCard>
         </div>
-
-        {/* Add/Edit Staff Modal */}
-        {showStaffModal && (
-          <StaffModal
-            onClose={() => setShowStaffModal(false)}
-            onSave={(payload) => upsertStaff(payload)}
-            staff={editingStaff ?? undefined}
-          />
-        )}
-
-        {/* Confirm Delete Staff Modal */}
-        {deleteTarget && (
-          <ConfirmDeleteModal
-            name={deleteTarget.name}
-            onCancel={() => setDeleteTarget(null)}
-            onConfirm={confirmDeleteStaff}
-          />
-        )}
 
         {/* Add/Edit Table Modal */}
         {showTableModal && (
@@ -1942,7 +1976,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {(state.tables.reduce((sum, t) => sum + t.capacity, 0) / state.tables.length).toFixed(1)}
+                    {(state.tables.reduce((sum, t) => sum + t.capacity, 0) / state.tables.length).toFixed(2)}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Avg Capacity</div>
                 </div>
@@ -2127,171 +2161,7 @@ export default function AdminSettingsPage() {
           </div>
         </SectionCard>
 
-        {/* Staff Accounts */}
-        <SectionCard title="Staff Accounts" icon={<Users className="h-6 w-6" />}>
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Staff Members</h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Manage your restaurant team</p>
-              </div>
-              <button
-                onClick={openAddStaff}
-                className="bg-black text-white text-sm font-semibold py-2 px-4 rounded-lg hover:bg-gray-800 inline-flex items-center gap-2 transition-all duration-200 w-full sm:w-auto"
-              >
-                <Plus className="h-4 w-4" /> Add Staff
-              </button>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs sm:text-sm text-left">
-                <thead className="border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                  <tr>
-                    <th scope="col" className="py-3 pr-6 font-semibold">Name</th>
-                    <th scope="col" className="py-3 px-6 font-semibold">Role</th>
-                    <th scope="col" className="py-3 px-6 font-semibold">Status</th>
-                    <th scope="col" className="py-3 pl-6 text-right font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {state.staff.map((s, idx) => (
-                    <tr key={s.id} className={cx('border-b border-gray-200 dark:border-gray-700', idx === state.staff.length - 1 && 'border-b-0')}>
-                      <td className="py-4 pr-6 text-gray-900 dark:text-gray-100">{s.name}</td>
-                      <td className="py-4 px-6 text-gray-600 dark:text-gray-300">{s.role}</td>
-                      <td className="py-4 px-6">
-                        <span
-                          className={cx(
-                            'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                            s.status === 'Active'
-                              ? 'bg-gray-900/10 text-gray-900 dark:bg-white/10 dark:text-white'
-                              : 'bg-gray-500/10 text-gray-500 dark:bg-gray-500/20 dark:text-gray-300'
-                          )}
-                        >
-                          {s.status}
-                        </span>
-                      </td>
-                      <td className="py-4 pl-6 text-right">
-                        <div className="flex flex-col sm:flex-row items-end sm:justify-end gap-1 sm:gap-2">
-                          <button
-                            onClick={() => openEditStaff(s)}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs sm:text-sm"
-                          >
-                            <Edit3 className="h-3 w-3 sm:h-4 sm:w-4" /> 
-                            <span className="hidden sm:inline">Edit</span>
-                          </button>
-                          <button
-                            onClick={() => requestDeleteStaff(s)}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs sm:text-sm"
-                          >
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" /> 
-                            <span className="hidden sm:inline">Delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </SectionCard>
-
-
-      </div>
-    </div>
-  );
-}
-
-/* ----------------------------- Staff Modal ------------------------------ */
-
-function StaffModal(props: {
-  staff?: Staff;
-  onSave: (payload: Omit<Staff, 'id'> & { id?: string }) => void;
-  onClose: () => void;
-}) {
-  const [name, setName] = useState(props.staff?.name ?? '');
-  const [role, setRole] = useState(props.staff?.role ?? '');
-  const [status, setStatus] = useState<StaffStatus>(props.staff?.status ?? 'Active');
-
-  function save() {
-    if (!name.trim()) {
-      alert('Name is required.');
-      return;
-    }
-    if (!role.trim()) {
-      alert('Role is required.');
-      return;
-    }
-    props.onSave({ id: props.staff?.id, name: name.trim(), role: role.trim(), status });
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={props.onClose} />
-      <div className="relative w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 animate-slide-in-from-bottom max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <Users className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-            </div>
-            <h4 className="text-xl font-bold text-black dark:text-white">
-              {props.staff ? 'Edit Staff' : 'Add Staff'}
-            </h4>
-          </div>
-          <button
-            onClick={props.onClose}
-            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Full Name</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="John Doe"
-              className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Role</label>
-            <input
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              placeholder="Chef / Manager / Waiter"
-              className="w-full form-input bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Status</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as StaffStatus)}
-              className="w-full form-select bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200"
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
-          <button
-            onClick={props.onClose}
-            className="px-4 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={save}
-            className="px-4 py-2 rounded-md text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-all duration-200"
-          >
-            Save
-          </button>
-        </div>
       </div>
     </div>
   );

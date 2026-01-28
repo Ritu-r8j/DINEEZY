@@ -17,6 +17,7 @@ interface AuthContextType {
   user: (User & { userType?: 'user' | 'admin' }) | null;
   userProfile: UserData | null;
   loading: boolean;
+  authReady: boolean; // New flag to indicate when all auth data is loaded
   signOut: () => Promise<void>;
   refreshUserData: () => Promise<void>;
   isAdmin: boolean;
@@ -43,32 +44,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<(User & { userType?: 'user' | 'admin' }) | null>(null);
   const [userProfile, setUserProfile] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false); // New state to track when all auth data is ready
+  const [userType, setUserType] = useState<'user' | 'admin' | null>(null);
   const router = useRouter();
 
   const refreshUserData = async () => {
     if (user) {
       try {
-        // Get user profile
-        const userResult = await getUserProfile(user.uid);
+        setAuthReady(false); // Reset auth ready state during refresh
+        
+        // Get user profile and user type in parallel
+        const [userResult, userTypeResult] = await Promise.all([
+          getUserProfile(user.uid),
+          getUserType(user.uid)
+        ]);
+
         if (userResult.success && userResult.data) {
           setUserProfile(userResult.data);
 
-          // Update user object with latest phone number from profile
+          // Update user object with latest data
           const updatedUser = {
             ...user,
-            phoneNumber: userResult.data.phoneNumber || user.phoneNumber
+            phoneNumber: userResult.data.phoneNumber || user.phoneNumber,
+            userType: userTypeResult || 'user'
           };
           setUser(updatedUser);
         }
 
-        // Also refresh user type
-        const userTypeResult = await getUserType(user.uid);
+        // Set user type
         if (userTypeResult) {
           setUserType(userTypeResult);
-          (user as any).userType = userTypeResult;
+        } else {
+          setUserType('user'); // Default to user
         }
+
+        setAuthReady(true); // Mark auth as ready after all data is loaded
       } catch (error) {
         console.error('Error refreshing user data:', error);
+        setAuthReady(true); // Still mark as ready even if there's an error
       }
     }
   };
@@ -85,6 +98,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       setUser(null);
       setUserProfile(null);
+      setUserType(null);
+      setAuthReady(false);
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -103,6 +118,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     setUser(phoneUser);
     setUserProfile(userData);
+    setUserType(userData.userType || 'user');
+    setAuthReady(true); // Mark as ready since we have all data
 
     // Store phone auth session
     localStorage.setItem('phoneAuthSession', JSON.stringify({
@@ -126,7 +143,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (isValid) {
             setUser(phoneUser);
             setUserProfile(phoneUserProfile);
+            setUserType(phoneUser.userType || 'user');
             setLoading(false);
+            setAuthReady(true);
             return true;
           } else {
             // Clear expired session
@@ -150,30 +169,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (firebaseUser) {
           try {
-            // Get user profile
-            const userResult = await getUserProfile(firebaseUser.uid);
+            setAuthReady(false); // Reset auth ready state
+            
+            // Get user profile and user type in parallel
+            const [userResult, userTypeResult] = await Promise.all([
+              getUserProfile(firebaseUser.uid),
+              getUserType(firebaseUser.uid)
+            ]);
+
+            let enhancedUser = firebaseUser as User & { userType?: 'user' | 'admin' };
+            
             if (userResult.success && userResult.data) {
               setUserProfile(userResult.data);
-
               // Enhance Firebase user with phone number from profile
-              const enhancedUser = {
+              enhancedUser = {
                 ...firebaseUser,
-                phoneNumber: userResult.data.phoneNumber || firebaseUser.phoneNumber
+                phoneNumber: userResult.data.phoneNumber || firebaseUser.phoneNumber,
+                userType: userTypeResult || 'user'
               } as User & { userType?: 'user' | 'admin' };
-
-              setUser(enhancedUser);
             } else {
-              // If no profile data, use Firebase user as is
-              setUser(firebaseUser);
+              // If no profile data, set default user type
+              enhancedUser.userType = userTypeResult || 'user';
             }
+
+            setUser(enhancedUser);
+            setUserType(userTypeResult || 'user');
+            setAuthReady(true); // Mark as ready after all data is loaded
           } catch (error) {
             console.error('Error loading user data:', error);
             // Fallback to Firebase user if profile loading fails
-            setUser(firebaseUser);
+            const fallbackUser = {
+              ...firebaseUser,
+              userType: 'user'
+            } as User & { userType?: 'user' | 'admin' };
+            setUser(fallbackUser);
+            setUserType('user');
+            setAuthReady(true);
           }
         } else {
           setUser(null);
           setUserProfile(null);
+          setUserType(null);
+          setAuthReady(true); // Mark as ready even when no user
         }
       });
 
@@ -182,12 +219,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // State for user type
-  const [userType, setUserType] = useState<'user' | 'admin' | null>(null);
-
-  // Fetch user type from database when user changes
+  // Removed separate userType state and useEffect since it's now handled in the main auth flow
 
   useEffect(() => {
-    if (user && !loading && userProfile) {
+    if (user && !loading && userProfile && authReady) {
       // Add a small delay to ensure userProfile is fully loaded
       const timeoutId = setTimeout(() => {
         // Check phone number from enhanced user object (which includes Firestore phone number)
@@ -204,34 +239,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [user, userProfile, loading, router]);
-
-  useEffect(() => {
-    const fetchUserType = async () => {
-      if (user) {
-        try {
-          const result = await getUserType(user.uid);
-          if (result) {
-            setUserType(result);
-            // Also update the local user object
-            (user as any).userType = result;
-          } else {
-            // Default to user if no userType is found
-            setUserType('user');
-            (user as any).userType = 'user';
-          }
-        } catch (error) {
-          console.error('Error fetching user type:', error);
-          setUserType('user');
-          (user as any).userType = 'user';
-        }
-      } else {
-        setUserType(null);
-      }
-    };
-
-    fetchUserType();
-  }, [user]);
+  }, [user, userProfile, loading, authReady, router]);
 
   const isAdmin = userType === 'admin';
   const isUser = userType === 'user';
@@ -240,6 +248,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     userProfile,
     loading,
+    authReady,
     signOut,
     refreshUserData,
     isAdmin,

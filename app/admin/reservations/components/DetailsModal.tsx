@@ -195,7 +195,7 @@ export default function DetailsModal({
                                                                     {item.quantity}x {item.name}
                                                                 </span>
                                                                 <span className="text-xs text-gray-400 flex-shrink-0">
-                                                                    ₹{(item.customPrice || item.price).toFixed(0)} each
+                                                                    ₹{(item.customPrice || item.price).toFixed(2)} each
                                                                 </span>
                                                             </div>
                                                             
@@ -216,7 +216,7 @@ export default function DetailsModal({
                                                             )}
                                                         </div>
                                                         <span className="text-xs font-semibold text-emerald-400 flex-shrink-0">
-                                                            ₹{((item.customPrice || item.price) * item.quantity).toFixed(0)}
+                                                            ₹{((item.customPrice || item.price) * item.quantity).toFixed(2)}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -294,29 +294,29 @@ export default function DetailsModal({
                                             <div className="space-y-1 text-xs">
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-400">Subtotal:</span>
-                                                    <span className="text-white">₹{order.subtotal.toFixed(0)}</span>
+                                                    <span className="text-white">₹{order.subtotal.toFixed(2)}</span>
                                                 </div>
                                                 {order.deliveryFee > 0 && (
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-400">Delivery Fee:</span>
-                                                        <span className="text-white">₹{order.deliveryFee.toFixed(0)}</span>
+                                                        <span className="text-white">₹{order.deliveryFee.toFixed(2)}</span>
                                                     </div>
                                                 )}
                                                 {order.discount < 0 && (
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-400">Discount:</span>
-                                                        <span className="text-green-400">₹{Math.abs(order.discount).toFixed(0)}</span>
+                                                        <span className="text-green-400">₹{Math.abs(order.discount).toFixed(2)}</span>
                                                     </div>
                                                 )}
                                                 {order.tax > 0 && (
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-400">Tax:</span>
-                                                        <span className="text-white">₹{order.tax.toFixed(0)}</span>
+                                                        <span className="text-white">₹{order.tax.toFixed(2)}</span>
                                                     </div>
                                                 )}
                                                 <div className="flex justify-between font-semibold pt-1 border-t border-gray-700">
                                                     <span className="text-gray-300">Total:</span>
-                                                    <span className="text-emerald-400">₹{order.total.toFixed(0)}</span>
+                                                    <span className="text-emerald-400">₹{order.total.toFixed(2)}</span>
                                                 </div>
                                             </div>
                                         </div>

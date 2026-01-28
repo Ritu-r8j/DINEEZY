@@ -398,7 +398,7 @@ export default function RestaurantListingPage() {
 
     // Memoized helper functions
     const getRestaurantImage = useCallback((restaurant: RestaurantSettings) => {
-        return restaurant.logoDataUrl || restaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+        return restaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
     }, []);
 
     const getCuisineType = useCallback((restaurant: RestaurantSettings) => {
@@ -1079,7 +1079,7 @@ export default function RestaurantListingPage() {
                                                                         userLocation.lng,
                                                                         restaurant.location.lat,
                                                                         restaurant.location.lng
-                                                                    ).toFixed(1)}km</span>
+                                                                    ).toFixed(2)}km</span>
                                                                 </>
                                                             )}
                                                         </div>

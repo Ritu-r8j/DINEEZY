@@ -8,13 +8,15 @@ interface ThemeToggleProps {
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
   onClick?: () => void;
+  disabled?: boolean;
 }
 
 export default function ThemeToggle({
   className = '',
   size = 'md',
   showLabel = false,
-  onClick
+  onClick,
+  disabled = false
 }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
 
@@ -32,8 +34,17 @@ export default function ThemeToggle({
 
   const isDark = theme === 'dark';
 
-  const handleToggle = () => {
-    toggleTheme();
+  const handleToggle = (e?: React.MouseEvent) => {
+    if (disabled) {
+      e?.preventDefault();
+      e?.stopPropagation();
+      return;
+    }
+    
+    if (!disabled) {
+      toggleTheme();
+    }
+    
     if (onClick) {
       onClick();
     }
@@ -42,7 +53,8 @@ export default function ThemeToggle({
   return (
     <button
       onClick={handleToggle}
-      className={`${sizeClasses[size]} ${className} group relative rounded-xl border border-foreground/10 bg-gradient-to-br from-white/10 to-transparent text-foreground shadow-sm backdrop-blur transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 flex items-center justify-center cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/60`}
+      disabled={disabled}
+      className={`${sizeClasses[size]} ${className} group relative rounded-xl border border-foreground/10 bg-gradient-to-br from-white/10 to-transparent text-foreground shadow-sm backdrop-blur transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 flex items-center justify-center cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/60 ${disabled ? 'pointer-events-none' : ''}`}
       aria-label="Toggle theme"
     >
       <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>

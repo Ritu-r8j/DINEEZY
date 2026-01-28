@@ -49,7 +49,7 @@ export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderPr
     { name: 'Customers', href: '/admin/customers', key: 'customers' },
     { name: 'Payments', href: '/admin/payments', key: 'payments' },
     { name: 'Reservations', href: '/admin/reservations', key: 'reservations', requiresRESTO: true },
-    { name: 'Reviews', href: '/admin/reviews', key: 'reviews' },
+    // { name: 'Reviews', href: '/admin/reviews', key: 'reviews' },
     { name: 'Settings', href: '/admin/settings', key: 'settings' },
   ];
 

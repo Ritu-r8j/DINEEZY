@@ -28,7 +28,7 @@ const inputClasses = (hasError?: boolean) =>
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, authReady } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -38,20 +38,22 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Simplified redirect logic - only redirect if user is already authenticated and ready
   useEffect(() => {
-    if (user && !loading) {
+    if (user && authReady && !loading) {
       // Check if user is already logged in as regular user
       if ((user as any).userType === 'user') {
-        router.push("/user/menu");
+        router.replace("/user/menu");
         return;
       }
       
-      // Set user type in database and redirect
-      updateUserType(user.uid, 'admin');
-      (user as any).userType = 'admin';
-      router.push("/admin");
+      // If admin, redirect to admin dashboard
+      if ((user as any).userType === 'admin') {
+        router.replace("/admin");
+        return;
+      }
     }
-  }, [user, loading, router]);
+  }, [user, loading, authReady, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -95,7 +97,13 @@ export default function AdminLoginPage() {
     try {
       const result = await signInWithEmail(formData.email, formData.password);
 
-      if (!result.success) {
+      if (result.success && result.user) {
+        // Set user type to admin in database
+        await updateUserType(result.user.uid, 'admin');
+        
+        // The AuthContext will handle the redirect after user type is set
+        // No manual redirect needed here
+      } else {
         setErrors({ general: result.error || "Login failed. Please try again." });
       }
     } catch (error) {
@@ -133,6 +141,12 @@ export default function AdminLoginPage() {
             return;
           }
         }
+
+        // Set user type to admin in database
+        await updateUserType(result.user.uid, 'admin');
+        
+        // The AuthContext will handle the redirect after user type is set
+        // No manual redirect needed here
       } else {
         setErrors({ general: result.error || "Google login failed. Please try again." });
       }

@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { getRestaurantSettings } from './firebaseOperations';

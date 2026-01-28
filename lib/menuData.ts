@@ -8,6 +8,7 @@ export type MenuItem = {
   price: number;
   category: MenuCategory;
   image: string;
+  video?: string;
 };
 
 export const CATEGORIES: MenuCategory[] = ['All', 'Salads', 'Pizza', 'Beverages', 'Snacks', 'Desserts'];

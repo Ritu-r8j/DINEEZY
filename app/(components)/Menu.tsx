@@ -68,14 +68,42 @@ function Card({ item }: { item: MenuItem }) {
       )}
     >
       <div className="relative h-48 sm:h-52 overflow-hidden">
-        <Image 
-          src={item.image} 
-          alt={item.title} 
-          fill 
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw" 
-          className="object-cover group-hover:scale-110 transition-transform duration-500" 
-        />
+        {item.video ? (
+          <video
+            src={item.video}
+            poster={item.image}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            onError={(e) => {
+              const target = e.target as HTMLVideoElement;
+              // Fallback to image if video fails
+              const img = document.createElement('img');
+              img.src = item.image;
+              img.alt = item.title;
+              img.className = "w-full h-full object-cover group-hover:scale-110 transition-transform duration-500";
+              target.parentNode?.replaceChild(img, target);
+            }}
+          />
+        ) : (
+          <Image 
+            src={item.image} 
+            alt={item.title} 
+            fill 
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw" 
+            className="object-cover group-hover:scale-110 transition-transform duration-500" 
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {/* Video Badge */}
+        {item.video && (
+          <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            Video
+          </div>
+        )}
         <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
           ₹{item.price.toFixed(2)}
         </div>

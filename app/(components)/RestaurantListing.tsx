@@ -55,7 +55,7 @@ export function RestaurantListing() {
 
   // Helper functions
   const getRestaurantImage = (restaurant: RestaurantSettings) => {
-    return restaurant.logoDataUrl || restaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+    return restaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
   };
 
   const getRating = (restaurant: RestaurantSettings) => {
@@ -207,7 +207,7 @@ export function RestaurantListing() {
                     <div className="flex items-center gap-3 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-black fill-current" />
-                        <span className="font-medium text-foreground">{getRating(restaurant).toFixed(1)}</span>
+                        <span className="font-medium text-foreground">{getRating(restaurant).toFixed(2)}</span>
                       </div>
                       <span>•</span>
                       <span>{getTotalReviews(restaurant)} reviews</span>

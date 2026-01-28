@@ -615,7 +615,7 @@ export default function OrderManagement() {
                           )}
                         </span>
                       </div>
-                      <span className="font-medium text-gray-900 dark:text-white ml-2">₹{(((item as any).customPrice || item.price) * item.quantity).toFixed(0)}</span>
+                      <span className="font-medium text-gray-900 dark:text-white ml-2">₹{(((item as any).customPrice || item.price) * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                   {order.items.length > 2 && (

@@ -233,7 +233,6 @@ export interface RestaurantSettings {
   name: string;
   phone: string;
   email: string;
-  offer: string;
   address: {
     street: string;
     city: string;
@@ -244,7 +243,6 @@ export interface RestaurantSettings {
     lat: number;
     lng: number;
   };
-  logoDataUrl?: string | null;
   hours: Record<string, {
     open: boolean;
     from: string;
@@ -263,6 +261,7 @@ export interface RestaurantSettings {
   rating?: number;
   deliveryTime?: string;
   image?: string;
+  video?: string; // Cloudinary video URL
   // New restaurant details
   restaurantType?: 'Veg' | 'Non-Veg' | 'Both';
   dietaryOptions?: string[]; // ['Vegetarian', 'Vegan', 'Gluten-Free', 'Halal', 'Keto', 'Paleo']

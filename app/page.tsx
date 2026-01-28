@@ -312,7 +312,7 @@ export default function HomePage() {
 
   const formatCurrency = (amount: number, currency: string = 'INR') => {
     const symbol = currency === 'INR' ? '₹' : '$';
-    return `${symbol}${amount.toFixed(0)}`;
+    return `${symbol}${amount.toFixed(2)}`;
   };
 
   // Navigation items - dynamic based on auth status
@@ -457,7 +457,7 @@ export default function HomePage() {
     if (distance < 1) {
       return `${Math.round(distance * 1000)}m`;
     }
-    return `${distance.toFixed(1)}km`;
+    return `${distance.toFixed(2)}km`;
   };
 
   // Get distance from user location to restaurant
@@ -1144,7 +1144,7 @@ export default function HomePage() {
                                     {(ratings[dish.id]?.average || dish.rating || 0) > 0 && (
                                       <>
                                         <div className="flex items-center">{renderStars(dish)}</div>
-                                        <span className="text-xs sm:text-sm">{(ratings[dish.id]?.average || dish.rating || 0).toFixed(1)}</span>
+                                        <span className="text-xs sm:text-sm">{(ratings[dish.id]?.average || dish.rating || 0).toFixed(2)}</span>
                                         {ratings[dish.id]?.count && (
                                           <>
                                             <span className="text-xs">•</span>
@@ -1279,7 +1279,7 @@ export default function HomePage() {
                       >
                         <div className="relative h-48 sm:h-52 w-full overflow-hidden">
                           <Image
-                            src={restaurant.image || restaurant.logoDataUrl || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop"}
+                            src={restaurant.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop"}
                             alt={restaurant.name}
                             fill
                             sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, (max-width: 1280px) 380px, 400px"
@@ -1302,7 +1302,7 @@ export default function HomePage() {
                               <div className="flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-sm font-semibold text-primary flex-shrink-0">
                                 <GradientStar size={16} className="sm:w-4 sm:h-4" />
                                 <span className="text-xs sm:text-sm">
-                                  {(restaurantRatings[restaurant.adminId]?.averageRating || restaurant.rating || 0).toFixed(1)}
+                                  {(restaurantRatings[restaurant.adminId]?.averageRating || restaurant.rating || 0).toFixed(2)}
                                 </span>
                                 {restaurantRatings[restaurant.adminId]?.totalReviews && (
                                   <span className="text-xs text-primary/70">
@@ -1505,7 +1505,9 @@ export default function HomePage() {
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-white">Follow</h3>
               <div className="mt-4 flex gap-3">
                 <button className="flex h-10 w-10 items-center justify-center rounded-[8px] border border-gray-600 text-gray-400 transition-all hover:border-white hover:text-white hover:bg-white/10 cursor-pointer">
-                  <Instagram className="h-5 w-5" />
+                  <Link target="_blank" href={"https://instagram.com/dineezy.in"}>
+                  <Instagram  className="h-5 w-5" />
+                  </Link>
                 </button>
                 <button className="flex h-10 w-10 items-center justify-center rounded-[8px] border border-gray-600 text-gray-400 transition-all hover:border-white hover:text-white hover:bg-white/10 cursor-pointer">
                   <Facebook className="h-5 w-5" />

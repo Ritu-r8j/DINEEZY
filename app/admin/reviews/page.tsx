@@ -76,7 +76,7 @@ export default function ReviewsManagement() {
   const ratingDistribution = [5, 4, 3, 2, 1].map(rating => ({
     rating,
     count: reviews.filter(r => r.rating === rating).length,
-    percentage: (reviews.filter(r => r.rating === rating).length / reviews.length) * 100
+    percentage: parseFloat(((reviews.filter(r => r.rating === rating).length / reviews.length) * 100).toFixed(2))
   }));
 
   const renderStars = (rating: number, size: 'sm' | 'md' = 'sm') => {
@@ -128,7 +128,7 @@ export default function ReviewsManagement() {
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Rating</p>
               <div className="flex items-center mt-2">
                 <span className="text-3xl font-bold text-gray-900 dark:text-white mr-2">
-                  {averageRating.toFixed(1)}
+                  {averageRating.toFixed(2)}
                 </span>
                 {renderStars(Math.round(averageRating), 'md')}
               </div>

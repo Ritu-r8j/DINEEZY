@@ -212,7 +212,6 @@ interface Restaurant {
   deliveryTime?: string;
   cuisine?: string;
   location: string;
-  offer?: string;
   priceRange?: string;
   specialties?: string[];
   dietaryOptions?: string[];
@@ -357,7 +356,7 @@ export default function MenuPage() {
 
   // Function to get restaurant image from database
   const getRestaurantImage = useCallback((restaurant: RestaurantSettings) => {
-    return restaurant.logoDataUrl || restaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+    return restaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
   }, []);
 
   // Function to get category display name for a menu item
@@ -380,7 +379,7 @@ export default function MenuPage() {
 
   const formatCurrency = useCallback((amount: number, currency: string) => {
     const symbol = currency === 'INR' ? '₹' : '$';
-    return `${symbol}${amount.toFixed(0)}`;
+    return `${symbol}${amount.toFixed(2)}`;
   }, []);
 
   const getSpiceCount = useCallback((spiceLevel: string) => {
@@ -502,7 +501,7 @@ export default function MenuPage() {
     if (distance < 1) {
       return `${Math.round(distance * 1000)}m`;
     }
-    return `${distance.toFixed(1)}km`;
+    return `${distance.toFixed(2)}km`;
   };
 
   const getRestaurantDistance = (restaurant: RestaurantSettings): string => {
@@ -636,7 +635,6 @@ export default function MenuPage() {
             deliveryTime: restaurant.deliveryTime || '30-45 mins',
             cuisine: restaurant.cuisine || 'Multi-cuisine',
             location: restaurant.address?.city || 'Unknown',
-            offer: restaurant.offer,
             specialties: restaurant.specialties || ['Popular'],
             dietaryOptions: restaurant.dietaryOptions || ['Vegetarian'],
             isVeg: restaurant.restaurantType === 'Veg' || restaurant.restaurantType === 'Both',
@@ -1034,11 +1032,6 @@ export default function MenuPage() {
                       target.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
                     }}
                   />
-                  {restaurant.offer && (
-                    <div className="absolute top-2 left-2 bg-gradient-to-br from-[#b8dcff80] via-[#c9cbff80] to-[#e5c0ff80] text-slate-900 px-2 py-0.5 text-xs font-semibold rounded shadow-lg border border-white/30">
-                      {restaurant.offer} % Off
-                    </div>
-                  )}
                   <button
                     onClick={() => toggleFavorite(restaurant.id)}
                     className={`absolute top-2 right-2 p-1 rounded-full transition-colors ${favorites.includes(restaurant.id)
@@ -1055,7 +1048,7 @@ export default function MenuPage() {
                     {(restaurantRatings[restaurant.id]?.averageRating || restaurant.rating || 0) > 0 && (
                       <div className="flex items-center gap-1">
                         <GradientStar size={12} />
-                        <span>{(restaurantRatings[restaurant.id]?.averageRating || restaurant.rating || 0).toFixed(1)}</span>
+                        <span>{(restaurantRatings[restaurant.id]?.averageRating || restaurant.rating || 0).toFixed(2)}</span>
                         {restaurantRatings[restaurant.id]?.totalReviews && (
                           <span className="text-gray-500">({restaurantRatings[restaurant.id].totalReviews})</span>
                         )}
@@ -1163,15 +1156,39 @@ export default function MenuPage() {
                         className="group w-48 flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-foreground/5 bg-white dark:bg-background/70 shadow-sm transition-all duration-300 hover:shadow-lg dark:hover:border-primary/20 cursor-pointer"
                       >
                         <div className="relative">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
-                            }}
-                          />
+                          {item.video ? (
+                            <video
+                              src={item.video}
+                              poster={item.image}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                              onError={(e) => {
+                                const target = e.target as HTMLVideoElement;
+                                // Fallback to image if video fails
+                                const img = document.createElement('img');
+                                img.src = item.image;
+                                img.alt = item.name;
+                                img.className = "w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300";
+                                img.onError = () => {
+                                  img.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+                                };
+                                target.parentNode?.replaceChild(img, target);
+                              }}
+                            />
+                          ) : (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+                              }}
+                            />
+                          )}
 
                           {/* Enhanced Badges - Moved to right side */}
                           <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
@@ -1238,7 +1255,7 @@ export default function MenuPage() {
                               <div className="flex items-center gap-0.5">
                                 <GradientStar size={10} />
                                 <span className="text-xs text-gray-600 dark:text-gray-400">
-                                  {(ratings[item.id]?.average || item.rating || 0).toFixed(1)}
+                                  {(ratings[item.id]?.average || item.rating || 0).toFixed(2)}
                                 </span>
                                 {(item.totalRatings || ratings[item.id]?.count) && (
                                   <span className="text-xs text-gray-500">({item.totalRatings || ratings[item.id].count})</span>
@@ -1264,7 +1281,7 @@ export default function MenuPage() {
                                       userLocation.lng,
                                       item.restaurantLocation.lat,
                                       item.restaurantLocation.lng
-                                    ).toFixed(1)}km
+                                    ).toFixed(2)}km
                                   </span>
                                 </div>
                               )}

@@ -15,14 +15,14 @@ export function RouteProtection({
   redirectTo, 
   children 
 }: RouteProtectionProps) {
-  const { user, loading, isAdmin, isUser } = useAuth();
+  const { user, loading, authReady, isAdmin, isUser } = useAuth();
   const router = useRouter();
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
 
   // Handle redirects in useEffect to avoid setState during render
   useEffect(() => {
-    if (loading) return;
+    if (loading || !authReady) return;
 
     // Prevent redirect loops by checking current path
     const currentPath = window.location.pathname;
@@ -68,7 +68,7 @@ export function RouteProtection({
         return;
       }
     }
-  }, [user, loading, isAdmin, isUser, allowedUserTypes, redirectTo]);
+  }, [user, loading, authReady, isAdmin, isUser, allowedUserTypes, redirectTo]);
 
   // Perform redirect
   useEffect(() => {
@@ -78,7 +78,7 @@ export function RouteProtection({
   }, [shouldRedirect, redirectPath, router]);
 
   // Show loading while checking authentication
-  if (loading) {
+  if (loading || !authReady) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -147,34 +147,34 @@ export function RouteProtection({
 
 // Helper hooks for specific route protection
 export function useAdminOnly() {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, authReady, isAdmin } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user && !isAdmin) {
-      router.push('/user');
+    if (!loading && authReady && user && !isAdmin) {
+      router.replace('/user');
     }
-  }, [user, loading, isAdmin, router]);
+  }, [user, loading, authReady, isAdmin, router]);
 
-  return { user, loading, isAdmin };
+  return { user, loading, authReady, isAdmin };
 }
 
 export function useUserOnly() {
-  const { user, loading, isUser } = useAuth();
+  const { user, loading, authReady, isUser } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user && !isUser) {
-      router.push('/admin');
+    if (!loading && authReady && user && !isUser) {
+      router.replace('/admin');
     }
-  }, [user, loading, isUser, router]);
+  }, [user, loading, authReady, isUser, router]);
 
-  return { user, loading, isUser };
+  return { user, loading, authReady, isUser };
 }
 
 // Hook for checking if user can access a specific route
 export function useRouteAccess(allowedUserTypes: ('user' | 'admin')[]) {
-  const { user, loading, isAdmin, isUser } = useAuth();
+  const { user, loading, authReady, isAdmin, isUser } = useAuth();
   
   const hasAccess = allowedUserTypes.some(type => {
     if (type === 'admin') return isAdmin;
@@ -185,6 +185,7 @@ export function useRouteAccess(allowedUserTypes: ('user' | 'admin')[]) {
   return {
     user,
     loading,
+    authReady,
     hasAccess,
     isAdmin,
     isUser

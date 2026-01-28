@@ -74,7 +74,7 @@ export default function RestaurantHero({
         {restaurantRating.totalReviews > 0 ? (
           <>
             <div className={`${isMobile ? 'text-xl' : 'text-lg xl:text-xl'} font-bold`}>
-              {restaurantRating.averageRating.toFixed(1)}★
+              {restaurantRating.averageRating.toFixed(2)}★
             </div>
             <div className="text-xs opacity-90 whitespace-nowrap">
               {restaurantRating.totalReviews} Reviews

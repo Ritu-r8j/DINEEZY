@@ -45,7 +45,6 @@ interface Restaurant {
   deliveryTime?: string;
   cuisine?: string;
   location: string;
-  offer?: string;
   priceRange?: string;
   specialties?: string[];
   dietaryOptions?: string[];
@@ -109,7 +108,7 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
 
   // Function to get restaurant image from database
   const getRestaurantImage = useCallback((restaurant: RestaurantSettings) => {
-    return restaurant.logoDataUrl || restaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+    return restaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
   }, []);
 
   // Function to calculate distance between two coordinates using Haversine formula
@@ -179,7 +178,6 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
             deliveryTime: restaurant.deliveryTime || '30-45 mins',
             cuisine: restaurant.cuisine || 'Multi-cuisine',
             location: restaurant.address?.city || 'Unknown',
-            offer: 'Special Offer',
             priceRange: '₹200-₹800',
             specialties: restaurant.specialties || ['Popular'],
             dietaryOptions: restaurant.dietaryOptions || ['Vegetarian'],
@@ -592,7 +590,7 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
                   <div className="flex items-center gap-1">
                     <GradientStar size={12} />
                     <span className="text-xs text-gray-600 dark:text-gray-400">
-                      {ratings[item.id] ? ratings[item.id].average.toFixed(1) : '0.0'}
+                      {ratings[item.id] ? ratings[item.id].average.toFixed(2) : '0.00'}
                     </span>
                   </div>
                 </div>
@@ -614,7 +612,7 @@ export default function CategoryPage({ params }: { params: Promise<{ categoryNam
                             userLocation.lng,
                             item.restaurantLocation.lat,
                             item.restaurantLocation.lng
-                          ).toFixed(1)}km
+                          ).toFixed(2)}km
                         </span>
                       </div>
                     )}

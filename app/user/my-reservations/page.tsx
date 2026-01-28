@@ -611,7 +611,7 @@ export default function MyReservationsPage() {
                                                                                     )}
                                                                                 </span>
                                                                                 <span className="text-gray-600 dark:text-gray-400">
-                                                                                    ₹{((item.customPrice || item.price) * item.quantity).toFixed(0)}
+                                                                                    ₹{((item.customPrice || item.price) * item.quantity).toFixed(2)}
                                                                                 </span>
                                                                             </div>
                                                                             {item.selectedAddons && item.selectedAddons.length > 0 && (
@@ -630,7 +630,7 @@ export default function MyReservationsPage() {
                                                                 <div className="mt-2 pt-2 border-t border-green-100 dark:border-green-800/50 flex items-center justify-between">
                                                                     <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Total</span>
                                                                     <span className="text-sm font-bold text-green-700 dark:text-green-400">
-                                                                        ₹{order.total.toFixed(0)}
+                                                                        ₹{order.total.toFixed(2)}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -1148,7 +1148,7 @@ export default function MyReservationsPage() {
                                                                                     )}
                                                                                 </p>
                                                                                 <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                                                                                    ₹{((item.customPrice || item.price) * item.quantity).toFixed(0)}
+                                                                                    ₹{((item.customPrice || item.price) * item.quantity).toFixed(2)}
                                                                                 </p>
                                                                             </div>
                                                                             {item.selectedAddons && item.selectedAddons.length > 0 && (
@@ -1163,7 +1163,7 @@ export default function MyReservationsPage() {
                                                             <div className="mt-3 pt-3 border-t border-green-100 dark:border-green-800/50 flex items-center justify-between">
                                                                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Order Total</span>
                                                                 <span className="text-lg font-bold text-green-700 dark:text-green-400">
-                                                                    ₹{order.total.toFixed(0)}
+                                                                    ₹{order.total.toFixed(2)}
                                                                 </span>
                                                             </div>
                                                         </div>

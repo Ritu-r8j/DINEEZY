@@ -48,7 +48,7 @@ export default function ProductInfo({ menuItem, onAddToCart }: ProductInfoProps)
 
     const formatCurrency = (amount: number) => {
         const symbol = menuItem.currency === 'INR' ? '₹' : '$';
-        return `${symbol}${amount.toFixed(0)}`;
+        return `${symbol}${amount.toFixed(2)}`;
     };
 
     const getCurrentPrice = () => {

@@ -20,7 +20,7 @@ export default function ReviewSummary({ reviews }: ReviewSummaryProps) {
                     <div>
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Reviews</h2>
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="text-3xl font-bold text-gray-900 dark:text-white">{averageRating.toFixed(1)}</div>
+                            <div className="text-3xl font-bold text-gray-900 dark:text-white">{averageRating.toFixed(2)}</div>
                             <div className="flex flex-col">
                                 <div className="flex items-center mb-1">
                                     {[1, 2, 3, 4, 5].map((star) => (
@@ -48,7 +48,7 @@ export default function ReviewSummary({ reviews }: ReviewSummaryProps) {
                                                 style={{ width: `${percentage}%` }}
                                             />
                                         </div>
-                                        <span className="w-6 text-right text-xs text-gray-600 dark:text-gray-400">{Math.round(percentage)}%</span>
+                                        <span className="w-6 text-right text-xs text-gray-600 dark:text-gray-400">{percentage.toFixed(2)}%</span>
                                     </div>
                                 );
                             })}
