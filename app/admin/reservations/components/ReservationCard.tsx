@@ -57,17 +57,17 @@ export default function ReservationCard({
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-gray-400">
                                     <span className="flex items-center gap-1">
-                                        <Users className="h-3 w-3" />
+                                        <Users className="h-3 w-3 text-gray-300" />
                                         {reservation.reservationDetails.guests} guests
                                     </span>
                                     {reservation.reservationDetails.tableNumber && (
-                                        <span className="flex items-center gap-1 text-purple-400">
+                                        <span className="flex items-center gap-1 text-gray-300">
                                             <MapPin className="h-3 w-3" />
                                             Table {reservation.reservationDetails.tableNumber}
                                         </span>
                                     )}
                                     {orders && orders.length > 0 && (
-                                        <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                                        <span className="flex items-center gap-1 text-gray-300 font-medium">
                                             <ShoppingCart className="h-3 w-3" />
                                             {orders.length} Pre-order{orders.length !== 1 ? 's' : ''}
                                         </span>

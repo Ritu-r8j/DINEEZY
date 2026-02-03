@@ -170,15 +170,15 @@ export default function ReservationsPage() {
         const iconClass = "h-3.5 w-3.5";
         switch (status) {
             case 'confirmed':
-                return <CheckCircle className={`${iconClass} text-emerald-500`} />;
+                return <CheckCircle className={`${iconClass} text-white`} />;
             case 'pending':
-                return <AlertCircle className={`${iconClass} text-amber-500`} />;
+                return <AlertCircle className={`${iconClass} text-white`} />;
             case 'cancelled':
-                return <XCircle className={`${iconClass} text-red-500`} />;
+                return <XCircle className={`${iconClass} text-white`} />;
             case 'completed':
-                return <CheckCircle className={`${iconClass} text-blue-500`} />;
+                return <CheckCircle className={`${iconClass} text-white`} />;
             default:
-                return <AlertCircle className={`${iconClass} text-gray-400`} />;
+                return <AlertCircle className={`${iconClass} text-white`} />;
         }
     };
 
@@ -402,7 +402,7 @@ export default function ReservationsPage() {
                 {/* Empty State */}
                 {filteredReservations.length === 0 && (
                     <div className="bg-[#151d2f]  border border-gray-800 p-8 sm:p-12 text-center">
-                        <Calendar className="h-12 w-12 sm:h-16 sm:w-16 text-gray-600 mx-auto mb-3 sm:mb-4" />
+                        <Calendar className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
                         <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">No reservations found</h3>
                         <p className="text-sm sm:text-base text-gray-400">
                             {searchTerm
@@ -468,21 +468,21 @@ export default function ReservationsPage() {
 
                                 <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4">
                                     <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-300">
-                                        <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                                        <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-300 flex-shrink-0" />
                                         <span>{formatTime(reservation.reservationDetails.time)}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-300">
-                                        <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                                        <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-300 flex-shrink-0" />
                                         <span>{reservation.reservationDetails.guests} guests</span>
                                     </div>
                                     {reservation.reservationDetails.tableNumber && (
-                                        <div className="flex items-center gap-2 text-xs sm:text-sm text-purple-400">
+                                        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-300">
                                             <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                                             <span>Table {reservation.reservationDetails.tableNumber}</span>
                                         </div>
                                     )}
                                     {reservationOrders[reservation.id] && reservationOrders[reservation.id].length > 0 && (
-                                        <div className="flex items-center gap-2 text-xs sm:text-sm text-emerald-400 font-medium">
+                                        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-300 font-medium">
                                             <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                                             <span>{reservationOrders[reservation.id].length} Pre-order{reservationOrders[reservation.id].length !== 1 ? 's' : ''}</span>
                                         </div>
@@ -606,17 +606,17 @@ export default function ReservationsPage() {
                                                                     </div>
                                                                     <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">
                                                                         <span className="flex items-center gap-1">
-                                                                            <Users className="h-3 w-3" />
+                                                                            <Users className="h-3 w-3 text-gray-300" />
                                                                             {reservation.reservationDetails.guests}
                                                                         </span>
                                                                         {reservation.reservationDetails.tableNumber && (
-                                                                            <span className="flex items-center gap-1 text-purple-400">
+                                                                            <span className="flex items-center gap-1 text-gray-300">
                                                                                 <MapPin className="h-3 w-3" />
                                                                                 {reservation.reservationDetails.tableNumber}
                                                                             </span>
                                                                         )}
                                                                         {reservationOrders[reservation.id] && reservationOrders[reservation.id].length > 0 && (
-                                                                            <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                                                                            <span className="flex items-center gap-1 text-gray-300 font-medium">
                                                                                 <ShoppingCart className="h-3 w-3" />
                                                                                 {reservationOrders[reservation.id].length}
                                                                             </span>

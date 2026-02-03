@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, EyeOff, Search, X, Clock, Tag, Star, Loader2, Leaf, Sprout, ShieldX, Flame, TrendingUp, Award, Heart, Users, BarChart3, Percent, Globe, Settings } from 'lucide-react';
+import { CategoryIcons, VegetarianIcon, VeganIcon, GlutenFreeIcon, NutritionIcon } from '@/lib/icons/categoryIcons';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import {
   getMenuItems,
@@ -788,7 +789,8 @@ export default function MenuManagement() {
                     {/* Nutritional Info Indicator */}
                     {item.nutritionalInfo && Object.values(item.nutritionalInfo).some(value => value !== undefined && value !== null) && (
                       <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
-                        <span className="text-green-700 dark:text-green-300 font-medium text-xs">🥗 Nutrition</span>
+                        <NutritionIcon className="h-3 w-3 text-green-700 dark:text-green-300" />
+                        <span className="text-green-700 dark:text-green-300 font-medium text-xs">Nutrition</span>
                       </div>
                     )}
                   </div>
@@ -1077,7 +1079,7 @@ export default function MenuManagement() {
                         <optgroup label="Default Categories">
                           {DEFAULT_CATEGORIES.map(cat => (
                             <option key={cat.id} value={cat.id}>
-                              {cat.icon} {getCategoryDisplayName(cat.id, categoryMappings, customCategories)}
+                              {getCategoryDisplayName(cat.id, categoryMappings, customCategories)}
                             </option>
                           ))}
                         </optgroup>
@@ -1085,7 +1087,7 @@ export default function MenuManagement() {
                           <optgroup label="Custom Categories">
                             {customCategories.map(cat => (
                               <option key={cat.id} value={cat.id}>
-                                {cat.icon} {cat.name}
+                                {cat.name}
                               </option>
                             ))}
                           </optgroup>
@@ -1121,10 +1123,10 @@ export default function MenuManagement() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       >
                         <option value="none">No Spice</option>
-                        <option value="mild">Mild 🌶️</option>
-                        <option value="medium">Medium 🌶️🌶️</option>
-                        <option value="hot">Hot 🌶️🌶️🌶️</option>
-                        <option value="very-hot">Very Hot 🌶️🌶️🌶️🌶️</option>
+                        <option value="mild">Mild</option>
+                        <option value="medium">Medium</option>
+                        <option value="hot">Hot</option>
+                        <option value="very-hot">Very Hot</option>
                       </select>
                     </div>
                   </div>
@@ -1177,7 +1179,10 @@ export default function MenuManagement() {
                           onChange={(e) => setFormData({ ...formData, isVegetarian: e.target.checked })}
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">🌱 Vegetarian</span>
+                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
+                          <VegetarianIcon className="h-4 w-4 mr-1 text-gray-700 dark:text-gray-300" />
+                          Vegetarian
+                        </span>
                       </label>
                       <label className="flex items-center">
                         <input
@@ -1186,7 +1191,10 @@ export default function MenuManagement() {
                           onChange={(e) => setFormData({ ...formData, isVegan: e.target.checked })}
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">🌿 Vegan</span>
+                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
+                          <VeganIcon className="h-4 w-4 mr-1 text-gray-700 dark:text-gray-300" />
+                          Vegan
+                        </span>
                       </label>
                       <label className="flex items-center">
                         <input
@@ -1195,7 +1203,10 @@ export default function MenuManagement() {
                           onChange={(e) => setFormData({ ...formData, isGlutenFree: e.target.checked })}
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">🚫 Gluten Free</span>
+                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
+                          <GlutenFreeIcon className="h-4 w-4 mr-1 text-gray-700 dark:text-gray-300" />
+                          Gluten Free
+                        </span>
                       </label>
                     </div>
                   </div>
@@ -1419,7 +1430,7 @@ export default function MenuManagement() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       <span className="flex items-center">
-                        <span className="text-green-600 mr-2">🥗</span>
+                        <NutritionIcon className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
                         Nutritional Information (Optional)
                       </span>
                     </label>

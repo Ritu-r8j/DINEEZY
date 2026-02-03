@@ -131,7 +131,7 @@ export default function TableManagementView({
             {(!restaurantTables || restaurantTables.length === 0) && (
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg sm:rounded-xl p-4 mb-4">
                     <div className="flex items-start gap-3">
-                        <SettingsIcon className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                        <SettingsIcon className="h-5 w-5 text-gray-300 flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
                             <h4 className="text-sm font-semibold text-amber-400 mb-1">Using Default Tables</h4>
                             <p className="text-xs text-gray-300 mb-2">
@@ -192,44 +192,44 @@ export default function TableManagementView({
                         >
                             {/* Time Slot Header */}
                             <div className="p-3 sm:p-4 border-b border-gray-800 bg-gray-800/30">
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400 flex-shrink-0" />
-                                        <span className="text-base sm:text-lg font-bold text-white">{formatTime(timeSlot)}</span>
-                                    </div>
-                                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
-                                        <div className="flex items-center gap-1.5 sm:gap-2">
-                                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 flex-shrink-0"></div>
-                                            <span className="text-gray-400 text-xs sm:text-sm">
-                                                <span className="hidden sm:inline">Available: </span>
-                                                <span className="sm:hidden">Avail: </span>
-                                                <span className="text-white font-medium">{stats.available}</span>
-                                            </span>
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300 flex-shrink-0" />
+                                            <span className="text-base sm:text-lg font-bold text-white">{formatTime(timeSlot)}</span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 sm:gap-2">
-                                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-orange-500 flex-shrink-0"></div>
-                                            <span className="text-gray-400 text-xs sm:text-sm">
-                                                Booked: <span className="text-white font-medium">{stats.booked}</span>
-                                            </span>
-                                        </div>
-                                        {stats.unassigned > 0 && (
+                                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
                                             <div className="flex items-center gap-1.5 sm:gap-2">
-                                                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500 flex-shrink-0"></div>
+                                                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 flex-shrink-0"></div>
                                                 <span className="text-gray-400 text-xs sm:text-sm">
-                                                    <span className="hidden sm:inline">Unassigned: </span>
-                                                    <span className="sm:hidden">Unass: </span>
-                                                    <span className="text-white font-medium">{stats.unassigned}</span>
+                                                    <span className="hidden sm:inline">Available: </span>
+                                                    <span className="sm:hidden">Avail: </span>
+                                                    <span className="text-white font-medium">{stats.available}</span>
                                                 </span>
                                             </div>
-                                        )}
-                                        <div className="flex items-center gap-1.5 sm:gap-2">
-                                            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
-                                            <span className="text-gray-400 text-xs sm:text-sm">
-                                                Guests: <span className="text-white font-medium">{stats.totalGuests}</span>
-                                            </span>
+                                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-orange-500 flex-shrink-0"></div>
+                                                <span className="text-gray-400 text-xs sm:text-sm">
+                                                    Booked: <span className="text-white font-medium">{stats.booked}</span>
+                                                </span>
+                                            </div>
+                                            {stats.unassigned > 0 && (
+                                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500 flex-shrink-0"></div>
+                                                    <span className="text-gray-400 text-xs sm:text-sm">
+                                                        <span className="hidden sm:inline">Unassigned: </span>
+                                                        <span className="sm:hidden">Unass: </span>
+                                                        <span className="text-white font-medium">{stats.unassigned}</span>
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-gray-300 flex-shrink-0" />
+                                                <span className="text-gray-400 text-xs sm:text-sm">
+                                                    Guests: <span className="text-white font-medium">{stats.totalGuests}</span>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                             </div>
 
                             {/* Tables Grid */}
@@ -256,13 +256,13 @@ export default function TableManagementView({
                                             <div className="flex items-center justify-center">
                                                 {table.status === 'available' ? (
                                                     <span className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-semibold bg-emerald-500/20 text-emerald-400">
-                                                        <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                                                        <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
                                                         <span className="hidden sm:inline">Available</span>
                                                         <span className="sm:hidden">Free</span>
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-semibold bg-orange-500/20 text-orange-400">
-                                                        <XCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                                                        <XCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
                                                         Booked
                                                     </span>
                                                 )}
@@ -287,7 +287,7 @@ export default function TableManagementView({
                                 {unassignedReservations.length > 0 && (
                                     <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-800">
                                         <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                                            <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400 flex-shrink-0" />
+                                            <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-300 flex-shrink-0" />
                                             <h4 className="text-xs sm:text-sm font-semibold text-white">
                                                 Unassigned Reservations ({unassignedReservations.length})
                                             </h4>
@@ -304,7 +304,7 @@ export default function TableManagementView({
                                                                 {reservation.customerInfo.name}
                                                             </div>
                                                             <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">
-                                                                <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 inline mr-0.5 sm:mr-1" />
+                                                                <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 inline mr-0.5 sm:mr-1 text-gray-300" />
                                                                 {reservation.reservationDetails.guests} guests
                                                             </div>
                                                         </div>

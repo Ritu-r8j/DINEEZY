@@ -15,43 +15,43 @@ export default function StatsCard({ label, value, subtext, icon: Icon, color, is
         switch (color) {
             case 'blue':
                 return {
-                    icon: 'text-blue-400',
-                    border: isActive ? 'border-blue-500/50 shadow-lg shadow-blue-500/20' : 'border-gray-800 hover:border-gray-700',
-                    text: isActive ? 'text-blue-400' : 'text-white'
+                    icon: 'text-gray-300',
+                    border: isActive ? 'border-gray-600/50 shadow-lg shadow-gray-600/20' : 'border-gray-800 hover:border-gray-700',
+                    text: isActive ? 'text-gray-300' : 'text-white'
                 };
             case 'amber':
                 return {
-                    icon: 'text-amber-400',
-                    border: isActive ? 'border-amber-500/50 shadow-lg shadow-amber-500/20' : 'border-gray-800 hover:border-gray-700',
-                    text: isActive ? 'text-amber-400' : 'text-white'
+                    icon: 'text-gray-300',
+                    border: isActive ? 'border-gray-600/50 shadow-lg shadow-gray-600/20' : 'border-gray-800 hover:border-gray-700',
+                    text: isActive ? 'text-gray-300' : 'text-white'
                 };
             case 'emerald':
                 return {
-                    icon: 'text-emerald-400',
-                    border: isActive ? 'border-emerald-500/50 shadow-lg shadow-emerald-500/20' : 'border-gray-800 hover:border-gray-700',
-                    text: isActive ? 'text-emerald-400' : 'text-white'
+                    icon: 'text-gray-300',
+                    border: isActive ? 'border-gray-600/50 shadow-lg shadow-gray-600/20' : 'border-gray-800 hover:border-gray-700',
+                    text: isActive ? 'text-gray-300' : 'text-white'
                 };
             case 'red':
                 return {
-                    icon: 'text-red-400',
-                    border: isActive ? 'border-red-500/50 shadow-lg shadow-red-500/20' : 'border-gray-800 hover:border-gray-700',
-                    text: isActive ? 'text-red-400' : 'text-white'
+                    icon: 'text-gray-300',
+                    border: isActive ? 'border-gray-600/50 shadow-lg shadow-gray-600/20' : 'border-gray-800 hover:border-gray-700',
+                    text: isActive ? 'text-gray-300' : 'text-white'
                 };
             case 'purple':
                 return {
-                    icon: 'text-purple-400',
+                    icon: 'text-gray-300',
                     border: 'border-gray-800',
                     text: 'text-white'
                 };
             case 'pink':
                 return {
-                    icon: 'text-pink-400',
+                    icon: 'text-gray-300',
                     border: 'border-gray-800',
                     text: 'text-white'
                 };
             default:
                 return {
-                    icon: 'text-gray-400',
+                    icon: 'text-gray-300',
                     border: 'border-gray-800',
                     text: 'text-white'
                 };

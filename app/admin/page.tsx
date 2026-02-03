@@ -223,11 +223,11 @@ export default function AdminDashboard() {
   const chartConfig = {
     orders: {
       label: "Orders",
-      color: "hsl(var(--chart-1))",
+      color: "#6b7280",
     },
     revenue: {
       label: "Revenue",
-      color: "hsl(var(--chart-2))",
+      color: "#4b5563",
     },
   } satisfies ChartConfig;
 
@@ -259,8 +259,8 @@ export default function AdminDashboard() {
     const formattedChange = Math.abs(change).toFixed(2);
     return {
       text: `${isPositive ? '+' : '-'}${formattedChange}%`,
-      color: isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
-      icon: isPositive ? TrendingUp : TrendingUp // You could use TrendingDown for negative
+      color: 'text-gray-900 dark:text-white',
+      icon: isPositive ? TrendingUp : TrendingUp
     };
   };
 
@@ -276,12 +276,12 @@ export default function AdminDashboard() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending': return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      case 'confirmed': return <AlertCircle className="h-4 w-4 text-blue-500" />;
-      case 'preparing': return <Clock className="h-4 w-4 text-orange-500" />;
-      case 'ready': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'delivered': return <CheckCircle className="h-4 w-4 text-gray-500" />;
-      case 'cancelled': return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'pending': return <AlertCircle className="h-4 w-4 text-gray-500" />;
+      case 'confirmed': return <AlertCircle className="h-4 w-4 text-gray-500" />;
+      case 'preparing': return <Clock className="h-4 w-4 text-gray-500" />;
+      case 'ready': return <CheckCircle className="h-4 w-4 text-gray-500" />;
+      case 'delivered': return <CheckCircle className="h-4 w-4 text-gray-400" />;
+      case 'cancelled': return <XCircle className="h-4 w-4 text-gray-400" />;
       default: return null;
     }
   };
@@ -306,7 +306,7 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <AlertCircle className="h-16 w-16 mx-auto mb-4 text-gray-900 dark:text-white" />
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error Loading Dashboard</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
             <button
@@ -369,8 +369,8 @@ export default function AdminDashboard() {
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">₹{stats.totalRevenue.toFixed(2)}</p>
             </div>
-            <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-full">
-              <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
+              <DollarSign className="h-6 w-6 text-gray-900 dark:text-white" />
             </div>
           </div>
           <div className="mt-4 flex items-center">
@@ -393,8 +393,8 @@ export default function AdminDashboard() {
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalOrders}</p>
             </div>
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-full">
-              <ShoppingBag className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
+              <ShoppingBag className="h-6 w-6 text-gray-900 dark:text-white" />
             </div>
           </div>
           <div className="mt-4 flex items-center">
@@ -417,15 +417,15 @@ export default function AdminDashboard() {
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Orders</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activeOrders}</p>
             </div>
-            <div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-full">
-              <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
+              <Clock className="h-6 w-6 text-gray-900 dark:text-white" />
             </div>
           </div>
-          <div className="mt-4">
-            <Link href="/admin/orders" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-              View all orders →
-            </Link>
-          </div>
+            <div className="mt-4">
+              <Link href="/admin/orders" className="text-sm text-gray-900 dark:text-white hover:underline">
+                View all orders →
+              </Link>
+            </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -434,8 +434,8 @@ export default function AdminDashboard() {
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Order Value</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">₹{stats.avgOrderValue.toFixed(2)}</p>
             </div>
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-full">
-              <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
+              <Users className="h-6 w-6 text-gray-900 dark:text-white" />
             </div>
           </div>
           <div className="mt-4 flex items-center">
@@ -464,7 +464,7 @@ export default function AdminDashboard() {
                   Showing {recentOrders.length} of {filteredOrders.length} orders from {timeRange === 'today' ? 'today' : `this ${timeRange}`}
                 </p>
               </div>
-              <Link href="/admin/orders" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+              <Link href="/admin/orders" className="text-sm text-gray-900 dark:text-white hover:underline">
                 View all
               </Link>
             </div>
@@ -546,7 +546,7 @@ export default function AdminDashboard() {
                         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2">
                           <p className="text-xs font-medium text-gray-900 dark:text-white">{label}</p>
                           <p className="text-xs text-gray-600 dark:text-gray-400">
-                            Orders: <span className="font-semibold text-blue-600">{payload[0]?.value}</span>
+                            Orders: <span className="font-semibold text-gray-900 dark:text-white">{payload[0]?.value}</span>
                           </p>
                         </div>
                       );
@@ -556,7 +556,7 @@ export default function AdminDashboard() {
                 />
                 <Bar
                   dataKey="orders"
-                  fill="#60a5fa"
+                  fill="#6b7280"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={50}
                 />
@@ -626,7 +626,7 @@ export default function AdminDashboard() {
                         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2">
                           <p className="text-xs font-medium text-gray-900 dark:text-white">{label}</p>
                           <p className="text-xs text-gray-600 dark:text-gray-400">
-                            Revenue: <span className="font-semibold text-green-600">₹{Number(payload[0]?.payload?.revenue || 0).toFixed(2)}</span>
+                            Revenue: <span className="font-semibold text-gray-900 dark:text-white">₹{Number(payload[0]?.payload?.revenue || 0).toFixed(2)}</span>
                           </p>
                         </div>
                       );
@@ -636,7 +636,7 @@ export default function AdminDashboard() {
                 />
                 <Bar
                   dataKey="revenue"
-                  fill="#34d399"
+                  fill="#4b5563"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={50}
                 />
@@ -679,7 +679,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
                   <div
-                    className="bg-green-600 h-2 rounded-full"
+                    className="bg-gray-900 dark:bg-white h-2 rounded-full"
                     style={{ width: `${stats.completionRate}%` }}
                   ></div>
                 </div>
@@ -694,7 +694,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                    className="bg-gray-900 dark:bg-white h-2 rounded-full transition-all duration-500"
                     style={{ width: filteredOrders.length > 0 ? '75%' : '0%' }}
                   ></div>
                 </div>
@@ -709,7 +709,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
                   <div
-                    className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
+                    className="bg-gray-900 dark:bg-white h-2 rounded-full transition-all duration-500"
                     style={{ width: filteredOrders.length > 0 ? '96%' : '0%' }}
                   ></div>
                 </div>

@@ -30,6 +30,9 @@ import {
   Building,
   Smartphone,
   Video,
+  Facebook,
+  Instagram,
+  Twitter,
 } from 'lucide-react';
 import {
   saveRestaurantSettings,
@@ -847,16 +850,16 @@ export default function AdminSettingsPage() {
         )}
 
         {/* Business Type Selection */}
-        <SectionCard title="Business Type Configuration" icon={<Settings className="h-6 w-6" />} className="border-2 border-blue-200 dark:border-blue-800">
+        <SectionCard title="Business Type Configuration" icon={<Settings className="h-6 w-6" />} className="border-2 border-gray-300 dark:border-gray-600">
           <div className="space-y-6">
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg">
-                  <Settings className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <Settings className="h-5 w-5 text-gray-900 dark:text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Choose Your Business Model</h4>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Choose Your Business Model</h4>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
                     Select the type that best matches your restaurant to optimize your platform experience.
                   </p>
                 </div>
@@ -865,19 +868,19 @@ export default function AdminSettingsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* QSR Option */}
-              <div 
+              <div
                 className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
-                  state.businessType === 'QSR' 
-                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 shadow-lg' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600'
+                  state.businessType === 'QSR'
+                    ? 'border-gray-900 bg-gray-100 dark:border-white dark:bg-gray-700 shadow-lg'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
                 onClick={() => setField('businessType', 'QSR')}
               >
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-lg ${
-                    state.businessType === 'QSR' 
-                      ? 'bg-orange-500 text-white' 
-                      : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'
+                    state.businessType === 'QSR'
+                      ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                   }`}>
                     <Coffee className="h-6 w-6" />
                   </div>
@@ -887,7 +890,7 @@ export default function AdminSettingsPage() {
                         {BUSINESS_TYPE_INFO.QSR.name}
                       </h3>
                       {state.businessType === 'QSR' && (
-                        <CheckCircle2 className="h-5 w-5 text-orange-500" />
+                        <CheckCircle2 className="h-5 w-5 text-gray-900 dark:text-white" />
                       )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -897,7 +900,7 @@ export default function AdminSettingsPage() {
                       <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Key Features:</p>
                       {BUSINESS_TYPE_INFO.QSR.features.slice(0, 3).map((feature, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                          <div className="w-1.5 h-1.5 bg-gray-900 dark:bg-white rounded-full"></div>
                           <span className="text-xs text-gray-600 dark:text-gray-400">{feature}</span>
                         </div>
                       ))}
@@ -907,19 +910,19 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* RESTO Option */}
-              <div 
+              <div
                 className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
-                  state.businessType === 'RESTO' 
-                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
+                  state.businessType === 'RESTO'
+                    ? 'border-gray-900 bg-gray-100 dark:border-white dark:bg-gray-700 shadow-lg'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
                 onClick={() => setField('businessType', 'RESTO')}
               >
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-lg ${
-                    state.businessType === 'RESTO' 
-                      ? 'bg-purple-500 text-white' 
-                      : 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400'
+                    state.businessType === 'RESTO'
+                      ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                   }`}>
                     <UtensilsCrossed className="h-6 w-6" />
                   </div>
@@ -929,7 +932,7 @@ export default function AdminSettingsPage() {
                         {BUSINESS_TYPE_INFO.RESTO.name}
                       </h3>
                       {state.businessType === 'RESTO' && (
-                        <CheckCircle2 className="h-5 w-5 text-purple-500" />
+                        <CheckCircle2 className="h-5 w-5 text-gray-900 dark:text-white" />
                       )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -939,7 +942,7 @@ export default function AdminSettingsPage() {
                       <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Key Features:</p>
                       {BUSINESS_TYPE_INFO.RESTO.features.slice(0, 3).map((feature, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                          <div className="w-1.5 h-1.5 bg-gray-900 dark:bg-white rounded-full"></div>
                           <span className="text-xs text-gray-600 dark:text-gray-400">{feature}</span>
                         </div>
                       ))}
@@ -1075,13 +1078,13 @@ export default function AdminSettingsPage() {
                   </button>
                   {isUploadingVideo && (
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 dark:border-white"></div>
                         Uploading video... {uploadProgress}%
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                        <div
+                          className="bg-gray-900 dark:bg-white h-2 rounded-full transition-all duration-300"
                           style={{ width: `${uploadProgress}%` }}
                         ></div>
                       </div>
@@ -1131,12 +1134,12 @@ export default function AdminSettingsPage() {
                 </button>
                 {isUploadingVideo && (
                   <div className="mt-4 space-y-2">
-                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                    <p className="text-xs text-gray-900 dark:text-white">
                       Uploading... {uploadProgress}%
                     </p>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                      <div
+                        className="bg-gray-900 dark:bg-white h-2 rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
                       ></div>
                     </div>
@@ -1452,11 +1455,11 @@ export default function AdminSettingsPage() {
                 </label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {state.specialties?.map((specialty, index) => (
-                    <span key={index} className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded-full text-sm">
+                    <span key={index} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-full text-sm">
                       {specialty}
                       <button
                         onClick={() => setField('specialties', state.specialties?.filter((_, i) => i !== index) || [])}
-                        className="ml-1 hover:bg-orange-200 dark:hover:bg-orange-800/50 rounded-full p-0.5"
+                        className="ml-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-0.5"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -1561,9 +1564,7 @@ export default function AdminSettingsPage() {
               <div>
                 <label htmlFor="facebook" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
+                    <Facebook className="w-5 h-5 text-gray-900 dark:text-white" />
                     Facebook
                   </div>
                 </label>
@@ -1581,9 +1582,7 @@ export default function AdminSettingsPage() {
               <div>
                 <label htmlFor="instagram" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                    </svg>
+                    <Instagram className="w-5 h-5 text-gray-900 dark:text-white" />
                     Instagram
                   </div>
                 </label>
@@ -1601,9 +1600,7 @@ export default function AdminSettingsPage() {
               <div>
                 <label htmlFor="twitter" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                    </svg>
+                    <Twitter className="w-5 h-5 text-gray-900 dark:text-white" />
                     Twitter / X
                   </div>
                 </label>
@@ -1650,7 +1647,7 @@ export default function AdminSettingsPage() {
                     href={state.mapDirectionsLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all duration-200"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition-all duration-200"
                   >
                     <Navigation className="w-4 h-4" />
                     Preview Directions
@@ -1680,7 +1677,7 @@ export default function AdminSettingsPage() {
                     onChange={(e) => setField('nextVisitCouponEnabled', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="relative w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300">
+                  <div className="relative w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:bg-gray-500 transition-colors duration-300">
                     <div className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full transition-transform duration-300 ${
                       state.nextVisitCouponEnabled !== false ? 'translate-x-5' : 'translate-x-0'
                     }`} />
@@ -1729,18 +1726,16 @@ export default function AdminSettingsPage() {
                   </div>
 
                   {/* Coupon Info */}
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 mt-0.5">
-                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <AlertCircle className="w-5 h-5 text-gray-900 dark:text-white" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
                           How Next Visit Coupons Work
                         </h4>
-                        <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                        <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
                           <li>• Customers get 1 coupon per day after completing an order</li>
                           <li>• Coupons are valid for 30 days from issue date</li>
                           <li>• Customers can view and use coupons from their profile</li>
@@ -1923,7 +1918,7 @@ export default function AdminSettingsPage() {
                             className={cx(
                               'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
                               t.status === 'active'
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                                 : 'bg-gray-500/10 text-gray-500 dark:bg-gray-500/20 dark:text-gray-300'
                             )}
                           >
@@ -1963,7 +1958,7 @@ export default function AdminSettingsPage() {
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Tables</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     {state.tables.filter((t) => t.status === 'active').length}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Active</div>
@@ -1996,7 +1991,7 @@ export default function AdminSettingsPage() {
                   setEditingSpecialInstruction(null);
                   setShowSpecialInstructionModal(true);
                 }}
-                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 bg-black hover:bg-gray-800 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">Add</span>
@@ -2010,15 +2005,15 @@ export default function AdminSettingsPage() {
                   <div
                     key={instruction.id}
                     className={`group inline-flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
-                      instruction.active 
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+                      instruction.active
+                        ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600'
                         : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60'
                     }`}
                   >
-                    <span 
+                    <span
                       className={`text-sm font-medium cursor-pointer ${
-                        instruction.active 
-                          ? 'text-green-800 dark:text-green-300' 
+                        instruction.active
+                          ? 'text-gray-900 dark:text-white'
                           : 'text-gray-500 dark:text-gray-400 line-through'
                       }`}
                       onClick={() => toggleSpecialInstructionStatus(instruction.id)}
@@ -2029,7 +2024,7 @@ export default function AdminSettingsPage() {
                     <div className="hidden group-hover:flex items-center gap-0.5">
                       <button
                         onClick={() => openEditSpecialInstruction(instruction)}
-                        className="p-1 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded"
+                        className="p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded"
                         title="Edit"
                       >
                         <Edit3 className="h-3 w-3" />
@@ -2063,14 +2058,14 @@ export default function AdminSettingsPage() {
                 </p>
                 {paymentDetails?.isVerified && (
                   <div className="flex items-center gap-1 mt-1">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <span className="text-xs text-green-600 dark:text-green-400">Verified</span>
+                    <CheckCircle2 className="h-4 w-4 text-gray-900 dark:text-white" />
+                    <span className="text-xs text-gray-900 dark:text-white">Verified</span>
                   </div>
                 )}
               </div>
               <button
                 onClick={() => setShowPaymentModal(true)}
-                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 bg-black hover:bg-gray-800 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
               >
                 {paymentDetails ? <Edit3 className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 <span className="hidden sm:inline">{paymentDetails ? 'Edit' : 'Add'}</span>
@@ -2081,14 +2076,14 @@ export default function AdminSettingsPage() {
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3 mb-3">
                   <div className={`p-2 rounded-lg ${
-                    paymentDetails.preferredMethod === 'bank' 
-                      ? 'bg-blue-100 dark:bg-blue-900/20' 
-                      : 'bg-green-100 dark:bg-green-900/20'
+                    paymentDetails.preferredMethod === 'bank'
+                      ? 'bg-gray-100 dark:bg-gray-700'
+                      : 'bg-gray-100 dark:bg-gray-700'
                   }`}>
                     {paymentDetails.preferredMethod === 'bank' ? (
-                      <Building className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <Building className="h-5 w-5 text-gray-900 dark:text-white" />
                     ) : (
-                      <Smartphone className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      <Smartphone className="h-5 w-5 text-gray-900 dark:text-white" />
                     )}
                   </div>
                   <div>
@@ -2388,7 +2383,7 @@ function SpecialInstructionModal(props: {
               onChange={(e) => setLabel(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={isEditing ? "Edit your instruction" : "Type instruction(s) - use commas to add multiple"}
-              className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200"
               autoFocus
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -2406,7 +2401,7 @@ function SpecialInstructionModal(props: {
           </button>
           <button
             onClick={save}
-            className="px-6 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200"
+            className="px-6 py-2 rounded-lg text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-all duration-200"
           >
             {isEditing ? 'Update' : 'Add'}
           </button>
@@ -2486,38 +2481,38 @@ function PaymentDetailsModal(props: {
             <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
               Preferred Payment Method
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => props.setPaymentForm({
-                  ...props.paymentForm,
-                  preferredMethod: 'bank'
-                })}
-                className={`p-4 border-2 rounded-lg transition-all ${
-                  props.paymentForm.preferredMethod === 'bank'
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
-                }`}
-              >
-                <Building className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Bank Account</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => props.setPaymentForm({
-                  ...props.paymentForm,
-                  preferredMethod: 'upi'
-                })}
-                className={`p-4 border-2 rounded-lg transition-all ${
-                  props.paymentForm.preferredMethod === 'upi'
-                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
-                }`}
-              >
-                <Smartphone className="h-6 w-6 mx-auto mb-2 text-green-600" />
-                <p className="text-sm font-medium text-gray-900 dark:text-white">UPI</p>
-              </button>
-            </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => props.setPaymentForm({
+                    ...props.paymentForm,
+                    preferredMethod: 'bank'
+                  })}
+                  className={`p-4 border-2 rounded-lg transition-all ${
+                    props.paymentForm.preferredMethod === 'bank'
+                      ? 'border-gray-900 bg-gray-100 dark:border-white dark:bg-gray-700'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  <Building className="h-6 w-6 mx-auto mb-2 text-gray-900 dark:text-white" />
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Bank Account</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => props.setPaymentForm({
+                    ...props.paymentForm,
+                    preferredMethod: 'upi'
+                  })}
+                  className={`p-4 border-2 rounded-lg transition-all ${
+                    props.paymentForm.preferredMethod === 'upi'
+                      ? 'border-gray-900 bg-gray-100 dark:border-white dark:bg-gray-700'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  <Smartphone className="h-6 w-6 mx-auto mb-2 text-gray-900 dark:text-white" />
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">UPI</p>
+                </button>
+              </div>
           </div>
 
           {/* Bank Details Form */}
@@ -2540,7 +2535,7 @@ function PaymentDetailsModal(props: {
                         accountHolderName: e.target.value
                       }
                     })}
-                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                     placeholder="Enter account holder name"
                   />
                 </div>
@@ -2559,7 +2554,7 @@ function PaymentDetailsModal(props: {
                         accountNumber: e.target.value
                       }
                     })}
-                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                     placeholder="Enter account number"
                   />
                 </div>
@@ -2578,7 +2573,7 @@ function PaymentDetailsModal(props: {
                         ifscCode: e.target.value.toUpperCase()
                       }
                     })}
-                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                     placeholder="Enter IFSC code"
                   />
                 </div>
@@ -2597,7 +2592,7 @@ function PaymentDetailsModal(props: {
                         bankName: e.target.value
                       }
                     })}
-                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                     placeholder="Enter bank name"
                   />
                 </div>
@@ -2616,7 +2611,7 @@ function PaymentDetailsModal(props: {
                         branchName: e.target.value
                       }
                     })}
-                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                     placeholder="Enter branch name (optional)"
                   />
                 </div>
@@ -2644,7 +2639,7 @@ function PaymentDetailsModal(props: {
                         upiId: e.target.value
                       }
                     })}
-                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                     placeholder="example@paytm or 9876543210@ybl"
                   />
                 </div>
@@ -2663,7 +2658,7 @@ function PaymentDetailsModal(props: {
                         upiName: e.target.value
                       }
                     })}
-                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                     placeholder="Enter name as registered with UPI"
                   />
                 </div>
@@ -2672,12 +2667,12 @@ function PaymentDetailsModal(props: {
           )}
 
           {/* Security Notice */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <AlertCircle className="h-5 w-5 text-gray-900 dark:text-white mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">Security Notice</p>
-                <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">Security Notice</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">
                   Your payment details are encrypted and stored securely. They will be verified by our team before being used for payouts.
                 </p>
               </div>
@@ -2696,7 +2691,7 @@ function PaymentDetailsModal(props: {
           <button
             onClick={handleSave}
             disabled={isLoading}
-            className="px-6 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-2 rounded-lg text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
           >
             {isLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
             Save Details

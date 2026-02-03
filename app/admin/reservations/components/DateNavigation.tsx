@@ -37,10 +37,10 @@ export default function DateNavigation({
                             onClick={() => changeDate(-1)}
                             className="p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0"
                         >
-                            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300" />
                         </button>
                         <div className="flex items-center gap-2 sm:gap-3 flex-1">
-                            <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
+                            <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300 flex-shrink-0" />
                             <input
                                 type="date"
                                 value={selectedDate}
@@ -56,7 +56,7 @@ export default function DateNavigation({
                             onClick={() => changeDate(1)}
                             className="p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0"
                         >
-                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300" />
                         </button>
                     </div>
                     <button
@@ -76,7 +76,7 @@ export default function DateNavigation({
                 {/* Search & View Controls */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                     <div className="relative flex-1">
-                        <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400" />
+                        <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-300" />
                         <input
                             type="text"
                             placeholder="Search by name, email, or ID..."

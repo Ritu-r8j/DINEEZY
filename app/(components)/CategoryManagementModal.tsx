@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { X, Save, RotateCcw, Edit2, Check, Settings, Tag, Plus, Trash2 } from 'lucide-react';
 import { DEFAULT_CATEGORIES, getCategoryDisplayName, CustomCategory } from '@/lib/categoryData';
 import { CategoryMappings, getCategoryMappings, updateCategoryMapping, removeCategoryMapping, addCustomCategory, updateCustomCategory, deleteCustomCategory } from '@/app/(utils)/categoryOperations';
+import { CategoryIcons, DefaultCategoryIcon } from '@/lib/icons/categoryIcons';
+
+const getCategoryIcon = (iconKey: string) => {
+  return CategoryIcons[iconKey as keyof typeof CategoryIcons] || DefaultCategoryIcon;
+};
 
 interface CategoryManagementModalProps {
   isOpen: boolean;
@@ -27,7 +32,7 @@ export default function CategoryManagementModal({
   const [showAddCustom, setShowAddCustom] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDescription, setNewCategoryDescription] = useState('');
-  const [newCategoryIcon, setNewCategoryIcon] = useState('🍽️');
+  const [newCategoryIcon, setNewCategoryIcon] = useState('default');
 
   useEffect(() => {
     if (isOpen && adminId) {
@@ -97,7 +102,7 @@ export default function CategoryManagementModal({
       setShowAddCustom(false);
       setNewCategoryName('');
       setNewCategoryDescription('');
-      setNewCategoryIcon('🍽️');
+      setNewCategoryIcon('default');
       onSave?.();
     }
     setSaving(false);
@@ -165,20 +170,23 @@ export default function CategoryManagementModal({
 
                 {showAddCustom && (
                   <div className="mb-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl space-y-3 border-2 border-blue-200 dark:border-blue-700">
-                    <div className="grid grid-cols-4 gap-2">
-                      <input
-                        type="text"
+                    <div className="grid grid-cols-1 gap-2">
+                      <select
                         value={newCategoryIcon}
                         onChange={(e) => setNewCategoryIcon(e.target.value)}
-                        className="px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-center text-2xl dark:bg-gray-700 dark:text-white"
-                        placeholder="🍽️"
-                        maxLength={2}
-                      />
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      >
+                        {Object.keys(CategoryIcons).filter(key => key !== 'default').map(iconKey => (
+                          <option key={iconKey} value={iconKey}>
+                            {iconKey.charAt(0).toUpperCase() + iconKey.slice(1).replace(/-([a-z])/g, (_, char) => ' ' + char.toUpperCase())}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         type="text"
                         value={newCategoryName}
                         onChange={(e) => setNewCategoryName(e.target.value)}
-                        className="col-span-3 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                         placeholder="Category name (e.g., Signature Dishes)"
                       />
                     </div>
@@ -202,7 +210,7 @@ export default function CategoryManagementModal({
                           setShowAddCustom(false);
                           setNewCategoryName('');
                           setNewCategoryDescription('');
-                          setNewCategoryIcon('🍽️');
+                          setNewCategoryIcon('default');
                         }}
                         className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-sm"
                       >
@@ -219,10 +227,15 @@ export default function CategoryManagementModal({
                         key={category.id}
                         className="p-4 rounded-xl border-2 border-green-300 dark:border-green-600 bg-green-50/50 dark:bg-green-900/20"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <span className="text-3xl">{category.icon}</span>
-                            <div>
+                         <div className="flex items-center justify-between">
+                           <div className="flex items-center space-x-3">
+                             <div className="text-gray-900 dark:text-white">
+                               {(() => {
+                                 const IconComponent = getCategoryIcon(category.icon);
+                                 return <IconComponent className="h-8 w-8" />;
+                               })()}
+                             </div>
+                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-gray-900 dark:text-white">
                                   {category.name}
@@ -263,6 +276,7 @@ export default function CategoryManagementModal({
                 const isEditing = editingCategory === category.id;
                 const isCustomized = mappings[category.id]?.isActive;
                 const displayName = getCategoryDisplayName(category.id, mappings);
+                const CategoryIcon = getCategoryIcon(category.iconKey);
 
                 return (
                   <div
@@ -275,7 +289,9 @@ export default function CategoryManagementModal({
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 flex-1">
-                        <span className="text-3xl">{category.icon}</span>
+                        <div className="text-gray-900 dark:text-white">
+                          <CategoryIcon className="h-8 w-8" />
+                        </div>
                         <div className="flex-1">
                           {isEditing ? (
                             <div className="flex items-center space-x-2">

@@ -4,6 +4,7 @@ export interface DefaultCategory {
   name: string;
   description: string;
   icon: string;
+  iconKey: string;
   sortOrder: number;
 }
 
@@ -20,6 +21,7 @@ export interface CustomCategory {
   name: string;
   description: string;
   icon: string;
+  iconKey?: string;
   isCustom: true;
   createdAt: Date;
   updatedAt: Date;
@@ -31,105 +33,120 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
     id: 'appetizers',
     name: 'Appetizers',
     description: 'Starters and small bites',
-    icon: '🥟',
+    icon: 'appetizers',
+    iconKey: 'appetizers',
     sortOrder: 1
   },
   {
     id: 'main-course',
     name: 'Main Course',
     description: 'Primary dishes and entrees',
-    icon: '🍛',
+    icon: 'main-course',
+    iconKey: 'main-course',
     sortOrder: 2
   },
   {
     id: 'beverages',
     name: 'Beverages',
     description: 'Drinks and refreshments',
-    icon: '🥤',
+    icon: 'beverages',
+    iconKey: 'beverages',
     sortOrder: 3
   },
   {
     id: 'desserts',
     name: 'Desserts',
     description: 'Sweet treats and desserts',
-    icon: '🍰',
+    icon: 'desserts',
+    iconKey: 'desserts',
     sortOrder: 4
   },
   {
     id: 'pizza',
     name: 'Pizza',
     description: 'Pizza varieties',
-    icon: '🍕',
+    icon: 'pizza',
+    iconKey: 'pizza',
     sortOrder: 5
   },
   {
     id: 'burgers',
     name: 'Burgers',
     description: 'Burgers and sandwiches',
-    icon: '🍔',
+    icon: 'burgers',
+    iconKey: 'burgers',
     sortOrder: 6
   },
   {
     id: 'salads',
     name: 'Salads',
     description: 'Fresh salads and bowls',
-    icon: '🥗',
+    icon: 'salads',
+    iconKey: 'salads',
     sortOrder: 7
   },
   {
     id: 'pasta',
     name: 'Pasta',
     description: 'Pasta dishes',
-    icon: '🍝',
+    icon: 'pasta',
+    iconKey: 'pasta',
     sortOrder: 8
   },
   {
     id: 'rice-biryani',
     name: 'Rice & Biryani',
     description: 'Rice dishes and biryani',
-    icon: '🍚',
+    icon: 'rice-biryani',
+    iconKey: 'rice-biryani',
     sortOrder: 9
   },
   {
     id: 'breads',
     name: 'Breads',
     description: 'Breads and rotis',
-    icon: '🫓',
+    icon: 'breads',
+    iconKey: 'breads',
     sortOrder: 10
   },
   {
     id: 'chinese',
     name: 'Chinese',
     description: 'Chinese cuisine',
-    icon: '🥢',
+    icon: 'chinese',
+    iconKey: 'chinese',
     sortOrder: 11
   },
   {
     id: 'seafood',
     name: 'Seafood',
     description: 'Fish and seafood dishes',
-    icon: '🦐',
+    icon: 'seafood',
+    iconKey: 'seafood',
     sortOrder: 12
   },
   {
     id: 'breakfast',
     name: 'Breakfast',
     description: 'Breakfast items',
-    icon: '🍳',
+    icon: 'breakfast',
+    iconKey: 'breakfast',
     sortOrder: 13
   },
   {
     id: 'snacks',
     name: 'Snacks',
     description: 'Quick bites and snacks',
-    icon: '🍿',
+    icon: 'snacks',
+    iconKey: 'snacks',
     sortOrder: 14
   },
   {
     id: 'combos',
     name: 'Combos',
     description: 'Meal combos and deals',
-    icon: '🍱',
+    icon: 'combos',
+    iconKey: 'combos',
     sortOrder: 15
   }
 ];

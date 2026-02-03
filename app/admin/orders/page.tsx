@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Clock, Eye, Phone, MapPin, DollarSign, Search, RefreshCw, X, ChefHat, Package, Loader2, CheckCircle, Calendar } from 'lucide-react';
+import { Bell, Clock, Eye, Phone, MapPin, DollarSign, Search, RefreshCw, X, ChefHat, Package, Loader2, CheckCircle, Calendar, ClipboardList, UtensilsCrossed, ShoppingBag, Car, Truck, AlertCircle, Droplets, HelpCircle, CircleDot } from 'lucide-react';
 import { getRestaurantOrders, updateOrderStatus, updateOrderEstimatedTime, updatePreOrderTime, OrderData, subscribeToRestaurantOrdersByDate } from '@/app/(utils)/firebaseOperations';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { sendNotification } from '@/app/(utils)/notification';
@@ -111,13 +111,13 @@ export default function OrderManagement() {
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'confirmed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'preparing': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-      case 'ready': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'pending': return 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white';
+      case 'confirmed': return 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white';
+      case 'preparing': return 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white';
+      case 'ready': return 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white';
       case 'delivered': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'cancelled': return 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white';
+      default: return 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white';
     }
   };
 
@@ -341,7 +341,7 @@ export default function OrderManagement() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <AlertCircle className="h-16 w-16 text-gray-900 dark:text-white mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error Loading Orders</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
           <button
@@ -374,21 +374,21 @@ export default function OrderManagement() {
               {/* Notification Badges */}
               <div className="flex items-center space-x-2">
                 {orders.filter(o => o.orderType === 'pre-order' && ['pending', 'confirmed', 'preparing'].includes(o.status)).length > 0 && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
-                    <Clock className="h-4 w-4" />
+                  <div className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
+                    <Clock className="h-4 w-4 text-gray-900 dark:text-white" />
                     <span>{orders.filter(o => o.orderType === 'pre-order' && ['pending', 'confirmed', 'preparing'].includes(o.status)).length} pre-order{orders.filter(o => o.orderType === 'pre-order' && ['pending', 'confirmed', 'preparing'].includes(o.status)).length > 1 ? 's' : ''}</span>
                   </div>
                 )}
                 {orders.filter(o => o.orderType === 'takeaway' && ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status)).length > 0 && (
-                  <div className="bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
-                    <Package className="h-4 w-4" />
+                  <div className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
+                    <Package className="h-4 w-4 text-gray-900 dark:text-white" />
                     <span>{orders.filter(o => o.orderType === 'takeaway' && ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status)).length} pickup{orders.filter(o => o.orderType === 'takeaway' && ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status)).length > 1 ? 's' : ''}</span>
                   </div>
                 )}
               </div>
               
               {orders.filter(o => o.status === 'pending').length > 0 && (
-                <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-3 py-2 rounded-lg text-sm font-medium">
+                <div className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-lg text-sm font-medium">
                   {orders.filter(o => o.status === 'pending').length} new order{orders.filter(o => o.status === 'pending').length > 1 ? 's' : ''}
                 </div>
               )}
@@ -420,9 +420,7 @@ export default function OrderManagement() {
                   key={option.value}
                   onClick={() => setSelectedDate(option.value)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedDate === option.value
-                      ? option.isToday
-                        ? 'bg-blue-500 text-white shadow-sm'
-                        : 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-sm'
+                      ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-sm'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                 >
@@ -436,7 +434,7 @@ export default function OrderManagement() {
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                 />
               </div>
             </div>
@@ -450,7 +448,7 @@ export default function OrderManagement() {
               <input
                 type="text"
                 placeholder="Search orders..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-gray-900 dark:text-white"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -485,22 +483,22 @@ export default function OrderManagement() {
             </div>
             <div className="flex flex-wrap gap-2">
               {[
-                { key: 'all', label: 'All Types', count: orders.length, icon: '📋' },
-                { key: 'pre-order', label: 'Pre-order', count: orders.filter(o => o.orderType === 'pre-order').length, icon: '⏰' },
-                { key: 'dine-in', label: 'Dine-in', count: orders.filter(o => o.orderType === 'dine-in').length, icon: '🍽️' },
-                { key: 'takeaway', label: 'Pickup', count: orders.filter(o => o.orderType === 'takeaway').length, icon: '🥡' },
-                { key: 'car-dine-in', label: 'Car Dine-In', count: orders.filter(o => o.orderType === 'car-dine-in').length, icon: '🚗' },
-                { key: 'delivery', label: 'Delivery', count: orders.filter(o => o.orderType === 'delivery').length, icon: '🚚' }
+                { key: 'all', label: 'All Types', count: orders.length, icon: ClipboardList },
+                { key: 'pre-order', label: 'Pre-order', count: orders.filter(o => o.orderType === 'pre-order').length, icon: Clock },
+                { key: 'dine-in', label: 'Dine-in', count: orders.filter(o => o.orderType === 'dine-in').length, icon: UtensilsCrossed },
+                { key: 'takeaway', label: 'Pickup', count: orders.filter(o => o.orderType === 'takeaway').length, icon: ShoppingBag },
+                { key: 'car-dine-in', label: 'Car Dine-In', count: orders.filter(o => o.orderType === 'car-dine-in').length, icon: Car },
+                { key: 'delivery', label: 'Delivery', count: orders.filter(o => o.orderType === 'delivery').length, icon: Truck }
               ].map((filter) => (
                 <button
                   key={filter.key}
                   onClick={() => setActiveOrderTypeFilter(filter.key as any)}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${activeOrderTypeFilter === filter.key
-                      ? 'bg-blue-500 text-white shadow-sm'
+                      ? 'bg-gray-900 text-white shadow-sm'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                 >
-                  <span>{filter.icon}</span>
+                  <filter.icon className="h-4 w-4" />
                   <span>{filter.label} ({filter.count})</span>
                 </button>
               ))}
@@ -522,7 +520,7 @@ export default function OrderManagement() {
               {activeOrderTypeFilter !== 'all' && (
                 <div className="flex items-center space-x-2">
                   <span>•</span>
-                  <span className="font-medium text-blue-600 dark:text-blue-400 capitalize">
+                  <span className="font-medium text-gray-900 dark:text-white capitalize">
                     {activeOrderTypeFilter === 'takeaway' ? 'Pickup' : activeOrderTypeFilter} orders only
                   </span>
                 </div>
@@ -543,12 +541,12 @@ export default function OrderManagement() {
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${order.status === 'pending' ? 'bg-yellow-500' :
-                    order.status === 'confirmed' ? 'bg-blue-500' :
-                      order.status === 'preparing' ? 'bg-orange-500' :
-                        order.status === 'ready' ? 'bg-green-500' :
-                          order.status === 'delivered' ? 'bg-gray-500' :
-                            'bg-red-500'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white dark:text-gray-900 font-semibold text-sm ${order.status === 'pending' ? 'bg-gray-900 dark:bg-white' :
+                    order.status === 'confirmed' ? 'bg-gray-900 dark:bg-white' :
+                      order.status === 'preparing' ? 'bg-gray-700 dark:bg-gray-300' :
+                        order.status === 'ready' ? 'bg-gray-500 dark:bg-gray-400' :
+                          order.status === 'delivered' ? 'bg-gray-400 dark:bg-gray-500' :
+                            'bg-gray-600 dark:bg-gray-400'
                     }`}>
                     {order.customerName?.charAt(0) || 'U'}
                   </div>
@@ -570,7 +568,7 @@ export default function OrderManagement() {
                   {order.customerPhone && (
                     <a
                       href={`tel:${order.customerPhone}`}
-                      className="p-1.5 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
                       <Phone className="h-4 w-4" />
                     </a>
@@ -590,13 +588,13 @@ export default function OrderManagement() {
                   <p className="text-gray-500 dark:text-gray-400">Type</p>
                   <p className="font-medium text-gray-900 dark:text-white capitalize">{order.orderType}</p>
                   {order.orderType === 'pre-order' && order.preOrderTime && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">@ {order.preOrderTime}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">@ {order.preOrderTime}</p>
                   )}
                 </div>
                 <div className="text-center">
-                  <DollarSign className="h-4 w-4 mx-auto mb-1 text-green-500" />
+                  <DollarSign className="h-4 w-4 mx-auto mb-1 text-gray-400" />
                   <p className="text-gray-500 dark:text-gray-400">Total</p>
-                  <p className="font-semibold text-green-600 dark:text-green-400">₹{order.totalAmount?.toFixed(2) || '0.00'}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">₹{order.totalAmount?.toFixed(2) || '0.00'}</p>
                 </div>
               </div>
 
@@ -638,8 +636,8 @@ export default function OrderManagement() {
                     const isCurrent = order.status === status;
                     return (
                       <div key={status} className="flex items-center flex-1">
-                        <div className={`h-2 rounded-full flex-1 ${isCurrent ? 'bg-blue-500' :
-                          isActive ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'
+                        <div className={`h-2 rounded-full flex-1 ${isCurrent ? 'bg-gray-900 dark:bg-white' :
+                          isActive ? 'bg-gray-500 dark:bg-gray-400' : 'bg-gray-200 dark:bg-gray-600'
                           }`}></div>
                         {index < 4 && <div className="w-1"></div>}
                       </div>
@@ -655,7 +653,7 @@ export default function OrderManagement() {
                     <button
                       onClick={() => handleUpdateOrderStatus(order.id, 'confirmed')}
                       disabled={isUpdating === order.id}
-                      className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-1"
+                      className="flex-1 px-3 py-2 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-1"
                     >
                       {isUpdating === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3" />}
                       <span>Accept</span>
@@ -663,7 +661,7 @@ export default function OrderManagement() {
                     <button
                       onClick={() => handleUpdateOrderStatus(order.id, 'cancelled')}
                       disabled={isUpdating === order.id}
-                      className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
+                      className="px-3 py-2 bg-gray-600 dark:bg-gray-400 hover:bg-gray-700 dark:hover:bg-gray-500 text-white dark:text-gray-900 rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -673,7 +671,7 @@ export default function OrderManagement() {
                   <button
                     onClick={() => handleUpdateOrderStatus(order.id, 'preparing')}
                     disabled={isUpdating === order.id}
-                    className="w-full px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                    className="w-full px-3 py-2 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                   >
                     {isUpdating === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChefHat className="h-4 w-4" />}
                     <span>Start Preparing</span>
@@ -683,7 +681,7 @@ export default function OrderManagement() {
                   <button
                     onClick={() => handleUpdateOrderStatus(order.id, 'ready')}
                     disabled={isUpdating === order.id}
-                    className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                    className="w-full px-3 py-2 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                   >
                     {isUpdating === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Package className="h-4 w-4" />}
                     <span>Mark Ready</span>
@@ -702,17 +700,23 @@ export default function OrderManagement() {
                     
                     {/* Car Dine-In Service Actions - Only show for EAT_IN_CAR mode */}
                     {order.orderType === 'car-dine-in' && (order as any).serviceMode === 'EAT_IN_CAR' && (
-                      <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                        <p className="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-2">🚗 Car Service Actions</p>
+                      <div className="mt-2 p-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                        <p className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center space-x-1">
+                          <Car className="h-3 w-3" />
+                          <span>Car Service Actions</span>
+                        </p>
                         <div className="grid grid-cols-2 gap-2">
-                          <button className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors">
-                            💧 Water
+                          <button className="px-2 py-1.5 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 rounded text-xs transition-colors flex items-center justify-center space-x-1">
+                            <Droplets className="h-3 w-3" />
+                            <span>Water</span>
                           </button>
-                          <button className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors">
-                            🤝 Assist
+                          <button className="px-2 py-1.5 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 rounded text-xs transition-colors flex items-center justify-center space-x-1">
+                            <HelpCircle className="h-3 w-3" />
+                            <span>Assist</span>
                           </button>
-                          <button className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors col-span-2">
-                            🍽️ Pickup Tray
+                          <button className="px-2 py-1.5 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 rounded text-xs transition-colors col-span-2 flex items-center justify-center space-x-1">
+                            <UtensilsCrossed className="h-3 w-3" />
+                            <span>Pickup Tray</span>
                           </button>
                         </div>
                       </div>
@@ -728,7 +732,7 @@ export default function OrderManagement() {
                   </div>
                   <button
                     onClick={() => openTimeModal(order)}
-                    className="px-2 py-1 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                    className="px-2 py-1 text-xs text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                   >
                     Update Time
                   </button>
@@ -754,7 +758,7 @@ export default function OrderManagement() {
               {selectedDate !== new Date().toISOString().split('T')[0] && (
                 <button
                   onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors text-sm"
                 >
                   View Today's Orders
                 </button>
@@ -813,14 +817,14 @@ export default function OrderManagement() {
                     {selectedOrder.orderType === 'pre-order' && selectedOrder.preOrderTime && (
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">Scheduled For:</span>
-                        <span className="font-medium text-blue-600 dark:text-blue-400">{selectedOrder.preOrderTime}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.preOrderTime}</span>
                       </div>
                     )}
                     {selectedOrder.orderType === 'car-dine-in' && (selectedOrder as any).carDetails && (
                       <>
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-gray-400">Scheduled Time:</span>
-                          <span className="font-medium text-blue-600 dark:text-blue-400">{(selectedOrder as any).scheduledTime}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{(selectedOrder as any).scheduledTime}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-gray-400">Car Model:</span>
@@ -832,8 +836,18 @@ export default function OrderManagement() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-gray-400">Service Mode:</span>
-                          <span className={`font-medium ${(selectedOrder as any).serviceMode === 'EAT_IN_CAR' ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                            {(selectedOrder as any).serviceMode === 'EAT_IN_CAR' ? '🍽️ Eat in Car (Full Service)' : '🥡 Takeaway (No Service)'}
+                          <span className="font-medium text-gray-900 dark:text-white flex items-center space-x-1">
+                            {(selectedOrder as any).serviceMode === 'EAT_IN_CAR' ? (
+                              <>
+                                <UtensilsCrossed className="h-4 w-4" />
+                                <span>Eat in Car (Full Service)</span>
+                              </>
+                            ) : (
+                              <>
+                                <ShoppingBag className="h-4 w-4" />
+                                <span>Takeaway (No Service)</span>
+                              </>
+                            )}
                           </span>
                         </div>
                       </>
@@ -871,7 +885,7 @@ export default function OrderManagement() {
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold text-gray-900 dark:text-white">Total:</span>
-                      <span className="text-xl font-bold text-green-600 dark:text-green-400">₹{selectedOrder.totalAmount?.toFixed(2) || '0.00'}</span>
+                      <span className="text-xl font-bold text-gray-900 dark:text-white">₹{selectedOrder.totalAmount?.toFixed(2) || '0.00'}</span>
                     </div>
                   </div>
                 </div>
@@ -880,7 +894,7 @@ export default function OrderManagement() {
                 {selectedOrder.specialNotes && (
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Special Instructions</h3>
-                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                    <div className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-4">
                       <p className="text-gray-700 dark:text-gray-300">{selectedOrder.specialNotes}</p>
                     </div>
                   </div>
@@ -909,11 +923,11 @@ export default function OrderManagement() {
 
             <div className="p-6 space-y-4">
               {selectedOrderForTime.orderType === 'pre-order' && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                <div className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-gray-900 dark:text-white">
                     <strong>Current scheduled time:</strong> {selectedOrderForTime.preOrderTime}
                   </p>
-                  <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     Adding minutes will update the scheduled time accordingly.
                   </p>
                 </div>
@@ -932,7 +946,7 @@ export default function OrderManagement() {
                   max="120"
                   value={customEstimatedTime}
                   onChange={(e) => setCustomEstimatedTime(parseInt(e.target.value) || 20)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -942,7 +956,7 @@ export default function OrderManagement() {
                     key={time}
                     onClick={() => setCustomEstimatedTime(time)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${customEstimatedTime === time
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                   >
@@ -961,7 +975,7 @@ export default function OrderManagement() {
                 <button
                   onClick={() => handleSetEstimatedTime(selectedOrderForTime.id, customEstimatedTime)}
                   disabled={isUpdating === selectedOrderForTime.id}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="flex-1 px-4 py-2 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                 >
                   {isUpdating === selectedOrderForTime.id ? (
                     <>

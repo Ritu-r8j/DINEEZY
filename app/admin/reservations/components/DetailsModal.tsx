@@ -127,12 +127,12 @@ export default function DetailsModal({
                                 </p>
                             </div>
                             {reservation.reservationDetails.tableNumber && (
-                                <div className="bg-purple-500/10 rounded-lg p-3 sm:p-4 border border-purple-500/20">
+                                <div className="bg-gray-500/10 rounded-lg p-3 sm:p-4 border border-gray-500/20">
                                     <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
-                                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-purple-400" />
-                                        <p className="text-[10px] sm:text-xs text-purple-400">Table</p>
+                                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-gray-300" />
+                                        <p className="text-[10px] sm:text-xs text-gray-300">Table</p>
                                     </div>
-                                    <p className="font-semibold text-purple-300 text-xs sm:text-base">
+                                    <p className="font-semibold text-gray-300 text-xs sm:text-base">
                                         {reservation.reservationDetails.tableNumber}
                                     </p>
                                 </div>
@@ -156,7 +156,7 @@ export default function DetailsModal({
                     {orders && orders.length > 0 && (
                         <div>
                             <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                                <ShoppingCart className="h-4 w-4 text-emerald-400" />
+                                <ShoppingCart className="h-4 w-4 text-gray-300" />
                                 <p className="text-xs sm:text-sm font-medium text-gray-400">
                                     Pre-Orders ({orders.length})
                                 </p>
@@ -171,7 +171,7 @@ export default function DetailsModal({
                                                     {order.orderId}
                                                 </p>
                                                 {order.preOrderTime && (
-                                                    <p className="text-xs text-emerald-400 mt-1">
+                                                    <p className="text-xs text-gray-300 mt-1">
                                                         Scheduled for: {order.preOrderTime}
                                                     </p>
                                                 )}
