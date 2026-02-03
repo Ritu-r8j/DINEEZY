@@ -10,7 +10,11 @@ import {
     Search,
     ArrowUpRight,
     Loader2,
-    AlertTriangle
+    AlertTriangle,
+    Wallet,
+    Calendar,
+    ChevronDown,
+    Filter
 } from 'lucide-react';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import { 
@@ -26,7 +30,7 @@ import {
 export default function PaymentsPage() {
     const { user } = useAuth();
     const [timeFilter, setTimeFilter] = useState('today');
-    const [paymentMethodFilter, setPaymentMethodFilter] = useState('all'); // New filter state
+    const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [analytics, setAnalytics] = useState<any>(null);
@@ -46,12 +50,10 @@ export default function PaymentsPage() {
                 setIsLoading(true);
                 setError(null);
 
-                // Get days based on filter
                 const days = timeFilter === 'today' ? 1 : timeFilter === 'week' ? 7 : 30;
 
-                // Load transactions, analytics, day-wise data, and payout requests
                 const [transactionsResult, analyticsResult, dayWiseResult, payoutsResult] = await Promise.all([
-                    getRestaurantTransactions(user.uid, 100), // Get last 100 transactions
+                    getRestaurantTransactions(user.uid, 100),
                     getTransactionAnalytics(user.uid, days),
                     getDayWiseTransactionAnalytics(user.uid, days),
                     getRestaurantPayoutRequests(user.uid)
@@ -69,8 +71,6 @@ export default function PaymentsPage() {
 
                 if (dayWiseResult.success && dayWiseResult.data) {
                     setDayWiseData(dayWiseResult.data);
-                } else {
-                    console.error('Failed to load day-wise data:', dayWiseResult.error);
                 }
 
                 if (payoutsResult.success && payoutsResult.data) {
@@ -87,7 +87,7 @@ export default function PaymentsPage() {
         loadPaymentData();
     }, [user, timeFilter]);
 
-    // Filter transactions based on time period
+    // Filter transactions
     const getFilteredTransactions = () => {
         if (!transactions.length) return [];
         
@@ -113,7 +113,6 @@ export default function PaymentsPage() {
                 transaction.customerInfo.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 transaction.orderId.toLowerCase().includes(searchTerm.toLowerCase());
             
-            // Payment method filter
             const matchesPaymentMethod = paymentMethodFilter === 'all' || 
                 (paymentMethodFilter === 'online' && (transaction.paymentMethod === 'online' || transaction.paymentMethod === 'card')) ||
                 (paymentMethodFilter === 'cash' && (transaction.paymentMethod === 'cash' || transaction.paymentMethod === 'pay-later'));
@@ -126,18 +125,18 @@ export default function PaymentsPage() {
 
     // Helper functions
     const getStatusBadge = (status: string) => {
-        const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
+        const baseClasses = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide border";
         switch (status) {
             case 'completed':
-                return `${baseClasses} bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400`;
+                return `${baseClasses} bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-black dark:border-white`;
             case 'pending':
-                return `${baseClasses} bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400`;
+                return `${baseClasses} bg-white text-gray-500 border-gray-300 dark:bg-[#14161a] dark:text-gray-400 dark:border-gray-700`;
             case 'failed':
-                return `${baseClasses} bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400`;
+                return `${baseClasses} bg-gray-100 text-gray-900 border-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700`;
             case 'refunded':
-                return `${baseClasses} bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400`;
+                return `${baseClasses} bg-gray-50 text-gray-500 border-gray-200 line-through dark:bg-gray-900 dark:text-gray-400 dark:border-gray-800`;
             default:
-                return `${baseClasses} bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400`;
+                return `${baseClasses} bg-gray-50 text-gray-500 border-gray-200 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-800`;
         }
     };
 
@@ -160,7 +159,6 @@ export default function PaymentsPage() {
         const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
         return {
             date: date.toLocaleDateString('en-US', { 
-                year: 'numeric', 
                 month: 'short', 
                 day: 'numeric' 
             }),
@@ -168,6 +166,11 @@ export default function PaymentsPage() {
                 hour: 'numeric', 
                 minute: '2-digit',
                 hour12: true 
+            }),
+            full: date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
             })
         };
     };
@@ -199,7 +202,6 @@ export default function PaymentsPage() {
         window.URL.revokeObjectURL(url);
     };
 
-    // Create payout request
     const handleCreatePayoutRequest = async () => {
         if (!user || !dayWiseData) return;
 
@@ -211,23 +213,21 @@ export default function PaymentsPage() {
             
             const startDate = new Date();
             if (days === 1) {
-                startDate.setHours(0, 0, 0, 0); // Start of today
+                startDate.setHours(0, 0, 0, 0);
             } else {
                 startDate.setDate(startDate.getDate() - days + 1);
                 startDate.setHours(0, 0, 0, 0);
             }
 
-            // Get available transactions (not already in pending/approved payouts)
             const availableTransactions = dayWiseData.dayWiseData[0]?.transactions || [];
-            
             const payoutAmount = dayWiseData.totals.totalPayoutAmount;
             
             if (payoutAmount <= 0 || availableTransactions.length === 0) {
-                alert('No new transactions available for payout. All transactions may already be included in pending payout requests.');
+                alert('No new transactions available for payout.');
                 return;
             }
 
-            // Get restaurant name from settings or use default
+            // Get restaurant name
             let restaurantName = 'Restaurant Name';
             try {
                 const { getRestaurantSettings } = await import('@/app/(utils)/firebaseOperations');
@@ -235,9 +235,7 @@ export default function PaymentsPage() {
                 if (restaurantResult.success && restaurantResult.data) {
                     restaurantName = restaurantResult.data.name;
                 }
-            } catch (error) {
-                // Silently use default restaurant name
-            }
+            } catch (error) {}
 
             const payoutData = {
                 restaurantId: user.uid,
@@ -251,7 +249,7 @@ export default function PaymentsPage() {
                     startDate: startDate,
                     endDate: endDate
                 },
-                transactionIds: availableTransactions.map((t: Transaction) => t.id), // Only available transactions
+                transactionIds: availableTransactions.map((t: Transaction) => t.id),
                 status: 'pending' as const
             };
 
@@ -260,7 +258,6 @@ export default function PaymentsPage() {
             if (result.success) {
                 alert('Payout request created successfully!');
                 setShowPayoutModal(false);
-                // Reload payout requests
                 const payoutsResult = await getRestaurantPayoutRequests(user.uid);
                 if (payoutsResult.success && payoutsResult.data) {
                     setPayoutRequests(payoutsResult.data);
@@ -275,697 +272,368 @@ export default function PaymentsPage() {
         }
     };
 
-    // Loading state
     if (isLoading) {
         return (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="text-center">
-                        <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-gray-600 dark:text-gray-400" />
-                        <p className="text-gray-600 dark:text-gray-400">Loading payments...</p>
-                    </div>
-                </div>
+            <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0f1115]">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-900 dark:text-white" />
             </div>
         );
     }
 
-    // Error state
     if (error) {
         return (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="text-center">
-                        <AlertTriangle className="h-16 w-16 mx-auto mb-4 text-gray-900 dark:text-white" />
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error Loading Payments</h2>
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-                        >
-                            Retry
-                        </button>
-                    </div>
-                </div>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0f1115] gap-4">
+                <AlertTriangle className="h-12 w-12 text-gray-400" />
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Error Loading Payments</h2>
+                <p className="text-gray-500 dark:text-gray-400">{error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="w-full px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
-            {/* Header */}
-            <div className="mb-6 sm:mb-8">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-                    Payments & Settlements
-                </h1>
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2 font-light">
-                    Manage your restaurant's financial transactions and payouts.
-                </p>
-            </div>
-
-            {/* Time Filter */}
-            <div className="mb-6 sm:mb-8">
-                <div className="inline-flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg transition-all duration-200 hover:shadow-md overflow-x-auto">
-                    {['today', 'week', 'month'].map((period) => (
-                        <button
-                            key={period}
-                            onClick={() => setTimeFilter(period)}
-                            className={`px-3 sm:px-4 lg:px-6 py-2 rounded text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 whitespace-nowrap ${timeFilter === period
-                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0f1115]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                            Payments & Settlements
+                        </h1>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">
+                            Manage your financial transactions and payouts.
+                        </p>
+                    </div>
+                    
+                    {/* Time Filter */}
+                    <div className="inline-flex bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 p-1 rounded-lg shadow-sm">
+                        {['today', 'week', 'month'].map((period) => (
+                            <button
+                                key={period}
+                                onClick={() => setTimeFilter(period)}
+                                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                                    timeFilter === period
+                                        ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                                        : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                 }`}
-                        >
-                            {period === 'today' ? 'Today' : period === 'week' ? 'Last 7 Days' : 'Last 30 Days'}
-                        </button>
-                    ))}
+                            >
+                                {period === 'today' ? 'Today' : period === 'week' ? '7 Days' : '30 Days'}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-            </div>
 
-            {/* Main Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                {/* Available Revenue Card */}
-                <div className="sm:col-span-2 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 sm:p-6 rounded-xl border border-green-200 dark:border-green-800/30">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex-1 mb-3 sm:mb-0">
-                            <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                                <div className="p-1.5 sm:p-2 bg-green-500 rounded-lg">
-                                    <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-300">Available Revenue</p>
-                                    <p className="text-xs text-green-600 dark:text-green-400">
-                                        {timeFilter === 'today' ? 'Today' : timeFilter === 'week' ? 'Last 7 Days' : 'Last 30 Days'}
-                                    </p>
-                                </div>
+                {/* Main Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Revenue Card - Dark Theme for Gradient Text */}
+                    <div className="bg-[#14161a] rounded-xl p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-gray-800 rounded-xl">
+                                <DollarSign className="h-6 w-6 text-white" />
                             </div>
-                            <p className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-200">
+                            <span className="flex items-center text-xs font-medium text-gray-300 bg-gray-800 px-2 py-1 rounded-full">
+                                <ArrowUpRight className="h-3 w-3 mr-1" />
+                                +12.5%
+                            </span>
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-400">Total Revenue</p>
+                            <h3 className="text-2xl font-bold mt-1 bg-clip-text text-transparent bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff]">
                                 ₹{dayWiseData?.totals?.totalRevenue?.toLocaleString() || '0'}
-                            </p>
-                            {analytics?.totalRevenue && dayWiseData?.totals?.totalRevenue && 
-                             analytics.totalRevenue !== dayWiseData.totals.totalRevenue && (
-                                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                                    ₹{(analytics.totalRevenue - dayWiseData.totals.totalRevenue).toFixed(2)} in pending payouts
+                            </h3>
+                            {analytics?.totalRevenue !== dayWiseData?.totals?.totalRevenue && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Pending: ₹{(analytics?.totalRevenue - (dayWiseData?.totals?.totalRevenue || 0)).toFixed(2)}
                                 </p>
                             )}
                         </div>
-                        <div className="text-left sm:text-right">
-                            <div className="flex items-center text-gray-900 dark:text-white mb-1">
-                                <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                                <span className="text-xs sm:text-sm font-semibold">+12%</span>
-                            </div>
-                            <p className="text-xs text-gray-900 dark:text-white">vs last period</p>
-                        </div>
                     </div>
-                </div>
 
-                {/* Pending Payouts Card */}
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 sm:p-6 rounded-xl border border-orange-200 dark:border-orange-800/30">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-3">
-                        <div className="p-1.5 sm:p-2 bg-orange-500 rounded-lg">
-                            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                    {/* Pending Payouts Card - Dark Theme for Gradient Text */}
+                    <div className="bg-[#14161a] rounded-xl p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-gray-800 rounded-xl">
+                                <Clock className="h-6 w-6 text-white" />
+                            </div>
                         </div>
                         <div>
-                            <p className="text-xs sm:text-sm font-medium text-orange-700 dark:text-orange-300">Pending Payouts</p>
-                            <p className="text-xs text-orange-600 dark:text-orange-400">
-                                {payoutRequests.filter(p => p.status === 'pending' || p.status === 'approved').length} requests
+                            <p className="text-sm font-medium text-gray-400">Pending Payouts</p>
+                            <h3 className="text-2xl font-bold mt-1 bg-clip-text text-transparent bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff]">
+                                ₹{payoutRequests
+                                    .filter(p => p.status === 'pending' || p.status === 'approved')
+                                    .reduce((sum, p) => sum + p.amount, 0)
+                                    .toFixed(2)
+                                }
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1">
+                                {payoutRequests.filter(p => p.status === 'pending').length} requests awaiting approval
                             </p>
                         </div>
                     </div>
-                    <p className="text-xl sm:text-2xl font-bold text-orange-800 dark:text-orange-200">
-                        ₹{payoutRequests
-                            .filter(p => p.status === 'pending' || p.status === 'approved')
-                            .reduce((sum, p) => sum + p.amount, 0)
-                            .toFixed(2)
-                        }
-                    </p>
-                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                        {payoutRequests.filter(p => p.status === 'pending').length > 0 
-                            ? 'Awaiting approval'
-                            : payoutRequests.filter(p => p.status === 'approved').length > 0
-                            ? 'Approved, awaiting payment'
-                            : 'No pending payouts'
-                        }
-                    </p>
-                </div>
 
-                {/* Available Payout Action Card */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 sm:p-6 rounded-xl border border-blue-200 dark:border-blue-800/30">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-3">
-                        <div className="p-1.5 sm:p-2 bg-blue-500 rounded-lg">
-                            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300">Available Payout</p>
-                            <p className="text-xs text-blue-600 dark:text-blue-400">Online payments only</p>
-                        </div>
-                    </div>
-                    <p className="text-xl sm:text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
-                        ₹{dayWiseData?.totals?.totalPayoutAmount?.toFixed(2) || '0.00'}
-                    </p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
-                        Cash payments excluded
-                    </p>
-                    <button
-                        onClick={() => setShowPayoutModal(true)}
-                        disabled={!dayWiseData?.totals?.totalPayoutAmount || 
-                                 dayWiseData.totals.totalPayoutAmount <= 0}
-                        className="w-full text-xs sm:text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg transition-colors font-medium"
-                    >
-                        Request Payout
-                    </button>
-                </div>
-            </div>
-
-            {/* Quick Stats Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="p-1.5 sm:p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                            <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-gray-900 dark:text-gray-200" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">Total Transactions</p>
-                            <p className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">{analytics?.totalTransactions || 0}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="p-1.5 sm:p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-gray-900 dark:text-gray-200" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">Average Transaction</p>
-                            <p className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">₹{analytics?.averageTransaction?.toFixed(2) || '0.00'}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="p-1.5 sm:p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-gray-900 dark:text-gray-200" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">Processing Fees</p>
-                            <p className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">₹{analytics?.totalProcessingFees?.toFixed(2) || '0.00'}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                            <div className="flex space-x-0.5 sm:space-x-1">
-                                <div className="w-1.5 sm:w-2 h-3 sm:h-4 bg-blue-500 rounded-sm"></div>
-                                <div className="w-1.5 sm:w-2 h-3 sm:h-4 bg-green-500 rounded-sm"></div>
+                    {/* Available Payout Action Card */}
+                    <div className="bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                                <Wallet className="h-6 w-6 text-gray-900 dark:text-white" />
                             </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">Payment Split</p>
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                                <span className="text-xs text-blue-600">{analytics?.paymentMethodBreakdown?.online || 0} online</span>
-                                <span className="text-xs text-green-600">{analytics?.paymentMethodBreakdown?.cash || 0} cash</span>
-                            </div>
+                        <div className="mb-6">
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Available for Payout</p>
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                                ₹{dayWiseData?.totals?.totalPayoutAmount?.toFixed(2) || '0.00'}
+                            </h3>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Online payments only (minus fees)</p>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Day-wise Analytics */}
-            {dayWiseData && (
-                <div className="mb-6 sm:mb-8">
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Day-wise Revenue</h3>
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        {/* Mobile Card View */}
-                        <div className="block sm:hidden">
-                            {dayWiseData.dayWiseData.map((day: any, index: number) => (
-                                <div key={day.date} className={`p-4 ${index !== dayWiseData.dayWiseData.length - 1 ? 'border-b border-gray-200 dark:border-gray-700' : ''}`}>
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {new Date(day.date).toLocaleDateString('en-US', { 
-                                                    weekday: 'short', 
-                                                    month: 'short', 
-                                                    day: 'numeric' 
-                                                })}
-                                            </p>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">{day.totalTransactions} transactions</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-semibold text-gray-900 dark:text-white">₹{day.totalRevenue.toFixed(2)}</p>
-                                            <p className="text-sm text-green-600">₹{day.payoutAmount.toFixed(2)} payout</p>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <p className="text-gray-600 dark:text-gray-400">Processing Fees</p>
-                                            <p className="text-orange-600">₹{day.processingFees.toFixed(2)}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-gray-600 dark:text-gray-400">Net Revenue</p>
-                                            <p className="text-green-600">₹{day.netRevenue.toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2 mt-2">
-                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                            {day.onlineTransactions} online
-                                        </span>
-                                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                                            {day.cashTransactions} cash
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        
-                        {/* Desktop Table View */}
-                        <div className="hidden sm:block overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-600 dark:text-gray-400 uppercase font-bold border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                                    <tr>
-                                        <th className="px-4 lg:px-6 py-4">Date</th>
-                                        <th className="px-4 lg:px-6 py-4">Transactions</th>
-                                        <th className="px-4 lg:px-6 py-4">Revenue</th>
-                                        <th className="px-4 lg:px-6 py-4 hidden lg:table-cell">Processing Fees</th>
-                                        <th className="px-4 lg:px-6 py-4 hidden lg:table-cell">Net Revenue</th>
-                                        <th className="px-4 lg:px-6 py-4">Payout Amount</th>
-                                        <th className="px-4 lg:px-6 py-4 hidden md:table-cell">Online/Cash</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-gray-800 dark:text-gray-200">
-                                    {dayWiseData.dayWiseData.map((day: any, index: number) => (
-                                        <tr key={day.date} className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-all duration-200 ${index === dayWiseData.dayWiseData.length - 1 ? 'border-b-0' : ''}`}>
-                                            <td className="px-4 lg:px-6 py-4 font-medium">
-                                                {new Date(day.date).toLocaleDateString('en-US', { 
-                                                    weekday: 'short', 
-                                                    month: 'short', 
-                                                    day: 'numeric' 
-                                                })}
-                                            </td>
-                                            <td className="px-4 lg:px-6 py-4">{day.totalTransactions}</td>
-                                            <td className="px-4 lg:px-6 py-4 font-semibold">₹{day.totalRevenue.toFixed(2)}</td>
-                                            <td className="px-4 lg:px-6 py-4 text-orange-600 hidden lg:table-cell">₹{day.processingFees.toFixed(2)}</td>
-                                            <td className="px-4 lg:px-6 py-4 font-semibold text-green-600 hidden lg:table-cell">₹{day.netRevenue.toFixed(2)}</td>
-                                            <td className="px-4 lg:px-6 py-4 font-bold text-blue-600">₹{day.payoutAmount.toFixed(2)}</td>
-                                            <td className="px-4 lg:px-6 py-4 hidden md:table-cell">
-                                                <div className="flex flex-wrap gap-1">
-                                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                                        {day.onlineTransactions} online
-                                                    </span>
-                                                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                                                        {day.cashTransactions} cash
-                                                    </span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Payout Requests */}
-            {payoutRequests.length > 0 && (
-                <div className="mb-6 sm:mb-8">
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Payout Requests</h3>
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        {/* Mobile Card View */}
-                        <div className="block lg:hidden">
-                            {payoutRequests.map((payout, index) => {
-                                const requestDate = payout.requestedAt?.toDate ? payout.requestedAt.toDate() : new Date(payout.requestedAt);
-                                const startDate = payout.period.startDate?.toDate ? payout.period.startDate.toDate() : new Date(payout.period.startDate);
-                                const endDate = payout.period.endDate?.toDate ? payout.period.endDate.toDate() : new Date(payout.period.endDate);
-                                const processedDate = payout.processedAt?.toDate ? payout.processedAt.toDate() : null;
-                                
-                                return (
-                                    <div key={payout.id} className={`p-4 ${index !== payoutRequests.length - 1 ? 'border-b border-gray-200 dark:border-gray-700' : ''}`}>
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div>
-                                                <p className="font-medium text-gray-900 dark:text-white">
-                                                    ₹{payout.amount.toFixed(2)}
-                                                </p>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                    {requestDate.toLocaleDateString('en-US', { 
-                                                        month: 'short', 
-                                                        day: 'numeric',
-                                                        year: 'numeric'
-                                                    })}
-                                                </p>
-                                            </div>
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                payout.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                                                payout.status === 'approved' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
-                                                payout.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
-                                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-                                            }`}>
-                                                {payout.status.charAt(0).toUpperCase() + payout.status.slice(1)}
-                                            </span>
-                                        </div>
-                                        <div className="space-y-2 text-sm">
-                                            <div>
-                                                <p className="text-gray-600 dark:text-gray-400">Period</p>
-                                                <p className="text-gray-900 dark:text-white">
-                                                    {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                </p>
-                                            </div>
-                                            {payout.status === 'paid' && payout.paymentDetails?.utrNumber && (
-                                                <div>
-                                                    <p className="text-gray-600 dark:text-gray-400">UTR Number</p>
-                                                    <p className="font-mono text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 px-2 py-1 rounded">
-                                                        {payout.paymentDetails.utrNumber}
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {processedDate && (
-                                                <div>
-                                                    <p className="text-gray-600 dark:text-gray-400">Processed Date</p>
-                                                    <p className="text-gray-900 dark:text-white">
-                                                        {processedDate.toLocaleDateString('en-US', { 
-                                                            month: 'short', 
-                                                            day: 'numeric',
-                                                            year: 'numeric'
-                                                        })}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        
-                        {/* Desktop Table View */}
-                        <div className="hidden lg:block overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-600 dark:text-gray-400 uppercase font-bold border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                                    <tr>
-                                        <th className="px-6 py-4">Request Date</th>
-                                        <th className="px-6 py-4">Period</th>
-                                        <th className="px-6 py-4">Amount</th>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4">UTR Number</th>
-                                        <th className="px-6 py-4">Processed Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-gray-800 dark:text-gray-200">
-                                    {payoutRequests.map((payout, index) => {
-                                        const requestDate = payout.requestedAt?.toDate ? payout.requestedAt.toDate() : new Date(payout.requestedAt);
-                                        const startDate = payout.period.startDate?.toDate ? payout.period.startDate.toDate() : new Date(payout.period.startDate);
-                                        const endDate = payout.period.endDate?.toDate ? payout.period.endDate.toDate() : new Date(payout.period.endDate);
-                                        const processedDate = payout.processedAt?.toDate ? payout.processedAt.toDate() : null;
-                                        
-                                        return (
-                                            <tr key={payout.id} className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-all duration-200 ${index === payoutRequests.length - 1 ? 'border-b-0' : ''}`}>
-                                                <td className="px-6 py-4">
-                                                    {requestDate.toLocaleDateString('en-US', { 
-                                                        month: 'short', 
-                                                        day: 'numeric',
-                                                        year: 'numeric'
-                                                    })}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                </td>
-                                                <td className="px-6 py-4 font-semibold">₹{payout.amount.toFixed(2)}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                        payout.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                                                        payout.status === 'approved' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
-                                                        payout.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
-                                                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-                                                    }`}>
-                                                        {payout.status.charAt(0).toUpperCase() + payout.status.slice(1)}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    {payout.status === 'paid' && payout.paymentDetails?.utrNumber ? (
-                                                        <div>
-                                                            <span className="font-mono text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 px-2 py-1 rounded">
-                                                                {payout.paymentDetails.utrNumber}
-                                                            </span>
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-gray-400">-</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    {processedDate ? processedDate.toLocaleDateString('en-US', { 
-                                                        month: 'short', 
-                                                        day: 'numeric',
-                                                        year: 'numeric'
-                                                    }) : '-'}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Additional Stats - REMOVED (moved above) */}
-
-            {/* Transactions Table */}
-            <div>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Completed Transactions</h3>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                        {/* Payment Method Filter */}
-                        <div className="inline-flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-                            {['all', 'online', 'cash'].map((method) => (
-                                <button
-                                    key={method}
-                                    onClick={() => setPaymentMethodFilter(method)}
-                                    className={`px-3 sm:px-4 py-1.5 rounded text-xs sm:text-sm font-medium transition-all ${
-                                        paymentMethodFilter === method
-                                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                                    }`}
-                                >
-                                    {method === 'all' ? 'All' : method === 'online' ? 'Online' : 'Cash'}
-                                </button>
-                            ))}
-                        </div>
-                        
-                        {/* Search */}
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search transactions..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 w-full sm:w-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                            />
-                        </div>
-
-                        {/* Export Button */}
-                        <button 
-                            onClick={exportTransactions}
-                            className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-200 text-sm font-medium"
+                        <button
+                            onClick={() => setShowPayoutModal(true)}
+                            disabled={!dayWiseData?.totals?.totalPayoutAmount || dayWiseData.totals.totalPayoutAmount <= 0}
+                            className="w-full py-2.5 px-4 bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-black rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
                         >
-                            <Download className="h-4 w-4" />
-                            <span>Export</span>
+                            Process Payout
                         </button>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    {filteredTransactions.length === 0 ? (
-                        <div className="px-4 sm:px-6 py-12 text-center">
-                            <div className="text-gray-500 dark:text-gray-400">
-                                <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                <p className="text-lg font-medium mb-2">No transactions found</p>
-                                <p className="text-sm">
-                                    {searchTerm 
-                                        ? 'Try adjusting your search terms or time filter.'
-                                        : 'Transactions will appear here once customers make payments.'
-                                    }
-                                </p>
+                {/* Secondary Stats */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                        { 
+                            label: 'Total Transactions', 
+                            value: analytics?.totalTransactions || 0,
+                            icon: CreditCard
+                        },
+                        { 
+                            label: 'Avg. Transaction', 
+                            value: `₹${analytics?.averageTransaction?.toFixed(2) || '0.00'}`,
+                            icon: TrendingUp
+                        },
+                        { 
+                            label: 'Processing Fees', 
+                            value: `₹${analytics?.totalProcessingFees?.toFixed(2) || '0.00'}`,
+                            icon: DollarSign
+                        },
+                        { 
+                            label: 'Online vs Cash', 
+                            value: `${analytics?.paymentMethodBreakdown?.online || 0} / ${analytics?.paymentMethodBreakdown?.cash || 0}`,
+                            icon: Wallet
+                        },
+                    ].map((stat, i) => (
+                        <div key={i} className="bg-white dark:bg-[#14161a] p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm flex items-center space-x-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-white">
+                                <stat.icon className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">{stat.value}</p>
                             </div>
                         </div>
-                    ) : (
-                        <>
-                            {/* Mobile Card View */}
-                            <div className="block lg:hidden">
-                                {filteredTransactions.map((transaction, index) => {
-                                    const { date, time } = formatDate(transaction.createdAt);
-                                    const customerName = `${transaction.customerInfo.firstName} ${transaction.customerInfo.lastName}`.trim();
-                                    
-                                    return (
-                                        <div key={transaction.id} className={`p-4 ${index !== filteredTransactions.length - 1 ? 'border-b border-gray-200 dark:border-gray-700' : ''}`}>
-                                            <div className="flex justify-between items-start mb-3">
-                                                <div>
-                                                    <p className="font-medium text-gray-900 dark:text-white">
-                                                        ₹{transaction.amount.toFixed(2)}
-                                                    </p>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                        {customerName || 'Guest'}
-                                                    </p>
-                                                </div>
-                                                <span className={getStatusBadge(transaction.paymentStatus)}>
-                                                    {transaction.paymentStatus.charAt(0).toUpperCase() + transaction.paymentStatus.slice(1)}
-                                                </span>
-                                            </div>
-                                            <div className="space-y-2 text-sm">
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600 dark:text-gray-400">Order ID</span>
-                                                    <span className="font-mono text-xs">{transaction.orderId}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600 dark:text-gray-400">Date & Time</span>
-                                                    <div className="text-right">
-                                                        <div>{date}</div>
-                                                        <div className="text-xs text-gray-500 dark:text-gray-400">{time}</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600 dark:text-gray-400">Payment Method</span>
-                                                    <span>{formatPaymentMethod(transaction.paymentMethod)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600 dark:text-gray-400">Processing Fee</span>
-                                                    <span>₹{(transaction.processingFee || 0).toFixed(2)}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                    ))}
+                </div>
+
+                {/* Transactions Section */}
+                <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Recent Transactions</h2>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <input 
+                                    type="text"
+                                    placeholder="Search transactions..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#14161a] text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 focus:border-gray-900 dark:focus:border-white w-full sm:w-64"
+                                />
                             </div>
-                            
-                            {/* Desktop Table View */}
-                            <div className="hidden lg:block overflow-x-auto">
-                                <table className="w-full text-sm text-left">
-                                    <thead className="text-xs text-gray-600 dark:text-gray-400 uppercase font-bold border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                            <div className="flex rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#14161a] p-1">
+                                {['all', 'online', 'cash'].map(method => (
+                                    <button
+                                        key={method}
+                                        onClick={() => setPaymentMethodFilter(method)}
+                                        className={`px-3 py-1 text-xs font-medium rounded-md capitalize transition-colors ${
+                                            paymentMethodFilter === method 
+                                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' 
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        {method}
+                                    </button>
+                                ))}
+                            </div>
+                            <button 
+                                onClick={exportTransactions}
+                                className="inline-flex items-center justify-center px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-gray-700 dark:text-gray-300"
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#14161a] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
+                                    <tr>
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Method</th>
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                                    {filteredTransactions.length === 0 ? (
                                         <tr>
-                                            <th className="px-6 py-4">Date & Time</th>
-                                            <th className="px-6 py-4">Order ID</th>
-                                            <th className="px-6 py-4">Customer</th>
-                                            <th className="px-6 py-4">Amount</th>
-                                            <th className="px-6 py-4">Payment Method</th>
-                                            <th className="px-6 py-4">Fee</th>
-                                            <th className="px-6 py-4 text-center">Status</th>
+                                            <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                                No transactions found matching your criteria.
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="text-gray-800 dark:text-gray-200 font-light">
-                                        {filteredTransactions.map((transaction, index) => {
+                                    ) : (
+                                        filteredTransactions.map((transaction) => {
                                             const { date, time } = formatDate(transaction.createdAt);
                                             const customerName = `${transaction.customerInfo.firstName} ${transaction.customerInfo.lastName}`.trim();
                                             
                                             return (
-                                                <tr key={transaction.id} className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-all duration-200 ${index === filteredTransactions.length - 1 ? 'border-b-0' : ''}`}>
-                                                    <td className="px-6 py-4">
-                                                        <div>
-                                                            <div className="font-medium">{date}</div>
-                                                            <div className="text-xs text-gray-500 dark:text-gray-400">{time}</div>
+                                                <tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium text-gray-900 dark:text-white">{date}</span>
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400">{time}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 font-mono text-xs">{transaction.orderId}</td>
-                                                    <td className="px-6 py-4">{customerName || 'Guest'}</td>
-                                                    <td className="px-6 py-4 font-semibold">₹{transaction.amount.toFixed(2)}</td>
-                                                    <td className="px-6 py-4">{formatPaymentMethod(transaction.paymentMethod)}</td>
-                                                    <td className="px-6 py-4 text-gray-500 dark:text-gray-400">₹{(transaction.processingFee || 0).toFixed(2)}</td>
-                                                    <td className="px-6 py-4 text-center">
+                                                    <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-gray-500 dark:text-gray-400">
+                                                        {transaction.orderId}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                                                        {customerName || 'Guest'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900 dark:text-white">
+                                                        ₹{transaction.amount.toFixed(2)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">
+                                                        {formatPaymentMethod(transaction.paymentMethod)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={getStatusBadge(transaction.paymentStatus)}>
-                                                            {transaction.paymentStatus.charAt(0).toUpperCase() + transaction.paymentStatus.slice(1)}
+                                                            {transaction.paymentStatus}
                                                         </span>
                                                     </td>
                                                 </tr>
                                             );
-                                        })}
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Day-wise Table Section */}
+                {dayWiseData && (
+                    <div className="space-y-4">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Day-wise Breakdown</h2>
+                        <div className="bg-white dark:bg-[#14161a] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
+                                        <tr>
+                                            <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                            <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Orders</th>
+                                            <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Revenue</th>
+                                            <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Payout</th>
+                                            <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Method Split</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                                        {dayWiseData.dayWiseData.map((day: any) => (
+                                            <tr key={day.date} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                                                    {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">
+                                                    {day.totalTransactions}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900 dark:text-white">
+                                                    ₹{day.totalRevenue.toFixed(2)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-700 dark:text-gray-300">
+                                                    ₹{day.payoutAmount.toFixed(2)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex gap-2">
+                                                        <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
+                                                            {day.onlineTransactions} Online
+                                                        </span>
+                                                        <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
+                                                            {day.cashTransactions} Cash
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
-                        </>
-                    )}
-                </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* Payout Request Modal */}
+            {/* Payout Modal */}
             {showPayoutModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-4 sm:p-6">
-                            <div className="flex items-center justify-between mb-4 sm:mb-6">
-                                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                                    Request Payout
-                                </h3>
-                                <button
-                                    onClick={() => setShowPayoutModal(false)}
-                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-                                >
-                                    <svg className="w-5 h-5 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#14161a] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200 dark:border-gray-800 animate-in fade-in zoom-in duration-200">
+                        <div className="p-6">
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Request Payout</h3>
                             
                             <div className="space-y-4">
-                                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 sm:p-4">
-                                    <h4 className="font-medium text-gray-900 dark:text-white mb-2 text-sm sm:text-base">Payout Summary</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600 dark:text-gray-400">Period</span>
-                                            <span className="text-gray-900 dark:text-white">
-                                                {timeFilter === 'today' ? 'Today' : timeFilter === 'week' ? 'Last 7 Days' : 'Last 30 Days'}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600 dark:text-gray-400">Total Revenue</span>
-                                            <span className="text-gray-900 dark:text-white">₹{dayWiseData?.totals?.totalRevenue?.toFixed(2) || '0.00'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600 dark:text-gray-400">Processing Fees</span>
-                                            <span className="text-gray-900 dark:text-white">₹{dayWiseData?.totals?.totalProcessingFees?.toFixed(2) || '0.00'}</span>
-                                        </div>
-                                        <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                                            <div className="flex justify-between font-semibold">
-                                                <span className="text-gray-900 dark:text-white">Payout Amount</span>
-                                                <span className="text-green-600 dark:text-green-400">₹{dayWiseData?.totals?.totalPayoutAmount?.toFixed(2) || '0.00'}</span>
-                                            </div>
-                                        </div>
+                                <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 space-y-3 border border-gray-100 dark:border-gray-800">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Period</span>
+                                        <span className="font-medium text-gray-900 dark:text-white capitalize">{timeFilter}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Total Revenue</span>
+                                        <span className="font-medium text-gray-900 dark:text-white">₹{dayWiseData?.totals?.totalRevenue?.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Fees</span>
+                                        <span className="font-medium text-gray-500 dark:text-gray-400">-₹{dayWiseData?.totals?.totalProcessingFees?.toFixed(2)}</span>
+                                    </div>
+                                    <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex justify-between items-center">
+                                        <span className="font-semibold text-gray-900 dark:text-white">Payout Amount</span>
+                                        <span className="text-lg font-bold text-gray-900 dark:text-white">₹{dayWiseData?.totals?.totalPayoutAmount?.toFixed(2)}</span>
                                     </div>
                                 </div>
 
-                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 sm:p-4">
-                                    <div className="flex items-start gap-3">
-                                        <svg className="w-5 h-5 text-gray-900 dark:text-gray-200 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <div>
-                                            <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">Payout Process</p>
-                                            <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
-                                                Your payout request will be reviewed by the super-admin. Once approved, the amount will be transferred to your registered account within 2-3 business days.
-                                            </p>
-                                        </div>
-                                    </div>
+                                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl flex gap-3">
+                                    <AlertTriangle className="h-5 w-5 text-gray-400 shrink-0" />
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        Payouts are processed within 2-3 business days. Only online payments are eligible for payout.
+                                    </p>
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+                                <div className="flex gap-3 mt-6">
                                     <button
                                         onClick={() => setShowPayoutModal(false)}
-                                        disabled={isCreatingPayout}
-                                        className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                                        className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-gray-700 dark:text-gray-300"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         onClick={handleCreatePayoutRequest}
-                                        disabled={isCreatingPayout || 
-                                                 !dayWiseData?.totals?.totalPayoutAmount || 
-                                                 dayWiseData.totals.totalPayoutAmount <= 0 ||
-                                                 !dayWiseData?.totals?.hasAvailableTransactions}
-                                        className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 text-sm font-medium"
+                                        disabled={isCreatingPayout}
+                                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-black rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center"
                                     >
-                                        {isCreatingPayout && <Loader2 className="w-4 h-4 animate-spin" />}
-                                        <span>
-                                            {isCreatingPayout ? 'Creating...' : 'Request Payout'}
-                                        </span>
+                                        {isCreatingPayout ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Payout'}
                                     </button>
                                 </div>
                             </div>

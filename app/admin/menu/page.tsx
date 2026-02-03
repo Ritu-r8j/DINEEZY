@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, EyeOff, Search, X, Clock, Tag, Star, Loader2, Leaf, Sprout, ShieldX, Flame, TrendingUp, Award, Heart, Users, BarChart3, Percent, Globe, Settings } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, Search, X, Clock, Tag, Star, Loader2, Leaf, Sprout, ShieldX, Flame, TrendingUp, Award, Heart, Users, BarChart3, Percent, Globe, Settings, Filter, ChevronDown } from 'lucide-react';
 import { CategoryIcons, VegetarianIcon, VeganIcon, GlutenFreeIcon, NutritionIcon } from '@/lib/icons/categoryIcons';
 import { useAuth } from '@/app/(contexts)/AuthContext';
 import {
@@ -467,29 +467,33 @@ export default function MenuManagement() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Compact Header */}
-      <div className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 shadow-lg border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Menu</h1>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-gray-500 dark:text-gray-400">{menuItems.length} items</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f1115] transition-colors duration-300">
+      {/* Glass Header */}
+      <div className="sticky top-0 z-30 w-full bg-white/80 dark:bg-[#0f1115]/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Menu Management</h1>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+                  {menuItems.length} {menuItems.length === 1 ? 'item' : 'items'} in total
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 ">
+            
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowCategoryModal(true)}
-                className=" cursor-pointer flex items-center px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
+                className="hidden sm:flex items-center px-4 py-2 bg-white dark:bg-[#14161a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200 shadow-sm text-sm font-medium group"
                 title="Manage Categories"
               >
-                <Settings className="h-4 w-4 mr-1" />
+                <Settings className="h-4 w-4 mr-2 text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-gray-200 transition-colors" />
                 Categories
               </button>
+              
               <button
                 onClick={() => {
-                  setFormData({ isAvailable: true }); // Default to available when adding
+                  setFormData({ isAvailable: true });
                   setVariants([]);
                   setAddons([]);
                   setImagePublicId('');
@@ -499,9 +503,9 @@ export default function MenuManagement() {
                   setTagInput('');
                   setShowAddModal(true);
                 }}
-                className="cursor-pointer flex items-center px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-sm text-sm font-medium"
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-slate-900 rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 text-sm font-bold"
               >
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="h-4 w-4 mr-2" />
                 Add Item
               </button>
             </div>
@@ -509,119 +513,167 @@ export default function MenuManagement() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-            <div className="flex items-center">
-              <div className="text-red-600 dark:text-red-400 text-sm font-medium">
-                {error}
+          <div className="p-4 bg-gray-50 dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-100 dark:bg-[#1a1d24] rounded-full">
+                <ShieldX className="h-4 w-4 text-gray-600 dark:text-gray-300" />
               </div>
-              <button
-                onClick={() => setError(null)}
-                className="ml-auto text-red-400 hover:text-red-600 dark:hover:text-red-300"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-300">{error}</p>
             </div>
+            <button
+              onClick={() => setError(null)}
+              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-500 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
-        {/* Warning Message for Missing Location */}
-        {!loading && restaurantData && !restaurantData.location && (
-          <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
-            <div className="flex items-center">
-              <div className="text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center">
-                <ShieldX className="h-4 w-4 mr-2" />
-                Restaurant location not set. New menu items will be added without location data.
-                <a href="/admin/settings" className="ml-1 underline hover:text-black dark:hover:text-white">
-                  Set location in settings
-                </a>
-              </div>
+        {/* Filters & Search */}
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="relative w-full md:w-96 group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400 group-focus-within:text-gray-900 dark:group-focus-within:text-white transition-colors" />
             </div>
+            <input
+              type="text"
+              placeholder="Search by name, description..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-800 rounded-xl leading-5 bg-white dark:bg-[#14161a] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 focus:border-gray-400 dark:focus:border-gray-500 transition-all duration-200 shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        )}
+          
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto no-scrollbar mask-linear-fade">
+             <button
+                onClick={() => setSelectedCategory('all')}
+                className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 border ${
+                  selectedCategory === 'all'
+                    ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-md'
+                    : 'bg-white dark:bg-[#14161a] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                }`}
+              >
+                <Filter className="h-3.5 w-3.5 mr-2" />
+                All Items
+              </button>
+              {categories.filter(c => c.id !== 'all').map(category => {
+                const IconComponent = CategoryIcons[category.id] || CategoryIcons.default;
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 border ${
+                      selectedCategory === category.id
+                         ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-md'
+                    : 'bg-white dark:bg-[#14161a] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    }`}
+                  >
+                    <IconComponent className={`h-3.5 w-3.5 mr-2 ${selectedCategory === category.id ? 'text-current' : 'text-gray-500 dark:text-gray-400'}`} />
+                    {category.displayName}
+                  </button>
+                );
+              })}
+          </div>
+        </div>
 
         {/* Loading State */}
         {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex items-center space-x-3">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-              <span className="text-gray-600 dark:text-gray-400">Loading menu items...</span>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-[#14161a] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 h-[380px] animate-pulse">
+                <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4"></div>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-6"></div>
+                <div className="flex justify-between items-center mt-auto">
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-full w-8"></div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Compact Search and Filter */}
-        {!loading && (
-          <div className="mb-4 space-y-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search menu items..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        {/* Empty State */}
+        {!loading && filteredItems.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+            <div className="bg-gray-100 dark:bg-[#14161a]/50 p-6 rounded-full mb-6">
+              <Clock className="h-12 w-12 text-gray-400 dark:text-gray-500" />
             </div>
-
-            <div className="flex space-x-1 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-1 shadow-sm overflow-x-auto">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${selectedCategory === category.id
-                    ? 'bg-gray-900 dark:bg-gray-600 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-white/70 dark:hover:bg-gray-700/70'
-                    }`}
-                >
-                  {category.displayName}
-                </button>
-              ))}
-            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No items found</h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-8">
+              {searchTerm 
+                ? `No menu items match "${searchTerm}". Try adjusting your search.`
+                : "Your menu is empty. Start adding delicious items to your menu."}
+            </p>
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="text-gray-900 dark:text-white hover:underline font-medium"
+              >
+                Clear Search
+              </button>
+            )}
+            {!searchTerm && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="px-6 py-3 bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-slate-900 rounded-xl hover:shadow-lg font-bold transition-all"
+              >
+                Add Your First Item
+              </button>
+            )}
           </div>
         )}
 
-        {/* Perfect & Polished Menu Items Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-3xl shadow-xl border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 hover:border-blue-300/50 dark:hover:border-blue-600/50 relative">
-              <div className="relative overflow-hidden">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-44 object-cover group-hover:scale-110 transition-transform duration-700"
-                />
+        {/* Menu Grid */}
+        {!loading && filteredItems.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredItems.map((item) => (
+              <div 
+                key={item.id} 
+                className="group relative bg-white dark:bg-[#14161a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-[0_0_20px_rgba(184,220,255,0.4)] hover:border-[#c9cbff] hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
+              >
+                {/* Image Container */}
+                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-[#14161a]">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  
+                  {/* Overlay Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
 
-                {/* Enhanced Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  {/* Top Badges */}
+                  <div className="absolute top-3 left-3 flex flex-col gap-2">
+                    {item.discountPrice && item.discountPrice < item.price && (
+                      <span className="bg-black text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                        -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}% OFF
+                      </span>
+                    )}
+                    {item.isBestSeller && (
+                      <span className="bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] text-slate-900 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                        <Award className="h-3 w-3" />
+                        Best Seller
+                      </span>
+                    )}
+                  </div>
 
-                {/* Top Controls Row */}
-                <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                  {/* Discount Badge */}
-                  {item.discountPrice && item.discountPrice < item.price && (
-                    <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-                      -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}% OFF
-                    </div>
-                  )}
-
-                  {/* Best Seller Badge */}
-                  {item.isBestSeller && (
-                    <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1 border border-amber-400/30">
-                      <Award className="h-3 w-3" />
-                      <span>Best Seller</span>
-                    </div>
-                  )}
-
-                  {/* Availability Toggle */}
+                  {/* Availability Toggle (Absolute) */}
                   <button
-                    onClick={() => toggleAvailability(item.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleAvailability(item.id);
+                    }}
                     disabled={actionLoading === item.id}
-                    className={`z-10 p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-lg ${item.isAvailable
-                      ? 'bg-white/90 text-gray-900 hover:bg-gray-100/90 hover:scale-110'
-                      : 'bg-gray-900/90 text-white hover:bg-gray-800/90 hover:scale-110'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all duration-200 shadow-sm z-10 ${
+                      item.isAvailable
+                        ? 'bg-white/90 text-slate-900 hover:bg-white'
+                        : 'bg-black/60 text-white hover:bg-black/80'
+                    }`}
+                    title={item.isAvailable ? "Mark as Unavailable" : "Mark as Available"}
                   >
                     {actionLoading === item.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -631,298 +683,101 @@ export default function MenuManagement() {
                       <EyeOff className="h-4 w-4" />
                     )}
                   </button>
-                </div>
 
-                {/* Rating & Analytics Badges */}
-                <div className="absolute top-3 left-1/2 transform -translate-x-1/2 flex flex-col gap-2">
-                  <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
-                    <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                    <span className="text-xs font-semibold text-gray-900 dark:text-white">{item.rating.toFixed(1)}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">({item.totalRatings})</span>
-                  </div>
-
-                  {/* Analytics Badge */}
-                  {(item.totalOrders || 0) > 0 && (
-                    <div className="bg-blue-500/90 text-white px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span className="text-xs font-semibold">{item.totalOrders}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Recommended Badge */}
-                {item.isRecommended && (
-                  <div className="absolute top-3 right-16">
-                    <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1 border border-emerald-400/30 text-xs font-semibold">
-                      <Heart className="h-3 w-3 fill-current" />
-                      <span>Recommended</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Unavailable Overlay */}
-                {!item.isAvailable && (
-                  <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-white font-bold text-lg mb-1">Unavailable</div>
-                      <div className="text-white/80 text-sm">Currently out of stock</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Quick Action Buttons (Hover) */}
-                <div className="absolute bottom-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                  <button
-                    onClick={() => openEditModal(item)}
-                    className="p-2 bg-white/90 hover:bg-gray-100 text-gray-900 rounded-full backdrop-blur-sm transition-all duration-300 hover:scale-110 shadow-lg"
-                  >
-                    <Edit className="h-3 w-3" />
-                  </button>
-                  <button
-                    onClick={() => deleteItem(item.id)}
-                    disabled={actionLoading === item.id}
-                    className="p-2 bg-gray-900/90 hover:bg-gray-800 text-white rounded-full backdrop-blur-sm transition-all duration-300 hover:scale-110 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {actionLoading === item.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-3 w-3" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-5">
-                {/* Header with Enhanced Typography */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-gray-900 dark:text-white text-base leading-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                      {item.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 px-2 py-0.5 rounded-full">
-                        {getCategoryDisplayName(item.category, categoryMappings, customCategories)}
+                  {/* Unavailable Overlay */}
+                  {!item.isAvailable && (
+                    <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-[2px] flex items-center justify-center z-0">
+                      <span className="bg-white/20 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-sm font-semibold border border-white/30">
+                        Unavailable
                       </span>
                     </div>
-                  </div>
-                  <div className="text-right ml-3">
-                    <div className="flex flex-col items-end">
-                      {item.discountPrice && item.discountPrice < item.price ? (
-                        <>
-                          <div className="font-bold text-emerald-600 dark:text-emerald-400 text-lg">
-                            {item.currency === 'INR' ? '₹' : '$'}{item.discountPrice.toFixed(2)}
-                          </div>
-                          <div className="text-xs text-gray-400 line-through">
-                            {item.currency === 'INR' ? '₹' : '$'}{item.price.toFixed(2)}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="font-bold text-emerald-600 dark:text-emerald-400 text-lg">
-                          {item.currency === 'INR' ? '₹' : '$'}{item.price.toFixed(2)}
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="p-5 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+                        {item.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">
+                        {getCategoryDisplayName(item.category, categoryMappings, customCategories)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                       {item.discountPrice && item.discountPrice < item.price ? (
+                        <div className="flex flex-col items-end">
+                          <span className="font-bold text-lg text-gray-900 dark:text-white">
+                             {item.currency === 'INR' ? '₹' : '$'}{item.discountPrice.toFixed(2)}
+                          </span>
+                          <span className="text-xs text-gray-400 line-through decoration-gray-400/50">
+                             {item.currency === 'INR' ? '₹' : '$'}{item.price.toFixed(2)}
+                          </span>
                         </div>
-                      )}
-
-                      {/* Variants and Add-ons indicators */}
-                      <div className="flex flex-col gap-1 mt-1">
-                        {item.variants && item.variants.length > 0 && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            <Globe className="h-3 w-3 inline mr-1" />
-                            {item.variants.length} variant{item.variants.length > 1 ? 's' : ''}
-                          </div>
-                        )}
-                        {item.addons && item.addons.length > 0 && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            <Plus className="h-3 w-3 inline mr-1" />
-                            {item.addons.length} add-on{item.addons.length > 1 ? 's' : ''}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Enhanced Description */}
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">
-                  {item.description}
-                </p>
-
-                {/* Enhanced Tags and Dietary Info */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {item.tags.slice(0, 2).map(tag => (
-                    <span key={tag} className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2.5 py-1 rounded-full font-medium border border-gray-300 dark:border-gray-600 flex items-center">
-                      <Tag className="h-3 w-3 mr-1" />
-                      {tag}
-                    </span>
-                  ))}
-                  {item.isVegetarian && (
-                    <span className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs px-2.5 py-1 rounded-full font-medium border border-gray-300 dark:border-gray-600 flex items-center">
-                      <Leaf className="h-3 w-3 mr-1" />
-                      Veg
-                    </span>
-                  )}
-                  {item.isVegan && (
-                    <span className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs px-2.5 py-1 rounded-full font-medium border border-gray-300 dark:border-gray-600 flex items-center">
-                      <Sprout className="h-3 w-3 mr-1" />
-                      Vegan
-                    </span>
-                  )}
-                  {item.isGlutenFree && (
-                    <span className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs px-2.5 py-1 rounded-full font-medium border border-gray-300 dark:border-gray-600 flex items-center">
-                      <ShieldX className="h-3 w-3 mr-1" />
-                      GF
-                    </span>
-                  )}
-                </div>
-
-                {/* Enhanced Meta Info */}
-                <div className="flex items-center justify-between text-xs mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded-full">
-                      <Clock className="h-3 w-3 text-gray-500" />
-                      <span className="text-gray-700 dark:text-gray-300 font-medium">{item.preparationTime}m</span>
-                    </div>
-                    {item.calories && item.calories > 0 && (
-                      <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded-full">
-                        <span className="text-gray-700 dark:text-gray-300 font-medium">{item.calories} cal</span>
-                      </div>
-                    )}
-                    {/* Nutritional Info Indicator */}
-                    {item.nutritionalInfo && Object.values(item.nutritionalInfo).some(value => value !== undefined && value !== null) && (
-                      <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
-                        <NutritionIcon className="h-3 w-3 text-green-700 dark:text-green-300" />
-                        <span className="text-green-700 dark:text-green-300 font-medium text-xs">Nutrition</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {item.spiceLevel !== 'none' && (
-                      <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-                        {Array.from({ length: item.spiceLevel === 'mild' ? 1 : item.spiceLevel === 'medium' ? 2 : item.spiceLevel === 'hot' ? 3 : 4 }).map((_, i) => (
-                          <Flame key={i} className="h-3 w-3 text-gray-600 dark:text-gray-400" />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Enhanced Status and Actions */}
-                {/* Enhanced Status and Actions */}
-                <div className="space-y-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
-                  {/* Analytics Row */}
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                        <BarChart3 className="h-3 w-3" />
-                        <span>{item.viewCount || 0} views</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                        <TrendingUp className="h-3 w-3" />
-                        <span>{item.orderCount || 0} orders</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {item.addons && item.addons.length > 0 && (
-                        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full text-xs">
-                          +{item.addons.length} add-ons
+                      ) : (
+                        <span className="font-bold text-lg text-gray-900 dark:text-white">
+                           {item.currency === 'INR' ? '₹' : '$'}{item.price.toFixed(2)}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Actions and Status Row */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => openEditModal(item)}
-                        className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-300 hover:scale-110"
-                        title="Edit item"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteItem(item.id)}
-                        disabled={actionLoading === item.id}
-                        className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Delete item"
-                      >
-                        {actionLoading === item.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => setShowAnalytics(!showAnalytics)}
-                        className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-300 hover:scale-110"
-                        title="View analytics"
-                      >
-                        <BarChart3 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 flex items-center ${item.isAvailable
-                      ? 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600'
-                      : 'bg-gray-900 dark:bg-gray-600 text-white border border-gray-300 dark:border-gray-600'
-                      }`}>
-                      {item.isAvailable ? (
-                        <>
-                          <Eye className="h-3 w-3 mr-1" />
-                          Available
-                        </>
-                      ) : (
-                        <>
-                          <EyeOff className="h-3 w-3 mr-1" />
-                          Unavailable
-                        </>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 min-h-[40px]">
+                    {item.description}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {/* Compact Tags */}
+                     {item.isVegetarian && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 dark:bg-[#1a1d24] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800">
+                          <VegetarianIcon className="h-3 w-3 mr-1" /> Veg
+                        </span>
                       )}
-                    </div>
+                      {item.isVegan && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 dark:bg-[#1a1d24] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800">
+                           <VeganIcon className="h-3 w-3 mr-1" /> Vegan
+                        </span>
+                      )}
+                       {item.spiceLevel !== 'none' && item.spiceLevel !== 'mild' && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 dark:bg-[#1a1d24] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800">
+                          <Flame className="h-3 w-3 mr-1" /> {item.spiceLevel === 'medium' ? 'Spicy' : 'Hot'}
+                        </span>
+                      )}
+                  </div>
+
+                  <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                     <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 gap-3">
+                        <span className="flex items-center">
+                          <Star className="h-3 w-3 mr-1 text-gray-400 fill-current" />
+                          {item.rating.toFixed(1)}
+                        </span>
+                        <span className="flex items-center">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {item.preparationTime}m
+                        </span>
+                     </div>
+                     
+                     <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+                        <button
+                          onClick={() => openEditModal(item)}
+                          className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800/50 dark:hover:text-white rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteItem(item.id)}
+                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                     </div>
                   </div>
                 </div>
-
-                {/* Variants & Add-ons Tooltip */}
-                {((item.variants?.length || 0) > 0 || (item.addons?.length || 0) > 0) && (
-                  <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-50 mt-2">
-                    {item.variants && item.variants.length > 0 && (
-                      <div className="mb-2">
-                        <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                          <Globe className="h-3 w-3 mr-1" />
-                          Variants:
-                        </h4>
-                        <div className="space-y-1">
-                          {item.variants.map((variant, idx) => (
-                            <div key={idx} className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                              <span>{variant.name}</span>
-                              <span>{item.currency === 'INR' ? '₹' : '$'}{variant.price}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {item.addons && item.addons.length > 0 && (
-                      <div>
-                        <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add-ons:
-                        </h4>
-                        <div className="space-y-1">
-                          {item.addons.map((addon, idx) => (
-                            <div key={idx} className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                              <span>{addon.name}</span>
-                              <span>+{item.currency === 'INR' ? '₹' : '$'}{addon.price}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredItems.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <div className="text-gray-500 dark:text-gray-400">No menu items found matching your criteria.</div>
+            ))}
           </div>
         )}
 
@@ -945,13 +800,18 @@ export default function MenuManagement() {
 
         {/* Enhanced Add/Edit Modal */}
         {(showAddModal || showEditModal) && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 z-50">
-            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-[#14161a] rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden shadow-2xl flex flex-col border border-gray-200 dark:border-gray-800 animate-in zoom-in-95 duration-200">
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {showAddModal ? 'Add New Menu Item' : 'Edit Menu Item'}
-                </h2>
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-[#0f1115]/50">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    {showAddModal ? 'Add New Item' : 'Edit Item'}
+                  </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                     Fill in the details to {showAddModal ? 'create a new' : 'update the'} menu item.
+                  </p>
+                </div>
                 <button
                   onClick={() => {
                     setShowAddModal(false);
@@ -966,708 +826,470 @@ export default function MenuManagement() {
                     setTagInput('');
                     setError(null);
                   }}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-all"
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
-                <div className="p-4 space-y-4">
-                  {/* Basic Info */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Item Name *
-                      </label>
+              <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                {/* Basic Info Section */}
+                <section className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1 h-4 bg-gray-500 rounded-full"></div>
+                    Basic Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                     <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Item Name <span className="text-gray-400">*</span>
+                        </label>
                       <input
                         type="text"
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         onBlur={(e) => {
-                          // Capitalize first letter of each word on blur
                           const capitalized = capitalizeWords(e.target.value);
                           setFormData({ ...formData, name: capitalized });
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        placeholder="Enter item name"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 transition-all outline-none"
+                        placeholder="e.g. Truffle Mushroom Burger"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Price *
+                    
+                    <div className="space-y-1.5">
+                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Category <span className="text-gray-400">*</span>
                       </label>
-                      <div className="flex gap-2">
+                      <div className="relative">
                         <select
-                          value={formData.currency || 'INR'}
-                          onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                          className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                          value={formData.category || 'main-course'}
+                          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                          className="w-full px-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 transition-all outline-none appearance-none"
                         >
-                          <option value="INR">₹</option>
-                          <option value="USD">$</option>
-                        </select>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={formData.price || ''}
-                          onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                          placeholder="0.00"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Discount Price */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      <Percent className="h-4 w-4 inline mr-1" />
-                      Discount Price (Optional)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.discountPrice || ''}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        const regularPrice = formData.price || 0;
-                        // Only set if it's a valid number and less than regular price
-                        if (!e.target.value || (value > 0 && regularPrice > 0 && value < regularPrice)) {
-                          setFormData({ ...formData, discountPrice: value || undefined });
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      placeholder="Enter discounted price (leave empty for no discount)"
-                    />
-                    {formData.price && formData.discountPrice && formData.discountPrice < formData.price && (
-                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                        {Math.round(((formData.price - formData.discountPrice) / formData.price) * 100)}% discount
-                      </p>
-                    )}
-                    {formData.discountPrice && formData.price && formData.discountPrice >= formData.price && (
-                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                        Discount price must be less than regular price
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={formData.description || ''}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      placeholder="Enter item description"
-                    />
-                  </div>
-
-                  {/* Category and Time */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Category
-                      </label>
-                      <select
-                        value={formData.category || 'main-course'}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      >
-                        <optgroup label="Default Categories">
-                          {DEFAULT_CATEGORIES.map(cat => (
-                            <option key={cat.id} value={cat.id}>
-                              {getCategoryDisplayName(cat.id, categoryMappings, customCategories)}
-                            </option>
-                          ))}
-                        </optgroup>
-                        {customCategories.length > 0 && (
-                          <optgroup label="Custom Categories">
-                            {customCategories.map(cat => (
+                          <optgroup label="Default Categories">
+                            {DEFAULT_CATEGORIES.map(cat => (
                               <option key={cat.id} value={cat.id}>
-                                {cat.name}
+                                {getCategoryDisplayName(cat.id, categoryMappings, customCategories)}
                               </option>
                             ))}
                           </optgroup>
-                        )}
-                      </select>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Showing: {getCategoryDisplayName(formData.category || 'main-course', categoryMappings, customCategories)}
-                      </p>
+                          {customCategories.length > 0 && (
+                            <optgroup label="Custom Categories">
+                              {customCategories.map(cat => (
+                                <option key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Prep Time (min)
+
+                    <div className="md:col-span-2 space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Description
                       </label>
-                      <input
-                        type="number"
-                        value={formData.preparationTime || ''}
-                        onChange={(e) => setFormData({ ...formData, preparationTime: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        placeholder="15"
+                      <textarea
+                        rows={3}
+                        value={formData.description || ''}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 transition-all outline-none resize-none"
+                        placeholder="Describe the dish, ingredients, and flavor profile..."
                       />
                     </div>
                   </div>
+                </section>
 
-                  {/* Spice Level */}
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Spice Level
-                      </label>
-                      <select
-                        value={formData.spiceLevel || 'none'}
-                        onChange={(e) => setFormData({ ...formData, spiceLevel: e.target.value as any })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      >
-                        <option value="none">No Spice</option>
-                        <option value="mild">Mild</option>
-                        <option value="medium">Medium</option>
-                        <option value="hot">Hot</option>
-                        <option value="very-hot">Very Hot</option>
-                      </select>
-                    </div>
-                  </div>
+                <hr className="border-gray-100 dark:border-gray-800" />
 
-                  {/* Availability Status */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Availability Status
-                    </label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="isAvailable"
-                          checked={formData.isAvailable === true}
-                          onChange={() => setFormData({ ...formData, isAvailable: true })}
-                          className="text-green-600 focus:ring-green-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                          <Eye className="h-4 w-4 mr-1 text-green-600" />
-                          Available
-                        </span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="isAvailable"
-                          checked={formData.isAvailable === false}
-                          onChange={() => setFormData({ ...formData, isAvailable: false })}
-                          className="text-red-600 focus:ring-red-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                          <EyeOff className="h-4 w-4 mr-1 text-red-600" />
-                          Unavailable
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Dietary Options */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Dietary Options
-                    </label>
-                    <div className="flex flex-wrap gap-3">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.isVegetarian || false}
-                          onChange={(e) => setFormData({ ...formData, isVegetarian: e.target.checked })}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                          <VegetarianIcon className="h-4 w-4 mr-1 text-gray-700 dark:text-gray-300" />
-                          Vegetarian
-                        </span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.isVegan || false}
-                          onChange={(e) => setFormData({ ...formData, isVegan: e.target.checked })}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                          <VeganIcon className="h-4 w-4 mr-1 text-gray-700 dark:text-gray-300" />
-                          Vegan
-                        </span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.isGlutenFree || false}
-                          onChange={(e) => setFormData({ ...formData, isGlutenFree: e.target.checked })}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                          <GlutenFreeIcon className="h-4 w-4 mr-1 text-gray-700 dark:text-gray-300" />
-                          Gluten Free
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Image Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Item Image
-                    </label>
-                    <ImageUpload
-                      value={formData.image}
-                      onChange={(url, publicId) => {
-                        setFormData({ ...formData, image: url });
-                        setImagePublicId(publicId);
-                      }}
-                      folder="menu-items"
-                    />
-                  </div>
-
-                  {/* Video Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Item Video (Optional)
-                    </label>
-                    <VideoUpload
-                      value={formData.video}
-                      onChange={(url, publicId) => {
-                        setFormData({ ...formData, video: url, videoPublicId: publicId });
-                      }}
-                      folder="menu-videos"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Upload a video to showcase your food item. Videos will be automatically converted to MP4 format for optimal performance.
-                    </p>
-                  </div>
-
-                  {/* Ingredients */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Ingredients (comma separated)
-                    </label>
-                    <input
-                      type="text"
-                      value={ingredientInput}
-                      onChange={(e) => setIngredientInput(e.target.value)}
-                      onBlur={(e) => {
-                        // Process and capitalize on blur
-                        const processed = processCommaSeparatedInput(e.target.value);
-                        setFormData({ ...formData, ingredients: processed });
-                        setIngredientInput(processed.join(', '));
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      placeholder="Tomato, Cheese, Basil"
-                    />
-                  </div>
-
-                  {/* Allergens */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Allergens (comma separated)
-                    </label>
-                    <input
-                      type="text"
-                      value={allergenInput}
-                      onChange={(e) => setAllergenInput(e.target.value)}
-                      onBlur={(e) => {
-                        // Process and capitalize on blur
-                        const processed = processCommaSeparatedInput(e.target.value);
-                        setFormData({ ...formData, allergens: processed });
-                        setAllergenInput(processed.join(', '));
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      placeholder="Gluten, Dairy, Nuts"
-                    />
-                  </div>
-
-                  {/* Tags */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      <Tag className="h-4 w-4 inline mr-1" />
-                      Tags (comma separated)
-                    </label>
-                    <input
-                      type="text"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onBlur={(e) => {
-                        // Process and capitalize on blur
-                        const processed = processCommaSeparatedInput(e.target.value);
-                        setFormData({ ...formData, tags: processed });
-                        setTagInput(processed.join(', '));
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      placeholder="Popular, Spicy, Healthy"
-                    />
-                  </div>
-
-                  {/* Variants Section */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      <Globe className="h-4 w-4 inline mr-1" />
-                      Variants
-                    </label>
-                    <div className="space-y-2">
-                      {variants.length === 0 && (
-                        <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-                          No variants added. Click "Add Variant" to create size options like Half/Full.
-                        </div>
-                      )}
-                      {variants.map((variant, index) => (
-                        <div key={index} className="flex gap-2 items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                          <div className="flex-1">
+                {/* Pricing Section */}
+                <section className="space-y-4">
+                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1 h-4 bg-gray-500 rounded-full"></div>
+                    Pricing & Availability
+                  </h3>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Regular Price <span className="text-gray-400">*</span>
+                        </label>
+                        <div className="flex rounded-xl shadow-sm">
+                           <select
+                              value={formData.currency || 'INR'}
+                              onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                              className="px-3 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 border-r-0 rounded-l-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 outline-none"
+                            >
+                              <option value="INR">₹</option>
+                              <option value="USD">$</option>
+                            </select>
                             <input
-                              type="text"
-                              value={variant.name}
-                              onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                              onBlur={() => capitalizeVariantName(index)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                              placeholder="Variant name (e.g., Half, Full)"
+                              type="number"
+                              step="0.01"
+                              value={formData.price || ''}
+                              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                              className="flex-1 min-w-0 block w-full px-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-r-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 outline-none"
+                              placeholder="0.00"
                             />
-                          </div>
-                          <div className="w-32">
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                                {formData.currency === 'INR' ? '₹' : '$'}
-                              </span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={variant.price || ''}
-                                onChange={(e) => updateVariant(index, 'price', e.target.value)}
-                                className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                                placeholder="0.00"
-                              />
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeVariant(index)}
-                            className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                            title="Remove variant"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
                         </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={addVariant}
-                        className="w-full px-3 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
-                      >
-                        <Plus className="h-4 w-4 inline mr-1" />
-                        Add Variant
-                      </button>
-                    </div>
-                  </div>
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                           Discounted Price <span className="text-xs font-normal text-gray-500">(Optional)</span>
+                        </label>
+                         <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.discountPrice || ''}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value);
+                              const regularPrice = formData.price || 0;
+                              if (!e.target.value || (value > 0 && regularPrice > 0 && value < regularPrice)) {
+                                setFormData({ ...formData, discountPrice: value || undefined });
+                              }
+                            }}
+                            className="w-full px-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 transition-all outline-none"
+                            placeholder="e.g. 199.00"
+                          />
+                           {formData.price && formData.discountPrice && formData.discountPrice < formData.price && (
+                            <p className="text-xs text-gray-900 dark:text-white font-medium">
+                              Saving: {Math.round(((formData.price - formData.discountPrice) / formData.price) * 100)}%
+                            </p>
+                          )}
+                      </div>
 
-                  {/* Add-ons Section */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      <Plus className="h-4 w-4 inline mr-1" />
-                      Add-ons
-                    </label>
-                    <div className="space-y-2">
-                      {addons.length === 0 && (
-                        <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-                          No add-ons added. Click "Add Add-on" to create extras like cheese, combos, etc.
-                        </div>
-                      )}
-                      {addons.map((addon, index) => (
-                        <div key={index} className="flex gap-2 items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                          <div className="flex-1">
+                      <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+                         <label className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#14161a]/50 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-800">
                             <input
-                              type="text"
-                              value={addon.name}
-                              onChange={(e) => updateAddon(index, 'name', e.target.value)}
-                              onBlur={() => capitalizeAddonName(index)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                              placeholder="Add-on name (e.g., Extra Cheese)"
+                              type="checkbox"
+                              checked={formData.isAvailable !== false}
+                              onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
+                              className="w-4 h-4 text-gray-900 rounded border-gray-300 focus:ring-gray-900"
                             />
-                          </div>
-                          <div className="w-32">
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                                {formData.currency === 'INR' ? '₹' : '$'}
-                              </span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={addon.price || ''}
-                                onChange={(e) => updateAddon(index, 'price', e.target.value)}
-                                className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                                placeholder="0.00"
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Available</span>
+                          </label>
+
+                          <label className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#14161a]/50 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-800">
+                            <input
+                              type="checkbox"
+                              checked={formData.isBestSeller || false}
+                              onChange={(e) => setFormData({ ...formData, isBestSeller: e.target.checked })}
+                              className="w-4 h-4 text-gray-900 rounded border-gray-300 focus:ring-gray-900"
+                            />
+                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Best Seller</span>
+                          </label>
+
+                          <label className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#14161a]/50 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-800">
+                             <input
+                              type="checkbox"
+                              checked={formData.isRecommended || false}
+                              onChange={(e) => setFormData({ ...formData, isRecommended: e.target.checked })}
+                              className="w-4 h-4 text-gray-900 rounded border-gray-300 focus:ring-gray-900"
+                            />
+                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Recommended</span>
+                          </label>
+                      </div>
+                   </div>
+                </section>
+
+                <hr className="border-gray-100 dark:border-gray-800" />
+
+                {/* Media Section */}
+                <section className="space-y-4">
+                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1 h-4 bg-gray-500 rounded-full"></div>
+                    Media
+                  </h3>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Item Image</label>
+                         <div className="bg-gray-50 dark:bg-[#14161a] p-1 rounded-2xl border border-gray-200 dark:border-gray-800">
+                             <ImageUpload
+                                onChange={(url, publicId) => {
+                                  setFormData({ ...formData, image: url });
+                                  if (publicId) setImagePublicId(publicId);
+                                }}
+                                value={formData.image}
                               />
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeAddon(index)}
-                            className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                            title="Remove add-on"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
+                         </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Item Video (Optional)</label>
+                         <div className="bg-gray-50 dark:bg-[#14161a] p-1 rounded-2xl border border-gray-200 dark:border-gray-800">
+                            <VideoUpload
+                              onChange={(url, publicId) => {
+                                setFormData({ ...formData, video: url });
+                                if (publicId) setVideoPublicId(publicId);
+                              }}
+                              value={formData.video}
+                            />
+                         </div>
+                      </div>
+                   </div>
+                </section>
+
+                <hr className="border-gray-100 dark:border-gray-800" />
+                
+                {/* Details Section */}
+                <section className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1 h-4 bg-gray-500 rounded-full"></div>
+                    Details & Dietary
+                  </h3>
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Prep Time (min)</label>
+                        <input
+                          type="number"
+                          value={formData.preparationTime || 15}
+                          onChange={(e) => setFormData({ ...formData, preparationTime: parseInt(e.target.value) })}
+                          className="w-full px-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 outline-none"
+                        />
+                      </div>
+                      
+                       <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Calories (kcal)</label>
+                        <input
+                          type="number"
+                          value={formData.nutritionalInfo?.calories || 0}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            nutritionalInfo: { 
+                              ...formData.nutritionalInfo, 
+                              calories: parseInt(e.target.value) 
+                            } 
+                          })}
+                          className="w-full px-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 outline-none"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Spice Level</label>
+                         <div className="flex bg-gray-50 dark:bg-[#14161a] p-1 rounded-xl border border-gray-200 dark:border-gray-800">
+                            {['none', 'mild', 'medium', 'hot'].map((level) => (
+                              <button
+                                key={level}
+                                onClick={() => setFormData({ ...formData, spiceLevel: level as any })}
+                                className={`flex-1 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${
+                                  formData.spiceLevel === level
+                                    ? 'bg-white dark:bg-[#1a1d24] shadow-sm text-gray-900 dark:text-white ring-1 ring-gray-200 dark:ring-gray-600'
+                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                }`}
+                              >
+                                {level}
+                              </button>
+                            ))}
+                         </div>
+                      </div>
+                   </div>
+
+                   <div className="space-y-3 pt-2">
+                      <div className="flex flex-wrap gap-3">
+                         <label className="flex items-center gap-2 p-2.5 bg-gray-50 dark:bg-[#14161a]/50 rounded-xl border border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={formData.isVegetarian || false}
+                              onChange={(e) => setFormData({ ...formData, isVegetarian: e.target.checked })}
+                              className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-600"
+                            />
+                             <VegetarianIcon className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Vegetarian</span>
+                          </label>
+
+                           <label className="flex items-center gap-2 p-2.5 bg-gray-50 dark:bg-[#14161a]/50 rounded-xl border border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={formData.isVegan || false}
+                              onChange={(e) => setFormData({ ...formData, isVegan: e.target.checked })}
+                              className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-600"
+                            />
+                             <VeganIcon className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Vegan</span>
+                          </label>
+
+                           <label className="flex items-center gap-2 p-2.5 bg-gray-50 dark:bg-[#14161a]/50 rounded-xl border border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={formData.isGlutenFree || false}
+                              onChange={(e) => setFormData({ ...formData, isGlutenFree: e.target.checked })}
+                              className="w-4 h-4 text-amber-600 rounded border-gray-300 focus:ring-amber-600"
+                            />
+                             <GlutenFreeIcon className="h-4 w-4 text-amber-600" />
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Gluten Free</span>
+                          </label>
+                      </div>
+                   </div>
+
+                   <div className="space-y-1.5">
+                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Ingredients <span className="text-xs font-normal text-gray-500">(comma separated)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={ingredientInput}
+                        onChange={(e) => setIngredientInput(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 transition-all outline-none resize-none"
+                        placeholder="e.g. Flour, Sugar, Milk, Eggs"
+                      />
+                   </div>
+                   
+                   <div className="space-y-1.5">
+                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Allergens <span className="text-xs font-normal text-gray-500">(comma separated)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={allergenInput}
+                        onChange={(e) => setAllergenInput(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 focus:border-gray-400 transition-all outline-none"
+                        placeholder="e.g. Nuts, Dairy, Gluten"
+                      />
+                   </div>
+                </section>
+                
+                <hr className="border-gray-100 dark:border-gray-800" />
+
+                {/* Variants & Add-ons */}
+                <section className="space-y-6">
+                   <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                          <div className="w-1 h-4 bg-gray-500 rounded-full"></div>
+                          Variants <span className="text-xs font-normal text-gray-500 normal-case">(e.g. Sizes, Portions)</span>
+                        </h3>
+                        <button
+                          onClick={addVariant}
+                          className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline"
+                        >
+                          + Add Variant
+                        </button>
+                      </div>
+                      
+                      {variants.length === 0 ? (
+                        <div className="text-center py-6 bg-gray-50 dark:bg-[#14161a]/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                          <p className="text-sm text-gray-500">No variants added yet.</p>
                         </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={addAddon}
-                        className="w-full px-3 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
-                      >
-                        <Plus className="h-4 w-4 inline mr-1" />
-                        Add Add-on
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Nutritional Information */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      <span className="flex items-center">
-                        <NutritionIcon className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
-                        Nutritional Information (Optional)
-                      </span>
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Calories
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={formData.nutritionalInfo?.calories || ''}
-                          onChange={(e) => setFormData({ 
-                            ...formData, 
-                            nutritionalInfo: { 
-                              ...formData.nutritionalInfo, 
-                              calories: parseInt(e.target.value) || undefined 
-                            } 
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                          placeholder="450"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Protein (g)
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          value={formData.nutritionalInfo?.protein || ''}
-                          onChange={(e) => setFormData({ 
-                            ...formData, 
-                            nutritionalInfo: { 
-                              ...formData.nutritionalInfo, 
-                              protein: parseFloat(e.target.value) || undefined 
-                            } 
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                          placeholder="25"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Fat (g)
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          value={formData.nutritionalInfo?.fat || ''}
-                          onChange={(e) => setFormData({ 
-                            ...formData, 
-                            nutritionalInfo: { 
-                              ...formData.nutritionalInfo, 
-                              fat: parseFloat(e.target.value) || undefined 
-                            } 
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                          placeholder="20"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Carbs (g)
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          value={formData.nutritionalInfo?.carbs || ''}
-                          onChange={(e) => setFormData({ 
-                            ...formData, 
-                            nutritionalInfo: { 
-                              ...formData.nutritionalInfo, 
-                              carbs: parseFloat(e.target.value) || undefined 
-                            } 
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                          placeholder="40"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Fiber (g)
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          value={formData.nutritionalInfo?.fiber || ''}
-                          onChange={(e) => setFormData({ 
-                            ...formData, 
-                            nutritionalInfo: { 
-                              ...formData.nutritionalInfo, 
-                              fiber: parseFloat(e.target.value) || undefined 
-                            } 
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                          placeholder="5"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Sugar (g)
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          value={formData.nutritionalInfo?.sugar || ''}
-                          onChange={(e) => setFormData({ 
-                            ...formData, 
-                            nutritionalInfo: { 
-                              ...formData.nutritionalInfo, 
-                              sugar: parseFloat(e.target.value) || undefined 
-                            } 
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                          placeholder="8"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Sodium (mg)
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={formData.nutritionalInfo?.sodium || ''}
-                          onChange={(e) => setFormData({ 
-                            ...formData, 
-                            nutritionalInfo: { 
-                              ...formData.nutritionalInfo, 
-                              sodium: parseInt(e.target.value) || undefined 
-                            } 
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                          placeholder="800"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                          Cholesterol (mg)
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={formData.nutritionalInfo?.cholesterol || ''}
-                          onChange={(e) => setFormData({ 
-                            ...formData, 
-                            nutritionalInfo: { 
-                              ...formData.nutritionalInfo, 
-                              cholesterol: parseInt(e.target.value) || undefined 
-                            } 
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                          placeholder="50"
-                        />
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      Leave fields empty if nutritional information is not available. Only filled fields will be displayed to customers.
-                    </p>
-                  </div>
-
-                  {/* Meta Information */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Meta Information
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.isBestSeller || false}
-                          onChange={(e) => setFormData({ ...formData, isBestSeller: e.target.checked })}
-                          className="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                          <Award className="h-4 w-4 mr-1" />
-                          Best Seller
-                        </span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.isRecommended || false}
-                          onChange={(e) => setFormData({ ...formData, isRecommended: e.target.checked })}
-                          className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                          <Heart className="h-4 w-4 mr-1" />
-                          Recommended
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowAddModal(false);
-                        setShowEditModal(false);
-                        setFormData({});
-                        setVariants([]);
-                        setAddons([]);
-                        setImagePublicId('');
-                        setVideoPublicId('');
-                        setIngredientInput('');
-                        setAllergenInput('');
-                        setTagInput('');
-                        setError(null);
-                      }}
-                      className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={showAddModal ? handleAdd : handleSave}
-                      disabled={actionLoading === 'add' || actionLoading === 'save'}
-                      className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                    >
-                      {(actionLoading === 'add' || actionLoading === 'save') && (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <div className="space-y-3">
+                          {variants.map((variant, index) => (
+                            <div key={index} className="flex gap-3 items-start animate-in slide-in-from-left-4 duration-300">
+                              <input
+                                type="text"
+                                value={variant.name}
+                                onChange={(e) => updateVariant(index, 'name', e.target.value)}
+                                onBlur={() => capitalizeVariantName(index)}
+                                placeholder="Name (e.g. Large)"
+                                className="flex-1 px-4 py-2 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 outline-none"
+                              />
+                              <div className="relative w-32">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
+                                <input
+                                  type="number"
+                                  value={variant.price || ''}
+                                  onChange={(e) => updateVariant(index, 'price', e.target.value)}
+                                  placeholder="0.00"
+                                  className="w-full pl-7 pr-4 py-2 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 outline-none"
+                                />
+                              </div>
+                              <button
+                                onClick={() => removeVariant(index)}
+                                className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                      <span>
-                        {actionLoading === 'add' ? 'Adding...' :
-                          actionLoading === 'save' ? 'Saving...' :
-                            showAddModal ? 'Add Item' : 'Save Changes'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
+                   </div>
+
+                   <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                          <div className="w-1 h-4 bg-gray-500 rounded-full"></div>
+                          Add-ons <span className="text-xs font-normal text-gray-500 normal-case">(e.g. Extra Cheese, Dip)</span>
+                        </h3>
+                        <button
+                          onClick={addAddon}
+                          className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline"
+                        >
+                          + Add Add-on
+                        </button>
+                      </div>
+                      
+                      {addons.length === 0 ? (
+                        <div className="text-center py-6 bg-gray-50 dark:bg-[#14161a]/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                          <p className="text-sm text-gray-500">No add-ons added yet.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {addons.map((addon, index) => (
+                            <div key={index} className="flex gap-3 items-start animate-in slide-in-from-left-4 duration-300">
+                              <input
+                                type="text"
+                                value={addon.name}
+                                onChange={(e) => updateAddon(index, 'name', e.target.value)}
+                                onBlur={() => capitalizeAddonName(index)}
+                                placeholder="Name (e.g. Extra Cheese)"
+                                className="flex-1 px-4 py-2 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 outline-none"
+                              />
+                              <div className="relative w-32">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
+                                <input
+                                  type="number"
+                                  value={addon.price || ''}
+                                  onChange={(e) => updateAddon(index, 'price', e.target.value)}
+                                  placeholder="0.00"
+                                  className="w-full pl-7 pr-4 py-2 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-gray-300 outline-none"
+                                />
+                              </div>
+                              <button
+                                onClick={() => removeAddon(index)}
+                                className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                   </div>
+                </section>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f1115]/50 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setShowEditModal(false);
+                  }}
+                  className="px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors shadow-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={showAddModal ? handleAdd : handleSave}
+                  disabled={actionLoading !== null}
+                  className="px-5 py-2.5 text-sm font-bold text-slate-900 bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff] rounded-xl hover:shadow-lg hover:scale-105 transition-all disabled:opacity-70 disabled:hover:scale-100 flex items-center"
+                >
+                  {actionLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {showAddModal ? 'Adding...' : 'Saving...'}
+                    </>
+                  ) : (
+                    <>
+                      {showAddModal ? 'Add Item' : 'Save Changes'}
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
