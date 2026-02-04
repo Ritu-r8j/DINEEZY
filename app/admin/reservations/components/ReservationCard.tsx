@@ -46,7 +46,7 @@ export default function ReservationCard({
                                 {reservation.customerInfo.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1 min-w-0">
                                     <h3 className="font-semibold text-white text-sm sm:text-base truncate">
                                         {reservation.customerInfo.name}
                                     </h3>
@@ -77,7 +77,7 @@ export default function ReservationCard({
                             </div>
                         </div>
                         {reservation.reservationDetails.specialRequests && (
-                            <div className="mt-2 text-[10px] sm:text-xs text-gray-400 bg-gray-800/50 rounded px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-700/50">
+                            <div className="mt-2 text-[10px] sm:text-xs text-gray-400 bg-gray-800/50 rounded px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-700/50 break-words">
                                 <span className="text-amber-400 font-medium">Note:</span> {reservation.reservationDetails.specialRequests}
                             </div>
                         )}

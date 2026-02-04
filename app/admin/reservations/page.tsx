@@ -329,9 +329,9 @@ export default function ReservationsPage() {
                     </div>
 
                     {/* Controls Row */}
-                    <div className="mt-6 flex flex-col xl:flex-row gap-4 justify-between">
+                    <div className="mt-6 flex flex-col xl:flex-row xl:flex-wrap gap-4 justify-between">
                          {/* Stats Grid - Inlined for consistent style */}
-                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full xl:w-auto">
+                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full xl:flex-1 min-w-0">
                             {[
                                 { label: 'Total', value: stats.total, color: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400', active: activeTab === 'all', key: 'all' },
                                 { label: 'Pending', value: stats.pending, color: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400', active: activeTab === 'pending', key: 'pending' },
@@ -359,18 +359,18 @@ export default function ReservationsPage() {
                          </div>
 
                          {/* Date & Search */}
-                         <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto items-end">
-                            <div className="relative w-full sm:w-auto">
+                         <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full xl:w-auto items-start sm:items-end min-w-0">
+                            <div className="relative w-full sm:w-auto min-w-0">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground dark:text-gray-400 h-4 w-4" />
                                 <input
                                     type="text"
                                     placeholder="Search guest or ID..."
-                                    className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm text-foreground dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                    className="w-full sm:w-64 max-w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm text-foreground dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
-                            <div className="flex items-center bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl p-1 shadow-sm">
+                            <div className="flex items-center bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl p-1 shadow-sm w-full sm:w-auto">
                                 <button 
                                     onClick={() => {
                                         const d = new Date(selectedDate);
@@ -529,13 +529,13 @@ export default function ReservationsPage() {
                                 key={reservation.id}
                                 className="bg-white dark:bg-[#14161a] rounded-xl border border-gray-200 dark:border-gray-800 shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_25px_rgba(0,0,0,0.1)] transition-all duration-300 p-5 group"
                             >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-3">
+                                <div className="flex items-start justify-between gap-3 mb-4">
+                                    <div className="flex items-center gap-3 min-w-0">
                                         <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-[#1a1d24] flex items-center justify-center text-foreground dark:text-white font-bold text-lg">
                                             {reservation.customerInfo.name.charAt(0)}
                                         </div>
-                                        <div>
-                                            <h3 className="font-semibold text-foreground dark:text-white truncate max-w-[120px]">
+                                        <div className="min-w-0">
+                                            <h3 className="font-semibold text-foreground dark:text-white truncate max-w-[160px] sm:max-w-[220px]">
                                                 {reservation.customerInfo.name}
                                             </h3>
                                             <span className={getStatusBadge(reservation.status)}>
