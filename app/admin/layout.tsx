@@ -157,13 +157,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
           {/* Logo Area */}
-          <div className="h-20 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
+          <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
             <Link href="/admin" className="flex items-center gap-3">
-              <div className="w-[60px] h-[60px] relative flex items-center justify-center">
+              <div className="w-11 h-11 relative flex items-center justify-center">
                 <Image 
                   src="/logo.png" 
-                  width={60} 
-                  height={60} 
+                  width={44} 
+                  height={44} 
                   alt="Dineezy" 
                   className="object-contain dark:invert" 
                   priority
