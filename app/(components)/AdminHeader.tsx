@@ -67,11 +67,11 @@ export default function AdminHeader({ currentPage = 'dashboard' }: AdminHeaderPr
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/admin" className="flex items-center hover:opacity-80 transition-all duration-200 ease-in-out hover:scale-105">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-200 ease-in-out  p-1 ">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-200 ease-in-out p-1">
               <img
                 src="/logo.png"
                 alt="Dineezy Logo"
-                className="w-20 h-20 md:w-24 md:h-24 object-cover object-center dark:invert"
+                className="w-28 h-28 md:w-32 md:h-32 object-cover object-center dark:invert"
               />
             </div>
             <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">Dineezy</h1>

@@ -330,47 +330,47 @@ export default function PaymentsPage() {
 
                 {/* Main Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Revenue Card - Dark Theme for Gradient Text */}
-                    <div className="bg-[#14161a] rounded-xl p-6 shadow-sm">
+                    {/* Revenue Card */}
+                    <div className="bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-gray-800 rounded-xl">
-                                <DollarSign className="h-6 w-6 text-white" />
+                            <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                                <DollarSign className="h-6 w-6 text-gray-900 dark:text-white" />
                             </div>
-                            <span className="flex items-center text-xs font-medium text-gray-300 bg-gray-800 px-2 py-1 rounded-full">
+                            <span className="flex items-center text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
                                 <ArrowUpRight className="h-3 w-3 mr-1" />
                                 +12.5%
                             </span>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-400">Total Revenue</p>
-                            <h3 className="text-2xl font-bold mt-1 bg-clip-text text-transparent bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff]">
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
+                            <h3 className="text-2xl font-bold mt-1 text-gray-900 dark:bg-clip-text dark:text-transparent dark:bg-gradient-to-r dark:from-[#b8dcff] dark:via-[#c9cbff] dark:to-[#e5c0ff]">
                                 ₹{dayWiseData?.totals?.totalRevenue?.toLocaleString() || '0'}
                             </h3>
                             {analytics?.totalRevenue !== dayWiseData?.totals?.totalRevenue && (
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                                     Pending: ₹{(analytics?.totalRevenue - (dayWiseData?.totals?.totalRevenue || 0)).toFixed(2)}
                                 </p>
                             )}
                         </div>
                     </div>
 
-                    {/* Pending Payouts Card - Dark Theme for Gradient Text */}
-                    <div className="bg-[#14161a] rounded-xl p-6 shadow-sm">
+                    {/* Pending Payouts Card */}
+                    <div className="bg-white dark:bg-[#14161a] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-gray-800 rounded-xl">
-                                <Clock className="h-6 w-6 text-white" />
+                            <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                                <Clock className="h-6 w-6 text-gray-900 dark:text-white" />
                             </div>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-400">Pending Payouts</p>
-                            <h3 className="text-2xl font-bold mt-1 bg-clip-text text-transparent bg-gradient-to-r from-[#b8dcff] via-[#c9cbff] to-[#e5c0ff]">
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Payouts</p>
+                            <h3 className="text-2xl font-bold mt-1 text-gray-900 dark:bg-clip-text dark:text-transparent dark:bg-gradient-to-r dark:from-[#b8dcff] dark:via-[#c9cbff] dark:to-[#e5c0ff]">
                                 ₹{payoutRequests
                                     .filter(p => p.status === 'pending' || p.status === 'approved')
                                     .reduce((sum, p) => sum + p.amount, 0)
                                     .toFixed(2)
                                 }
                             </h3>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                                 {payoutRequests.filter(p => p.status === 'pending').length} requests awaiting approval
                             </p>
                         </div>
